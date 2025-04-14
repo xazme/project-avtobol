@@ -1,0 +1,22 @@
+from typing import TYPE_CHECKING, List
+from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from app.database import Base
+
+if TYPE_CHECKING:
+    from app.car_parts.car_brand import CarBrand
+
+
+class CarSeries(Base):
+    title: Mapped[str] = mapped_column(String)
+    year: Mapped[int] = mapped_column(Integer)
+
+    brand_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("carbrand.id"),
+        index=True,
+        unique=False,
+    )
+
+    # relationship
+    brand: Mapped["CarBrand"] = relationship(back_populates="serie")
