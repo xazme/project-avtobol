@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class UserBase(BaseModel):
-    username: str = Field(..., alias="obj_name")
+    username: str = Field(..., alias="obj_name")  # TODO
     email: EmailStr
     password: str
 

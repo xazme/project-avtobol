@@ -1,3 +1,9 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.shared import CRUDGenerator
+from .car_brand_model import CarBrand
 
-pass
+
+class CarBrandService(CRUDGenerator[CarBrand]):
+
+    def __init__(self, session: AsyncSession, model: type[CarBrand]):
+        super().__init__(session=session, model=model)

@@ -6,7 +6,7 @@ from app.user import get_user_service
 
 if TYPE_CHECKING:
     from app.user import User, UserService
-    from app.shared import CRUDGenerator
+    from app.shared import UserService
     from app.token import TokenService
     from app.shared import Roles
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 async def authentificate_user(
     username: str = Form(strict=True),
     password: str = Form(strict=True),
-    user_service: "CRUDGenerator" = Depends(get_user_service),
+    user_service: "UserService" = Depends(get_user_service),
 ) -> "User":
 
     if not isinstance(username, str) or not isinstance(password, str):
@@ -38,7 +38,7 @@ async def authentificate_user(
 
 async def user_from_refresh_token(
     token: str = Depends(get_refresh_token),
-    user_service: "CRUDGenerator" = Depends(get_user_service),
+    user_service: "UserService" = Depends(get_user_service),
     token_service: "TokenService" = Depends(get_token_service),
 ) -> "User":
     print(token)
@@ -54,7 +54,7 @@ async def user_from_refresh_token(
 
 async def user_from_access_token(
     token: str = Depends(get_access_token),
-    user_service: "CRUDGenerator" = Depends(get_user_service),
+    user_service: "UserService" = Depends(get_user_service),
     token_service: "TokenService" = Depends(get_token_service),
 ) -> "User":
     user_data: dict = token_service.decode(token=token, type=Tokens.ACCESS)

@@ -9,4 +9,8 @@ if TYPE_CHECKING:
 
 class CarBrand(Base):
     title: Mapped[str] = mapped_column(String)
-    serie: Mapped[List["CarSeries"]] = relationship(back_populates="brand")
+
+    # relationship
+    series: Mapped[List["CarSeries"]] = relationship(
+        back_populates="brand",
+    )

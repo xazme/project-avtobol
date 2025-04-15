@@ -8,8 +8,11 @@ if TYPE_CHECKING:
 
 
 class CarSeries(Base):
-    title: Mapped[str] = mapped_column(String)
-    year: Mapped[int] = mapped_column(Integer)
+    title: Mapped[str] = mapped_column(
+        String,
+        unique=True,
+    )
+    year: Mapped[int] = mapped_column(String)
 
     brand_id: Mapped[int] = mapped_column(
         Integer,
@@ -19,4 +22,6 @@ class CarSeries(Base):
     )
 
     # relationship
-    brand: Mapped["CarBrand"] = relationship(back_populates="serie")
+    brand: Mapped["CarBrand"] = relationship(
+        back_populates="series",
+    )

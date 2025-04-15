@@ -13,8 +13,8 @@ class CRUDGenerator(Generic[T]):
         self.session = session
         self.model = model
 
-    async def get(self, obj_id: int) -> T | None:
-        stmt = Select(self.model).where(self.model.id == obj_id).limit(1)
+    async def get(self, id: int) -> T | None:
+        stmt = Select(self.model).where(self.model.id == id).limit(1)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
@@ -30,8 +30,8 @@ class CRUDGenerator(Generic[T]):
             await self.session.rollback()
             return None
 
-    async def update(self, obj_id: int, new_data: dict) -> T | None:
-        obj = await self.get(obj_id=obj_id)
+    async def update(self, id: int, new_data: dict) -> T | None:
+        obj = await self.get(obj_id=id)
 
         if obj is None:
             return None
@@ -43,8 +43,8 @@ class CRUDGenerator(Generic[T]):
         await self.session.refresh(obj)
         return obj
 
-    async def delete(self, obj_id: int) -> bool | None:
-        obj = await self.get(obj_id=obj_id)
+    async def delete(self, id: int) -> bool | None:
+        obj = await self.get(id=id)
 
         if obj is None:
             return None
@@ -53,13 +53,7 @@ class CRUDGenerator(Generic[T]):
         await self.session.commit()
         return True
 
-    async def get_by_name(self, obj_name: str) -> T | None:
-        stmt = Select(self.model).where(self.model.obj_name == obj_name).limit(1)
+    async def get_by_name(self, name: str) -> T | None:
+        stmt = Select(self.model).where(self.model.obj_name == name).limit(1)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
-
-    async def get_all(self) -> list:
-        stmt = Select(self.model.obj_name, self.model.id)
-        result: Result = await self.session.execute(statement=stmt)
-        rows = result.all()
-        return [(row) for row in rows]

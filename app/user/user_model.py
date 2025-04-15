@@ -7,7 +7,7 @@ from app.shared import Roles, Statuses
 
 
 class User(Base):
-    obj_name: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(
         String,
         nullable=False,
         unique=True,
