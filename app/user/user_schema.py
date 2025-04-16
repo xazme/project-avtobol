@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class UserBase(BaseModel):
-    username: str = Field(..., alias="obj_name")  # TODO
+    name: str
     email: EmailStr
     password: str
 
@@ -17,7 +17,6 @@ class UserUpdate(UserBase):
 
 class UserResponce(BaseModel):
     id: int
-    username: str = Field(..., alias="obj_name")
 
     class Config:
         from_attributes = True

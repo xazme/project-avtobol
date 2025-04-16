@@ -28,13 +28,9 @@ async def create_user(
     user_data: UserCreate,
     user_service: "UserService" = Depends(get_user_service),
 ):
-    upd_user_data = user_data.copy()
+    upd_user_data = user_data.model_copy()
     upd_user_data.password = HashHelper.hash_password(password=user_data.password)
-    user = await user_service.create(
-        data=upd_user_data.model_dump(
-            by_alias=True,
-        )
-    )
+    user = await user_service.create(data=upd_user_data.model_dump())
     if not user:
         ExceptionRaiser.raise_exception(status_code=400)
     return UserResponce.model_validate(user)
@@ -46,13 +42,12 @@ async def update_user(
     user_data: UserUpdate,
     user_service: "UserService" = Depends(get_user_service),
 ):
-    upd_user_data = user_data.copy()
+    upd_user_data = user_data.model_dump()
     upd_user_data.password = HashHelper.hash_password(password=user_data.password)
 
     updated_user = await user_service.update(
         obj_id=user_id,
         new_data=upd_user_data.model_dump(
-            by_alias=True,
             exclude_unset=True,
         ),
     )

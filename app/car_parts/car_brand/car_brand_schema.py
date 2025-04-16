@@ -1,6 +1,22 @@
 from pydantic import BaseModel
 
 
-class CarBrand(BaseModel):
-    id: int
+class CarBrandBase(BaseModel):
     name: str
+    url: str
+
+
+class CarBrandCreate(CarBrandBase):
+    pass
+
+
+class CarBrandUpdate(CarBrandBase):
+    pass
+
+
+class CarBrandResponse(CarBrandBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+        validate_by_name = True

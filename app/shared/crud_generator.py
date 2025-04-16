@@ -19,7 +19,10 @@ class CRUDGenerator(Generic[T]):
         return result.scalar_one_or_none()
 
     async def create(self, data: dict) -> T | None:
+        print(data)
+        print(self.model.name)
         obj = self.model(**data)
+
         try:
             self.session.add(obj)
             await self.session.commit()
@@ -31,7 +34,7 @@ class CRUDGenerator(Generic[T]):
             return None
 
     async def update(self, id: int, new_data: dict) -> T | None:
-        obj = await self.get(obj_id=id)
+        obj = await self.get(id=id)
 
         if obj is None:
             return None

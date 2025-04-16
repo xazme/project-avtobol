@@ -8,7 +8,14 @@ if TYPE_CHECKING:
 
 
 class CarBrand(Base):
-    title: Mapped[str] = mapped_column(String)
+    name: Mapped[str] = mapped_column(
+        String,
+        unique=True,
+    )
+    url: Mapped[str] = mapped_column(
+        String,
+        unique=True,
+    )
 
     # relationship
     series: Mapped[List["CarSeries"]] = relationship(

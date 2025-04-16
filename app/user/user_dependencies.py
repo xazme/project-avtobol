@@ -8,4 +8,4 @@ from .user_model import User
 async def get_user_service(
     session: AsyncSession = Depends(DBService.get_session),
 ) -> UserService:
-    return UserService(session=session)
+    return UserService(session=session, model=User)
