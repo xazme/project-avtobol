@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel
 
 
@@ -15,7 +16,7 @@ class CarBrandUpdate(CarBrandBase):
 
 
 class CarBrandResponse(CarBrandBase):
-    id: int
+    id: uuid.UUID
 
     class Config:
         from_attributes = True

@@ -13,14 +13,13 @@ class CRUDGenerator(Generic[T]):
         self.session = session
         self.model = model
 
-    async def get(self, id: int) -> T | None:
+    async def get(self, id: str) -> T | None:
         stmt = Select(self.model).where(self.model.id == id).limit(1)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
     async def create(self, data: dict) -> T | None:
         print(data)
-        print(self.model.name)
         obj = self.model(**data)
 
         try:
@@ -33,7 +32,7 @@ class CRUDGenerator(Generic[T]):
             await self.session.rollback()
             return None
 
-    async def update(self, id: int, new_data: dict) -> T | None:
+    async def update(self, id: str, new_data: dict) -> T | None:
         obj = await self.get(id=id)
 
         if obj is None:
@@ -46,7 +45,7 @@ class CRUDGenerator(Generic[T]):
         await self.session.refresh(obj)
         return obj
 
-    async def delete(self, id: int) -> bool | None:
+    async def delete(self, id: str) -> bool | None:
         obj = await self.get(id=id)
 
         if obj is None:

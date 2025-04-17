@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, List
-from sqlalchemy import String
+from sqlalchemy import String, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
@@ -21,3 +21,5 @@ class CarBrand(Base):
     series: Mapped[List["CarSeries"]] = relationship(
         back_populates="brand",
     )
+
+    __table_args__ = (Index("ix_my_model_id_hash", "id", postgresql_using="hash"),)

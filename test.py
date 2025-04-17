@@ -66,3 +66,15 @@
 
 
 # asyncio.run(main())
+
+
+# class Suka(Base):
+#     id: Mapped[UUID]
+#     bucked_id: [int]
+#     name: str
+
+#     @staticmethod
+#     def create(name: str):
+#         uuid = uuid.uuid4()
+#         bucket_id = convert_uuid_to_int(uuid)
+#         return Suka(id=uuid, name=name, bucket_id=bucket_id)
