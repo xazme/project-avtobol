@@ -92,6 +92,8 @@ class ApiPrefix(BaseModel):
     main_prefix: str = "/api"
     user_prefix: str = "/user"
     car_brand_prefix: str = "/carbrand"
+    car_series_prefix: str = "/carseries"
+    car_part_catalog_prefix: str = "/carpartcatalog"
     # etc
 
 

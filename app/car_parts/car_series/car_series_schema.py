@@ -11,7 +11,7 @@ class CarSeriesBase(BaseModel):
 
 
 class CarSeriesCreate(CarSeriesBase):
-    pass
+    brand_id: uuid.UUID
 
 
 class CarSeriesUpdate(CarSeriesBase):
