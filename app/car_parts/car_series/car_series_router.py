@@ -11,6 +11,19 @@ if TYPE_CHECKING:
 router = APIRouter(prefix=settings.api.car_series_prefix, tags=["Car Series"])
 
 
+@router.get("/")
+async def get_series(
+    id: str,
+    car_series_service: "CarSeriesService" = Depends(
+        get_car_series_service,
+    ),
+):
+    series = await car_series_service.get(id=id)
+    if not series:
+        ExceptionRaiser.raise_exception(status_code=404)  # TODO
+    return CarSeriesResponse.model_validate(series)
+
+
 @router.post(
     "/",
     response_model=CarSeriesResponse,
@@ -18,11 +31,12 @@ router = APIRouter(prefix=settings.api.car_series_prefix, tags=["Car Series"])
 )
 async def create_series(
     car_brand_info: CarSeriesCreate,
-    get_car_series_service: "CarSeriesService" = Depends(get_car_series_service),
+    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
 ):
-
     data = car_brand_info.model_dump()
-    brand = await get_car_series_service.create(data=data)
+    print(data)
+    brand = await car_series_service.create(data=data)
+    print(brand)
     if not brand:
         ExceptionRaiser.raise_exception(status_code=404, detail="naxyu sgonyai")  # TODO
     return CarSeriesResponse.model_validate(brand)
@@ -36,13 +50,11 @@ async def create_series(
 async def update_series(
     car_brand_id: str,
     new_car_brand_info: CarSeriesUpdate,
-    get_car_series_service: "CarSeriesService" = Depends(get_car_series_service),
+    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
 ):
     data = new_car_brand_info.model_dump(exclude_unset=True)
     print(data)
-    upd_car_brand_data = await get_car_series_service.update(
-        id=car_brand_id, new_data=data
-    )
+    upd_car_brand_data = await car_series_service.update(id=car_brand_id, new_data=data)
     if not upd_car_brand_data:
         ExceptionRaiser.raise_exception(status_code=404)  # TODO
     return CarSeriesResponse.model_validate(upd_car_brand_data)
@@ -55,9 +67,9 @@ async def update_series(
 )
 async def delete_series(
     car_brand_id: str,
-    get_car_series_service: "CarSeriesService" = Depends(get_car_series_service),
+    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
 ):
-    result = await get_car_series_service.delete(id=car_brand_id)
+    result = await car_series_service.delete(id=car_brand_id)
     if not result:
         ExceptionRaiser.raise_exception(status_code=404)  # TODO
     return {"msg": "success"}

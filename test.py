@@ -78,3 +78,8 @@
 #         uuid = uuid.uuid4()
 #         bucket_id = convert_uuid_to_int(uuid)
 #         return Suka(id=uuid, name=name, bucket_id=bucket_id)
+import uuid
+
+id = uuid.uuid4()
+print(id)
+print(int(id) >> 64)

@@ -5,4 +5,4 @@ from app.shared import CRUDGenerator
 
 class CarPartCatalogService(CRUDGenerator[CarPartCatalog]):
     def __init__(self, session: AsyncSession, model: type[CarPartCatalog]):
-        return CRUDGenerator(session=session, model=model)
+        super().__init__(session=session, model=model)

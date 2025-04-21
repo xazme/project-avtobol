@@ -11,6 +11,19 @@ if TYPE_CHECKING:
 router = APIRouter(prefix=settings.api.car_brand_prefix, tags=["Car Brand"])
 
 
+@router.get("/")
+async def get_brand(
+    id: str,
+    car_brand_service: "CarBrandService" = Depends(
+        get_car_brand_service,
+    ),
+):
+    brand = await car_brand_service.get(id=id)
+    if not brand:
+        ExceptionRaiser.raise_exception(status_code=404)  # TODO
+    return CarBrandResponse.model_validate(brand)
+
+
 @router.post(
     "/",
     response_model=CarBrandResponse,

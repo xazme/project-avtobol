@@ -1,4 +1,4 @@
-from .car_part_caralog_dependencies import get_car_series_service
+from .car_part_caralog_dependencies import get_car_part_catalog_service
 from .car_part_catalog_model import CarPartCatalog
 from .car_part_catalog_service import CarPartCatalogService
 from .car_part_catalog_router import router as car_part_catalog_router
