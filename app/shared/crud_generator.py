@@ -59,3 +59,8 @@ class CRUDGenerator(Generic[T]):
         stmt = Select(self.model).where(self.model.obj_name == name).limit(1)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
+
+    async def get_all(self) -> list:
+        stmt = Select(self.model).order_by(self.model.id)
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalars().all()

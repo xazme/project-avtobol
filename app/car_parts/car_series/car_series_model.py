@@ -14,7 +14,7 @@ class CarSeries(Base):
         String,
         unique=True,
     )
-    year: Mapped[int] = mapped_column(String)
+    year: Mapped[str] = mapped_column(String)
 
     brand_id: Mapped[uuid.UUID] = mapped_column(
         UUID,
