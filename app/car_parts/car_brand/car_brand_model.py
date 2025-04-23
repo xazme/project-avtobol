@@ -21,5 +21,3 @@ class CarBrand(Base):
     series: Mapped[List["CarSeries"]] = relationship(
         back_populates="brand",
     )
-
-    __table_args__ = (Index("ix_my_model_id_hash", "id", postgresql_using="hash"),)

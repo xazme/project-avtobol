@@ -3,7 +3,7 @@ from app.shared import CRUDGenerator
 from .user_model import User
 
 
-class UserService(CRUDGenerator[User]):
+class UserService(CRUDGenerator):
 
-    def __init__(self, session: AsyncSession, model: type[User]):
-        super().__init__(session=session, model=model)
+    def __init__(self, session: AsyncSession):
+        super().__init__(session=session, model=User)

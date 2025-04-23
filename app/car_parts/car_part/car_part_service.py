@@ -5,10 +5,13 @@ from .car_part_model import CarPart
 from app.shared import CRUDGenerator
 
 
-class CarPart(CRUDGenerator[CarPart]):
+class CarPartService(CRUDGenerator):
 
-    def __init__(self, session: AsyncSession, model: type[CarPart]):
-        super().__init__(session, model)
+    def __init__(self, session: AsyncSession):
+        super().__init__(
+            session=session,
+            model=CarPart,
+        )
 
     async def get_all(self):
         stmt = Select(self.model).options(

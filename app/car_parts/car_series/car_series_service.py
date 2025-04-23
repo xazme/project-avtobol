@@ -3,7 +3,10 @@ from .car_series_model import CarSeries
 from app.shared import CRUDGenerator
 
 
-class CarSeriesService(CRUDGenerator[CarSeries]):
+class CarSeriesService(CRUDGenerator):
 
-    def __init__(self, session: AsyncSession, model: type[CarSeries]):
-        super().__init__(session, model)
+    def __init__(self, session: AsyncSession):
+        super().__init__(
+            session=session,
+            model=CarSeries,
+        )

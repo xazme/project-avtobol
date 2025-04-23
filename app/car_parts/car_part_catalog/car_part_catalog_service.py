@@ -3,6 +3,9 @@ from .car_part_catalog_model import CarPartCatalog
 from app.shared import CRUDGenerator
 
 
-class CarPartCatalogService(CRUDGenerator[CarPartCatalog]):
-    def __init__(self, session: AsyncSession, model: type[CarPartCatalog]):
-        super().__init__(session=session, model=model)
+class CarPartCatalogService(CRUDGenerator):
+    def __init__(self, session: AsyncSession):
+        super().__init__(
+            session=session,
+            model=CarPartCatalog,
+        )

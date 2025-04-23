@@ -35,11 +35,10 @@ async def create_series(
 ):
     data = car_brand_info.model_dump()
     print(data)
-    brand = await car_series_service.create(data=data)
-    print(brand)
-    if not brand:
+    series = await car_series_service.create(data=data)
+    if not series:
         ExceptionRaiser.raise_exception(status_code=404, detail="naxyu sgonyai")  # TODO
-    return CarSeriesResponse.model_validate(brand)
+    return CarSeriesResponse.model_validate(series)
 
 
 @router.put(
@@ -49,15 +48,16 @@ async def create_series(
 )
 async def update_series(
     car_brand_id: str,
-    new_car_brand_info: CarSeriesUpdate,
+    new_car_series_info: CarSeriesUpdate,
     car_series_service: "CarSeriesService" = Depends(get_car_series_service),
 ):
-    data = new_car_brand_info.model_dump(exclude_unset=True)
-    print(data)
-    upd_car_brand_data = await car_series_service.update(id=car_brand_id, new_data=data)
-    if not upd_car_brand_data:
+    data = new_car_series_info.model_dump(exclude_unset=True)
+    upd_car_series_info = await car_series_service.update(
+        id=car_brand_id, new_data=data
+    )
+    if not upd_car_series_info:
         ExceptionRaiser.raise_exception(status_code=404)  # TODO
-    return CarSeriesResponse.model_validate(upd_car_brand_data)
+    return CarSeriesResponse.model_validate(upd_car_series_info)
 
 
 @router.delete(

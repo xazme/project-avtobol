@@ -14,7 +14,6 @@ class CarPart(Base):
     )
     part_id: Mapped[str] = mapped_column(
         String,
-        ForeignKey("carpart.id"),
         nullable=False,
     )
     series_id: Mapped[str] = mapped_column(
@@ -59,7 +58,7 @@ class CarPart(Base):
     )
     description: Mapped[str] = mapped_column(
         String,
-        description=True,
+        nullable=True,
     )
     real_price: Mapped[float] = mapped_column(
         Float,

@@ -1,24 +1,22 @@
-from typing import TypeVar, Generic, Type
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import Select, Result
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-T = TypeVar("T")
 
-
-class CRUDGenerator(Generic[T]):
+class CRUDGenerator:
     """CRUD GENERATOR"""
 
-    def __init__(self, session: AsyncSession, model: Type[T]):
+    def __init__(self, session: AsyncSession, model: DeclarativeBase):
         self.session = session
         self.model = model
 
-    async def get(self, id: str) -> T | None:
+    async def get(self, id: str) -> DeclarativeBase | None:
         stmt = Select(self.model).where(self.model.id == id).limit(1)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
-    async def create(self, data: dict) -> T | None:
+    async def create(self, data: dict) -> DeclarativeBase | None:
         print(data)
         obj = self.model(**data)
 
@@ -32,7 +30,7 @@ class CRUDGenerator(Generic[T]):
             await self.session.rollback()
             return None
 
-    async def update(self, id: str, new_data: dict) -> T | None:
+    async def update(self, id: str, new_data: dict) -> DeclarativeBase | None:
         obj = await self.get(id=id)
 
         if obj is None:
@@ -55,8 +53,8 @@ class CRUDGenerator(Generic[T]):
         await self.session.commit()
         return True
 
-    async def get_by_name(self, name: str) -> T | None:
-        stmt = Select(self.model).where(self.model.obj_name == name).limit(1)
+    async def get_by_name(self, name: str) -> DeclarativeBase | None:
+        stmt = Select(self.model).where(self.model.name == name).limit(1)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
