@@ -7,7 +7,7 @@ from .car_part_catalog_schema import (
     CarPartCatalogUpdate,
     CarPartCatalogResponse,
 )
-from .car_part_caralog_dependencies import get_car_part_catalog_service
+from .car_part_catalog_dependencies import get_car_part_catalog_service
 
 if TYPE_CHECKING:
     from .car_part_catalog_service import CarPartCatalog

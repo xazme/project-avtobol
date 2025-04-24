@@ -1,16 +1,16 @@
 from sqlalchemy import Select, Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from .car_part_model import CarPart
+from .car_brand_series_model import CarBrandPartSeriesAssoc
 from app.shared import CRUDGenerator
 
 
-class CarPartService(CRUDGenerator):
+class CarBrandSeriesService(CRUDGenerator):
 
     def __init__(self, session: AsyncSession):
         super().__init__(
             session=session,
-            model=CarPart,
+            model=CarBrandPartSeriesAssoc,
         )
 
     async def get_all(self):
@@ -22,4 +22,4 @@ class CarPartService(CRUDGenerator):
             )
         )
         result: Result = await self.session.execute(statement=stmt)
-        return result.scalars().all()
+        return list(result.scalars())

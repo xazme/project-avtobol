@@ -5,7 +5,7 @@ from app.user import user_router
 from app.auth import auth_router
 from app.car_parts.car_brand import car_brand_router
 from app.car_parts.car_series import car_series_router
-from app.car_parts.car_part import car_part_router
+from app.car_parts.car_brand_series_assoc import car_part_router
 from app.car_parts.car_part_catalog import car_part_catalog_router
 from app.core.config import settings
 from app.database.db_service import DBService
