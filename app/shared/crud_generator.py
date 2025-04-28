@@ -11,7 +11,7 @@ class CRUDGenerator:
         self.session = session
         self.model = model
 
-    async def get(self, id: str) -> DeclarativeBase | None:
+    async def get(self, id: int) -> DeclarativeBase | None:
         stmt = Select(self.model).where(self.model.id == id).limit(1)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
@@ -30,7 +30,7 @@ class CRUDGenerator:
             await self.session.rollback()
             return None
 
-    async def update(self, id: str, new_data: dict) -> DeclarativeBase | None:
+    async def update(self, id: int, new_data: dict) -> DeclarativeBase | None:
         obj = await self.get(id=id)
 
         if obj is None:
@@ -43,7 +43,7 @@ class CRUDGenerator:
         await self.session.refresh(obj)
         return obj
 
-    async def delete(self, id: str) -> bool | None:
+    async def delete(self, id: int) -> bool | None:
         obj = await self.get(id=id)
 
         if obj is None:

@@ -20,14 +20,23 @@ router = APIRouter(
 @router.get("/")
 async def get_part(
     id: str,
-    car_part_catalog_service: "CarPartCatalog" = Depends(
-        get_car_part_catalog_service,
-    ),
+    car_part_catalog_service: "CarPartCatalog" = Depends(get_car_part_catalog_service),
 ):
     part = await car_part_catalog_service.get(id=id)
     if not part:
         ExceptionRaiser.raise_exception(status_code=404)  # TODO
     return CarPartCatalogResponse.model_validate(part)
+
+
+@router.get(
+    "/all",
+    status_code=status.HTTP_200_OK,
+)
+async def get_all_car_parts(
+    car_part_catalog_service: "CarPartCatalog" = Depends(get_car_part_catalog_service),
+):
+    car_parts = await car_part_catalog_service.get_all()
+    return car_parts
 
 
 @router.post(

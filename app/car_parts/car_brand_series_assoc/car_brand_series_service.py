@@ -16,10 +16,14 @@ class CarBrandSeriesService(CRUDGenerator):
     async def get_all(self):
         stmt = Select(self.model).options(
             selectinload(
-                self.model.brand_id,
-                self.model.part_id,
-                self.model.series_id,
-            )
+                self.model.brand,
+            ),
+            selectinload(
+                self.model.part,
+            ),
+            selectinload(
+                self.model.series,
+            ),
         )
         result: Result = await self.session.execute(statement=stmt)
         return list(result.scalars())

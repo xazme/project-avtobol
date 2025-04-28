@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 from app.database import Base
-from sqlalchemy import String, Integer, Float, ForeignKey, UUID
+from sqlalchemy import String, Integer, Float, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
@@ -10,25 +10,25 @@ if TYPE_CHECKING:
 
 
 class CarBrandPartSeriesAssoc(Base):
-    brand_id: Mapped[str] = mapped_column(
-        UUID,
+    brand_id: Mapped[int] = mapped_column(
+        Integer,
         ForeignKey("carbrand.id"),
         nullable=False,
     )
-    part_id: Mapped[str] = mapped_column(
-        UUID,
-        ForeignKey("carpart.id"),
+    car_part_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("carpartcatalog.id"),
         nullable=False,
     )
-    series_id: Mapped[str] = mapped_column(
-        UUID,
+    series_id: Mapped[int] = mapped_column(
+        Integer,
         ForeignKey("carseries.id"),
         nullable=False,
     )
 
     # relationships
     brand: Mapped["CarBrand"] = relationship(back_populates="car_part")
-    part: Mapped["CarPartCatalog"] = relationship(back_populates="car_part")
+    car_part: Mapped["CarPartCatalog"] = relationship(back_populates="car_part")
     series: Mapped["CarSeries"] = relationship(back_populates="car_part")
 
     # year: Mapped[int] = mapped_column(

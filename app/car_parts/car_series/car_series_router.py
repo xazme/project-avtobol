@@ -14,14 +14,23 @@ router = APIRouter(prefix=settings.api.car_series_prefix, tags=["Car Series"])
 @router.get("/")
 async def get_series(
     id: str,
-    car_series_service: "CarSeriesService" = Depends(
-        get_car_series_service,
-    ),
+    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
 ):
     series = await car_series_service.get(id=id)
     if not series:
         ExceptionRaiser.raise_exception(status_code=404)  # TODO
     return CarSeriesResponse.model_validate(series)
+
+
+@router.get(
+    "/all",
+    status_code=status.HTTP_200_OK,
+)
+async def get_all_car_series(
+    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
+):
+    car_series = await car_series_service.get_all()
+    return car_series
 
 
 @router.post(

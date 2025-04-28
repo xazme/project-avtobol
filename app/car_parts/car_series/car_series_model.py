@@ -1,8 +1,6 @@
 from typing import TYPE_CHECKING
 from sqlalchemy import String, Integer, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-import uuid
 from app.database import Base
 
 if TYPE_CHECKING:
@@ -15,10 +13,13 @@ class CarSeries(Base):
         String,
         unique=True,
     )
-    year: Mapped[str] = mapped_column(String)
+    year: Mapped[str] = mapped_column(
+        String,
+        unique=False,
+    )
 
-    brand_id: Mapped[uuid.UUID] = mapped_column(
-        UUID,
+    brand_id: Mapped[int] = mapped_column(
+        Integer,
         ForeignKey("carbrand.id"),
         index=True,
         unique=False,

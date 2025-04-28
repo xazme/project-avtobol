@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING
-from fastapi import APIRouter, Depends, status
+from typing import TYPE_CHECKING, Annotated
+from fastapi import APIRouter, Depends, status, Query
 from app.core import settings
 from app.shared import ExceptionRaiser
 from .car_brand_series_schema import CarPartCreate, CarPartResponce, CarPartUpdate
@@ -13,7 +13,7 @@ router = APIRouter(prefix=settings.api.car_part_prefix, tags=["Car Brand Series"
 
 @router.get("/")
 async def get_car_part(
-    id: str,
+    id: Annotated[int, Query()],
     car_part_service: "CarBrandSeriesService" = Depends(get_car_part_service),
 ):
     brand = await car_part_service.get(id=id)
@@ -22,8 +22,11 @@ async def get_car_part(
     return CarPartResponce.model_validate(brand)
 
 
-@router.get("/")
-async def get_all_car_parts(
+@router.get(
+    "/all",
+    status_code=status.HTTP_200_OK,
+)
+async def get_all_car_brand_series(
     car_part_service: "CarBrandSeriesService" = Depends(get_car_part_service),
 ):
     car_parts = await car_part_service.get_all()
@@ -53,7 +56,7 @@ async def create_car_part(
     status_code=status.HTTP_200_OK,
 )
 async def update_car_part(
-    car_part_id: str,
+    car_part_id: int,
     new_car_brand_info: CarPartUpdate,
     car_part_service: "CarBrandSeriesService" = Depends(get_car_part_service),
 ):
@@ -70,7 +73,7 @@ async def update_car_part(
     status_code=status.HTTP_200_OK,
 )
 async def delete_car_part(
-    car_part_id: str,
+    car_part_id: int,
     car_part_service: "CarBrandSeriesService" = Depends(get_car_part_service),
 ):
     result = await car_part_service.delete(id=car_part_id)

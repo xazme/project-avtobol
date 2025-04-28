@@ -13,15 +13,24 @@ router = APIRouter(prefix=settings.api.car_brand_prefix, tags=["Car Brand"])
 
 @router.get("/")
 async def get_brand(
-    id: str,
-    car_brand_service: "CarBrandService" = Depends(
-        get_car_brand_service,
-    ),
+    id: int,
+    car_brand_service: "CarBrandService" = Depends(get_car_brand_service),
 ):
     brand = await car_brand_service.get(id=id)
     if not brand:
         ExceptionRaiser.raise_exception(status_code=404)  # TODO
     return CarBrandResponse.model_validate(brand)
+
+
+@router.get(
+    "/all",
+    status_code=status.HTTP_200_OK,
+)
+async def get_all_car_brands(
+    car_brand_service: "CarBrandService" = Depends(get_car_brand_service),
+):
+    car_brands = await car_brand_service.get_all()
+    return car_brands
 
 
 @router.post(
@@ -33,7 +42,6 @@ async def create_brand(
     car_brand_info: CarBrandCreate,
     car_brand_service: "CarBrandService" = Depends(get_car_brand_service),
 ):
-
     data = car_brand_info.model_dump()
     brand = await car_brand_service.create(data=data)
     if not brand:
@@ -47,7 +55,7 @@ async def create_brand(
     status_code=status.HTTP_200_OK,
 )
 async def update_brand(
-    car_brand_id: str,
+    car_brand_id: int,
     new_car_brand_info: CarBrandUpdate,
     car_brand_service: "CarBrandService" = Depends(get_car_brand_service),
 ):
@@ -65,7 +73,7 @@ async def update_brand(
     status_code=status.HTTP_200_OK,
 )
 async def delete_brand(
-    car_brand_id: str,
+    car_brand_id: int,
     car_brand_service: "CarBrandService" = Depends(get_car_brand_service),
 ):
     result = await car_brand_service.delete(id=car_brand_id)

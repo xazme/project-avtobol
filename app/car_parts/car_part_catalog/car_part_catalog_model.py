@@ -16,5 +16,5 @@ class CarPartCatalog(Base):
     )
 
     car_part: Mapped[list["CarBrandPartSeriesAssoc"]] = relationship(
-        back_populates="part"
+        back_populates="car_part",
     )

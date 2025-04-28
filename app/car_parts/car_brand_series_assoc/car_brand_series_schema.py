@@ -1,11 +1,10 @@
-import uuid
 from pydantic import BaseModel
 
 
 class CarPartBase(BaseModel):
-    brand_id: uuid.UUID
-    part_id: str  # uuid.UUID
-    series_id: uuid.UUID
+    brand_id: int
+    part_id: int  # uuid.UUID
+    series_id: int
     # year: int
     # type_of_body: str
     # volume: float

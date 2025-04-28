@@ -1,5 +1,4 @@
-from sqlalchemy import Integer, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Integer
 from sqlalchemy.schema import MetaData
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -9,6 +8,13 @@ from sqlalchemy.orm import (
 )
 import uuid
 from app.core.config import settings
+
+
+def generate_id():
+    id = uuid.uuid4()
+    new_id = int(id) >> 100
+    print(type(new_id))
+    return new_id
 
 
 class Base(DeclarativeBase):
@@ -24,11 +30,11 @@ class Base(DeclarativeBase):
     def __tablename__(cls):
         return cls.__name__.lower()
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+    id: Mapped[int] = mapped_column(
+        Integer,
         unique=True,
         nullable=False,
         primary_key=True,
         index=True,
-        default=uuid.uuid4,
+        default=generate_id,
     )
