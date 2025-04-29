@@ -1,10 +1,6 @@
 from pydantic import BaseModel
 
 
-import uuid
-from pydantic import BaseModel
-
-
 class CarPartCatalogBase(BaseModel):
     name: str
 
@@ -18,7 +14,7 @@ class CarPartCatalogUpdate(CarPartCatalogBase):
 
 
 class CarPartCatalogResponse(CarPartCatalogBase):
-    id: uuid.UUID
+    id: int
 
     class Config:
         from_attributes = True

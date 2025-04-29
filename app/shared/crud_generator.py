@@ -19,7 +19,6 @@ class CRUDGenerator:
     async def create(self, data: dict) -> DeclarativeBase | None:
         print(data)
         obj = self.model(**data)
-
         try:
             self.session.add(obj)
             await self.session.commit()

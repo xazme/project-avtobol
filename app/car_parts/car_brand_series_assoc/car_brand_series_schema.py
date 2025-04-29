@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 
 
-class CarPartBase(BaseModel):
+class CarBrandSeriesBase(BaseModel):
     brand_id: int
-    part_id: int  # uuid.UUID
+    car_part_id: int
     series_id: int
     # year: int
     # type_of_body: str
@@ -21,13 +21,20 @@ class CarPartBase(BaseModel):
     # condition: str
 
 
-class CarPartCreate(CarPartBase):
+class CarBrandSeriesCreate(CarBrandSeriesBase):
     pass
 
 
-class CarPartUpdate(CarPartBase):
+class CarBrandSeriesUpdate(CarBrandSeriesBase):
     pass
 
 
-class CarPartResponce(BaseModel):
-    pass
+class CarBrandSeriesResponce(BaseModel):
+    id: int
+    brand_id: int
+    car_part_id: int
+    series_id: int
+
+    class Config:
+        from_attributes = True
+        validate_by_name = True

@@ -1,4 +1,3 @@
-import uuid
 from pydantic import BaseModel
 
 
@@ -8,7 +7,7 @@ class CarSeriesBase(BaseModel):
 
 
 class CarSeriesCreate(CarSeriesBase):
-    brand_id: uuid.UUID
+    brand_id: int
 
 
 class CarSeriesUpdate(CarSeriesBase):
@@ -16,8 +15,8 @@ class CarSeriesUpdate(CarSeriesBase):
 
 
 class CarSeriesResponse(CarSeriesBase):
-    id: uuid.UUID
-    brand_id: uuid.UUID
+    id: int
+    brand_id: int
 
     class Config:
         from_attributes = True

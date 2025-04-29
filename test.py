@@ -73,7 +73,7 @@ async def create_part(session: AsyncSession, name: str):
     return ads
 
 
-async def create_dirt(session: AsyncSession, brand_id, series_id, car_part_id):
+async def create_car_part(session: AsyncSession, brand_id, series_id, car_part_id):
     asdasd = CarBrandPartSeriesAssoc(
         brand_id=brand_id, car_part_id=car_part_id, series_id=series_id
     )
@@ -93,7 +93,7 @@ async def get_smth(session: AsyncSession, brand: any):
     return list(be)
 
 
-async def get_all(session: AsyncSession):
+async def get_all_parts(session: AsyncSession):
     stmt = Select(CarBrandPartSeriesAssoc).options(
         selectinload(
             CarBrandPartSeriesAssoc.car_part,
@@ -124,58 +124,62 @@ async def get_part_by_id(session: AsyncSession, id_of_shit):
     return res.scalar_one_or_none()
 
 
+async def create_blabla(session: AsyncSession, brand_id, series_id, part_id: int):
+    bebe = CarBrandPartSeriesAssoc(
+        brand_id=brand_id, car_part_id=part_id, series_id=series_id
+    )
+    session.add(bebe)
+    await session.commit()
+
+
 async def get_all(session: AsyncSession):
     stmt = Select(CarBrand).order_by(CarBrand.id)
     res: Result = await session.execute(statement=stmt)
     return res.scalars().all()
 
 
+def convert_data_for_car_brand_series_object(list_of_car_parts: list):
+    data = []
+    for car_part in list_of_car_parts:
+        bebe = {
+            "brand name": car_part.brand.name,
+            "series name": car_part.series.name,
+            "part type": car_part.car_part.name,
+        }
+        data.append(bebe)
+    print(data)
+
+
 async def main():
     await create_tables()
     async with async_session() as session:
-        brand2 = await create_brand(session=session, title="zxc", url="123123")
-        series = await create_series(
-            session=session, title="BOBMA", year="1990", brand_id=brand2.id
+        # Создаём бренд
+        brand1 = await create_brand(session=session, title="ASDAWEQ", url="VZXCZ")
+        # Создаём 3 серии, принадлежащие этому бренду
+        series1 = await create_series(
+            session=session, title="adsasd", year="1991", brand_id=brand1.id
         )
-        series = await create_series(
-            session=session, title="adsasd", year="1991", brand_id=brand2.id
+        series2 = await create_series(
+            session=session, title="qwerqfa", year="1991", brand_id=brand1.id
         )
-        part = await create_part(session=session, name="seqweqx")
-        part2 = await create_part(session=session, name="seasdx")
-        part3 = await create_part(session=session, name="zxczxc")
+        series3 = await create_series(
+            session=session, title="adwqf", year="1991", brand_id=brand1.id
+        )
 
-        jopa = await create_dirt(
+        # Создаём 3 запчасти
+        part1 = await create_part(session=session, name="дрочила")
+        part2 = await create_part(session=session, name="зубрила")
+        part3 = await create_part(session=session, name="PIMDODO")
+
+        await create_blabla(
             session=session,
-            brand_id=brand2.id,
-            series_id=series.id,
-            car_part_id=part.id,
+            brand_id=brand1.id,
+            series_id=series1.id,
+            part_id=part1.id,
         )
 
-        bem = await get_smth(session=session, brand=brand2)
-
-        suka_id = brand2.id
-
-        negr = await session.scalar(
-            Select(CarBrand)
-            .where(CarBrand.id == suka_id)
-            .options(selectinload(CarBrand.car_part))
-        )
-
-        id_of_part = negr.car_part.id
-        print(id_of_part)
-
-        # for kn in bem:
-        #     for nm in kn.series:
-        #         mem = {
-        #             "brand name": kn.name,
-        #             "brand id": kn.id,
-        #             "part id": kn.car_part.car_part_id,
-        #             "series": nm.name,
-        #         }
-        #         print(mem)
-
-        bebe = await get_part_by_id(session=session, id_of_shit=id_of_part)
-        print(bebe.brand.name)
+        all = await get_all_parts(session=session)
+        convert_data_for_car_brand_series_object(list_of_car_parts=all)
 
 
 asyncio.run(main())
