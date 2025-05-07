@@ -8,23 +8,26 @@ from jwt.exceptions import (
     ImmatureSignatureError,
     InvalidAudienceError,
 )
-from app.shared import ExceptionRaiser
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.shared import ExceptionRaiser, CRUDGenerator
 from .token_enum import Tokens
+from .token_model import Token
 from .token_types import AccessToken, RefreshToken
 
 
-class TokenService:
+class TokenService(CRUDGenerator):
     """TOKEN SERVICE"""
 
     def __init__(
         self,
-        alogrithm,
-        expire_days,
-        expire_minutes,
-        access_public_key,
-        refresh_public_key,
-        access_private_key,
-        refresh_private_key,
+        session: AsyncSession,
+        alogrithm: str,
+        expire_days: int,
+        expire_minutes: int,
+        access_public_key: str,
+        refresh_public_key: str,
+        access_private_key: str,
+        refresh_private_key: str,
     ):
         self.alogrithm = alogrithm
         self.expire_days = expire_days
@@ -33,6 +36,10 @@ class TokenService:
         self.refresh_public_key = refresh_public_key
         self.access_private_key = access_private_key
         self.refresh_private_key = refresh_private_key
+        super().__init__(
+            session=session,
+            model=Token,
+        )
 
     def generate_access_token(self, data: dict) -> AccessToken:
         token = self.__encode(

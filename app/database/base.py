@@ -1,4 +1,4 @@
-from sqlalchemy import Integer
+from sqlalchemy import Integer, BigInteger
 from sqlalchemy.schema import MetaData
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -31,7 +31,7 @@ class Base(DeclarativeBase):
         return cls.__name__.lower()
 
     id: Mapped[int] = mapped_column(
-        Integer,
+        BigInteger,
         unique=True,
         nullable=False,
         primary_key=True,

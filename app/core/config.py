@@ -17,6 +17,11 @@ class DataFromEnv:
     APP_HOST: str = os.getenv("APP_HOST")
     APP_PORT: int = int(os.getenv("APP_PORT"))
 
+    MINIO_HOST: str = os.getenv("MINIO_HOST")
+    MINIO_API_PORT: str = os.getenv("MINIO_API_PORT")
+    MINIO_ACCESS_PATH: str = os.getenv("MINIO_ACCESS_KEY_PATH")
+    MINIO_SECRET_PATH: str = os.getenv("MINIO_SECRET_KEY_PATH")
+
     ACCESS_PRIVATE_KEY_PATH: str = os.getenv("ACCESS_PRIVATE_KEY_PATH")
     ACCESS_PUBLIC_KEY_PATH: str = os.getenv("ACCESS_PUBLIC_KEY_PATH")
 
@@ -45,6 +50,26 @@ class DataBaseConnection:
     @classmethod
     def get_db_url(cls):
         return f"postgresql+asyncpg://{cls.user}:{cls.password}@{cls.host}:{cls.port}/{cls.name}"
+
+
+class MinIO(BaseModel):
+
+    @property
+    def minio_access(self):
+        with open(DataFromEnv.MINIO_ACCESS_PATH, "r") as file:
+            print(file)
+            access_key = file.read()
+        return access_key
+
+    @property
+    def minio_secret(self):
+        with open(DataFromEnv.MINIO_SECRET_PATH, "r") as file:
+            secret_key = file.read()
+        return secret_key
+
+    @property
+    def minio_url(self):
+        return f"{DataFromEnv.MINIO_HOST}:{DataFromEnv.MINIO_API_PORT}"
 
 
 class RunConfig(BaseModel):
@@ -105,6 +130,7 @@ class Settings:
     api: ApiPrefix = ApiPrefix()
     auth: Auth = Auth()
     db: DataBaseConnection = DataBaseConnection()
+    minio: MinIO = MinIO()
 
 
 settings = Settings()

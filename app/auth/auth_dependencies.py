@@ -2,13 +2,12 @@ from typing import TYPE_CHECKING
 from fastapi import Depends, Form
 from app.shared import ExceptionRaiser, HashHelper
 from app.token import get_access_token, get_refresh_token, get_token_service, Tokens
-from app.user import get_user_service
+from app.user import get_user_service, UserCreate
 
 if TYPE_CHECKING:
     from app.user import User, UserService
     from app.shared import UserService
     from app.token import TokenService
-    from app.shared import Roles
 
 
 async def authentificate_user(
@@ -23,7 +22,7 @@ async def authentificate_user(
             detail="Invalid credentials",
         )
 
-    user: "User" = await user_service.get_by_name(obj_name=username)
+    user: "User" = await user_service.get_by_name(name=username)
 
     if not user:
         ExceptionRaiser.raise_exception(status_code=404, detail="User Not Found")
@@ -34,6 +33,17 @@ async def authentificate_user(
         ExceptionRaiser.raise_exception(status_code=401, detail="Invalid credentials")
 
     return user
+
+
+async def register_user(
+    user_data: UserCreate,
+    user_service: "UserService" = Depends(get_user_service),
+):
+    upd_user_data = user_data.model_copy()
+    upd_user_data.password = HashHelper.hash_password(password=user_data.password)
+
+    data = upd_user_data.model_dump()
+    user: "User" = await user_service.create(data=data)
 
 
 async def user_from_refresh_token(

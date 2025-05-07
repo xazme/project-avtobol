@@ -1,14 +1,20 @@
 from fastapi import Depends, Request
-from fastapi.security import OAuth2PasswordBearer
-from .token_service import TokenService
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import settings
 from app.token import Tokens
+from app.database import DBService
+from .token_service import TokenService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.auth.access_token_url)
+http_bearer = HTTPBearer()
 
 
-def get_token_service() -> TokenService:
+def get_token_service(
+    session: AsyncSession = Depends(DBService.get_session),
+) -> TokenService:
     return TokenService(
+        session=session,
         alogrithm=settings.auth.algorithm,
         expire_days=settings.auth.expire_days,
         expire_minutes=settings.auth.expire_days,
@@ -19,7 +25,7 @@ def get_token_service() -> TokenService:
     )
 
 
-def get_access_token(token: str = Depends(oauth2_scheme)) -> str:
+def get_access_token(token: str = Depends(http_bearer)) -> str:
     return token
 
 
