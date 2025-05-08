@@ -33,30 +33,20 @@ async def create_token_response(
     access_token = token_service.generate_access_token(data=user_data)
     refresh_token = token_service.generate_refresh_token(data=user_data)
 
+    token_data = TokenCreate(
+        user_id=user.id,
+        access_token=access_token,
+        refresh_token=refresh_token if mode == Tokens.SIGNIN else None,
+    )
+
     if mode == Tokens.REFRESH:
-        token_data = TokenCreate(
-            user_id=user.id,
-            access_token=access_token,
-        )
 
         token = await token_service.update_access_token(
             user_id=user.id,
             new_data=token_data.model_dump(exclude_unset=True),
         )
 
-        if not token:
-            ExceptionRaiser.raise_exception(
-                status_code=500,
-                detail="token create error",
-            )
-        return token
-
-    if mode == Tokens.SIGNIN:
-        token_data = TokenCreate(
-            user_id=user.id,
-            access_token=access_token,
-            refresh_token=refresh_token,
-        )
+    elif mode == Tokens.SIGNIN:
 
         response.set_cookie(
             key=refresh_token,
@@ -65,13 +55,19 @@ async def create_token_response(
             secure=True,
             samesite="lax",
         )
-
-        deleted_token = await token_service.delete_token(user_id=user.id)
-        print(deleted_token)
+        await token_service.delete_token(user_id=user.id)
         token = await token_service.create(token_data.model_dump())
-        if not token:
-            ExceptionRaiser.raise_exception(
-                status_code=500,
-                detail="token create error",
-            )
-        return token
+
+    else:
+        ExceptionRaiser.raise_exception(
+            status_code=400,
+            detail="Invalid token mode",
+        )
+
+    if not token:
+        ExceptionRaiser.raise_exception(
+            status_code=500,
+            detail="token create error",
+        )
+
+    return token
