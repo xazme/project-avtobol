@@ -67,7 +67,6 @@ async def update_part(
     car_part_catalog_service: "CarPartCatalog" = Depends(get_car_part_catalog_service),
 ):
     data = new_car_brand_info.model_dump(exclude_unset=True)
-    print(data)
     upd_car_brand_data = await car_part_catalog_service.update(
         id=car_brand_id, new_data=data
     )

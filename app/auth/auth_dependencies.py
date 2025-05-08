@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from fastapi import Depends, Form
+from fastapi.security.http import HTTPAuthorizationCredentials
 from app.shared import ExceptionRaiser, HashHelper
 from app.token import get_access_token, get_refresh_token, get_token_service, Tokens
 from app.user import get_user_service, UserCreate
@@ -44,17 +45,28 @@ async def register_user(
 
     data = upd_user_data.model_dump()
     user: "User" = await user_service.create(data=data)
+    if not user:
+        ExceptionRaiser.raise_exception(
+            status_code=404,
+            detail="User could not be created",
+        )
+    return user
 
 
 async def user_from_refresh_token(
-    token: str = Depends(get_refresh_token),
+    token: HTTPAuthorizationCredentials = Depends(get_refresh_token),
     user_service: "UserService" = Depends(get_user_service),
     token_service: "TokenService" = Depends(get_token_service),
 ) -> "User":
-    print(token)
+
+    token = token.credentials
+    refresh_token = await token_service.get_refresh_token(token=token)
+    if not refresh_token:
+        ExceptionRaiser.raise_exception(status_code=404, detail="Token Not Found")
+
     user_data: dict = token_service.decode(token=token, type=Tokens.REFRESH)
     user_id = user_data.get("id")
-    user: "User" = await user_service.get(obj_id=user_id)
+    user: "User" = await user_service.get(id=user_id)
 
     if not user:
         ExceptionRaiser.raise_exception(status_code=404, detail="User Not Found")
@@ -63,13 +75,14 @@ async def user_from_refresh_token(
 
 
 async def user_from_access_token(
-    token: str = Depends(get_access_token),
+    token: HTTPAuthorizationCredentials = Depends(get_access_token),
     user_service: "UserService" = Depends(get_user_service),
     token_service: "TokenService" = Depends(get_token_service),
 ) -> "User":
-    user_data: dict = token_service.decode(token=token, type=Tokens.ACCESS)
+    user_data: dict = token_service.decode(token=token.credentials, type=Tokens.ACCESS)
+
     user_id = user_data.get("id")
-    user: "User" = await user_service.get(obj_id=user_id)
+    user: "User" = await user_service.get(id=user_id)
 
     if not user:
         ExceptionRaiser.raise_exception(status_code=404, detail="User Not Found")

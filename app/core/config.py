@@ -57,7 +57,6 @@ class MinIO(BaseModel):
     @property
     def minio_access(self):
         with open(DataFromEnv.MINIO_ACCESS_PATH, "r") as file:
-            print(file)
             access_key = file.read()
         return access_key
 
@@ -120,6 +119,7 @@ class ApiPrefix(BaseModel):
     car_series_prefix: str = "/carseries"
     car_part_prefix: str = "/carpart"
     car_part_catalog_prefix: str = "/carpartcatalog"
+    token_prefix: str = "/token"
     # etc
 
 

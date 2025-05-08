@@ -1,17 +1,18 @@
 from typing import TYPE_CHECKING
-from fastapi import APIRouter, Depends
-from app.user import UserResponce, UserCreate, get_user_service
+from fastapi import APIRouter, Depends, Response
+from app.user import UserResponce
 from app.token import (
     TokenResponse,
-    TokenCreate,
+    Tokens,
     get_token_service,
 )
 from app.shared import Roles
 from .auth_dependencies import (
     authentificate_user,
+    register_user,
     user_from_refresh_token,
 )
-from .auth_helper import requied_roles
+from .auth_helper import requied_roles, create_token_response
 
 if TYPE_CHECKING:
     from app.token import TokenService
@@ -23,46 +24,34 @@ router = APIRouter(tags=["Auth"], prefix="/auth")
 
 @router.post("/sign-in")
 async def auth(
+    response: Response,
     user: "User" = Depends(authentificate_user),
     token_service: "TokenService" = Depends(get_token_service),
 ) -> TokenResponse:
 
-    user_data: dict = {
-        "id": user.id,
-        "username": user.name,
-    }
-
-    access_token = token_service.generate_access_token(data=user_data)
-    refresh_token = token_service.generate_refresh_token(data=user_data)
-
-    return TokenResponse(
-        user_id=user.id,
-        access_token=access_token,
-        refresh_token=refresh_token,
+    token = await create_token_response(
+        mode=Tokens.SIGNIN,
+        response=response,
+        user=user,
+        token_service=token_service,
     )
+    return TokenResponse.model_validate(token)
 
 
 @router.post("/register")
 async def register(
-    user,
+    response: Response,
+    user: "User" = Depends(register_user),
     token_service: "TokenService" = Depends(get_token_service),
 ):
-    data: dict = {
-        "id": user.id,
-        "username": user.name,
-    }
 
-    access_token = token_service.generate_access_token(data=data)
-    refresh_token = token_service.generate_refresh_token(data=data)
-
-    token_data = TokenCreate(
-        user_id=user.id,
-        access_token=access_token,
-        refresh_token=refresh_token,
+    token = await create_token_response(
+        mode=Tokens.SIGNIN,
+        response=response,
+        user=user,
+        token_service=token_service,
     )
-    await token_service.create(token_data.model_dump())
-
-    return TokenResponse.model_validate(token_data)
+    return TokenResponse.model_validate(token)
 
 
 @router.get(
@@ -87,10 +76,12 @@ async def get_new_access(
 
     user_data = {
         "id": user.id,
-        "username": user.username,
-        "email": user.email,
+        "username": user.name,
     }
 
     access_token = token_service.generate_access_token(data=user_data)
 
-    return TokenResponse(access_token=access_token)
+    return TokenResponse(
+        user_id=user.id,
+        access_token=access_token,
+    )

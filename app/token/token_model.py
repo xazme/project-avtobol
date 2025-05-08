@@ -8,7 +8,11 @@ if TYPE_CHECKING:
 
 
 class Token(Base):
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), unique=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("user.id"),
+        unique=True,
+    )
     access_token: Mapped[str] = mapped_column(
         Text,
         unique=True,

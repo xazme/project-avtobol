@@ -8,6 +8,8 @@ from jwt.exceptions import (
     ImmatureSignatureError,
     InvalidAudienceError,
 )
+from sqlalchemy import Select, Result
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.shared import ExceptionRaiser, CRUDGenerator
 from .token_enum import Tokens
@@ -107,6 +109,57 @@ class TokenService(CRUDGenerator):
                 detail="Неизвестная ошибка обработки токена",
             )
         return data
+
+    async def get_token_by_owner(
+        self,
+        id: int,
+    ) -> DeclarativeBase | None:
+        stmt = Select(self.model).where(self.model.user_id == id)
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalar_one_or_none()
+
+    async def update_access_token(
+        self,
+        user_id: int,
+        new_data: dict,
+    ) -> DeclarativeBase | None:
+        token = await self.get_token_by_owner(id=user_id)
+
+        if token is None:
+            return None
+
+        for key, value in new_data.items():
+            setattr(token, key, value)
+
+        await self.session.commit()
+        await self.session.refresh(token)
+        return token
+
+    async def delete_token(self, user_id):
+        token = await self.get_token_by_owner(id=user_id)
+
+        if token is None:
+            return None
+
+        await self.session.delete(token)
+        await self.session.commit()
+        return True
+
+    async def get_access_token(
+        self,
+        token,
+    ) -> DeclarativeBase | None:
+        stmt = Select(self.model).where(self.model.access_token == token)
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalar_one_or_none()
+
+    async def get_refresh_token(
+        self,
+        token,
+    ) -> DeclarativeBase | None:
+        stmt = Select(self.model).where(self.model.refresh_token == token)
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalar_one_or_none()
 
     def __encode(
         self,

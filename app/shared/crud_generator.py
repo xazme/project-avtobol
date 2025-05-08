@@ -53,7 +53,7 @@ class CRUDGenerator:
         return True
 
     async def get_by_name(self, name: str) -> DeclarativeBase | None:
-        stmt = Select(self.model).where(self.model.name == name).limit(1)
+        stmt = Select(self.model).where(self.model.name == name)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 

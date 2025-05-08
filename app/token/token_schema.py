@@ -12,6 +12,10 @@ class TokenCreate(TokenBase):
     pass
 
 
+class TokenUpdate(TokenBase):
+    pass
+
+
 class TokenResponse(TokenBase):
     pass
 

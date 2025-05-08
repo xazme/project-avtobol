@@ -72,7 +72,6 @@ async def update_brand(
     car_brand_service: "CarBrandService" = Depends(get_car_brand_service),
 ):
     data = new_car_brand_info.model_dump(exclude_unset=True)
-    print(data)
     upd_car_brand_data = await car_brand_service.update(id=car_brand_id, new_data=data)
     if not upd_car_brand_data:
         ExceptionRaiser.raise_exception(status_code=404)  # TODO

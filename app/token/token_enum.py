@@ -2,5 +2,6 @@ from enum import Enum
 
 
 class Tokens(Enum):
-    ACCESS = "access"
-    REFRESH = "refresh"
+    SIGNIN: str = "sign-in"
+    ACCESS: str = "access"
+    REFRESH: str = "refresh"

@@ -43,7 +43,6 @@ async def create_series(
     car_series_service: "CarSeriesService" = Depends(get_car_series_service),
 ):
     data = car_brand_info.model_dump()
-    print(data)
     series = await car_series_service.create(data=data)
     if not series:
         ExceptionRaiser.raise_exception(status_code=404, detail="naxyu sgonyai")  # TODO
