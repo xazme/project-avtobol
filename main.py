@@ -32,7 +32,7 @@ app.include_router(auth_router)
 # app.include_router(car_brand_router)
 # app.include_router(car_series_router)
 # app.include_router(car_part_router)
-# app.include_router(car_part_catalog_router)
+app.include_router(car_part_catalog_router)
 app.include_router(token_router)
 
 if __name__ == "__main__":

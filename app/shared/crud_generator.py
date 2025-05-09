@@ -17,7 +17,6 @@ class CRUDGenerator:
         return result.scalar_one_or_none()
 
     async def create(self, data: dict) -> DeclarativeBase | None:
-        print(data)
         obj = self.model(**data)
         try:
             self.session.add(obj)
@@ -29,13 +28,13 @@ class CRUDGenerator:
             await self.session.rollback()
             return None
 
-    async def update(self, id: int, new_data: dict) -> DeclarativeBase | None:
+    async def update(self, id: int, data: dict) -> DeclarativeBase | None:
         obj = await self.get(id=id)
 
         if obj is None:
             return None
 
-        for key, value in new_data.items():
+        for key, value in data.items():
             setattr(obj, key, value)
 
         await self.session.commit()

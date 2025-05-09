@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from fastapi import APIRouter, Depends, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, status, UploadFile, File
 from app.core import settings
 from app.shared import ExceptionRaiser
 from app.storage import get_storage_service
@@ -55,8 +55,6 @@ async def create_brand(
     if not brand:
         await storage_service.delete_file(filename=filename)
         ExceptionRaiser.raise_exception(status_code=404, detail="naxyu sgonyai")  # TODO
-
-    # return {"msg": "sss"}
 
     return CarBrandResponse.model_validate(brand)
 

@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends, status
 from app.core import settings
-from app.shared import ExceptionRaiser
+from app.shared import ExceptionRaiser, exec, RouterMode
 from .car_part_catalog_schema import (
     CarPartCatalogCreate,
     CarPartCatalogUpdate,
@@ -19,12 +19,14 @@ router = APIRouter(
 
 @router.get("/")
 async def get_part(
-    id: str,
+    id: int,
     car_part_catalog_service: "CarPartCatalog" = Depends(get_car_part_catalog_service),
 ):
-    part = await car_part_catalog_service.get(id=id)
-    if not part:
-        ExceptionRaiser.raise_exception(status_code=404)  # TODO
+    part = await exec(
+        mode=RouterMode.GET,
+        service=car_part_catalog_service,
+        id=id,
+    )
     return CarPartCatalogResponse.model_validate(part)
 
 
@@ -35,8 +37,12 @@ async def get_part(
 async def get_all_car_parts(
     car_part_catalog_service: "CarPartCatalog" = Depends(get_car_part_catalog_service),
 ):
-    car_parts = await car_part_catalog_service.get_all()
-    return car_parts
+    mkm = await exec(
+        mode=RouterMode.GET_ALL,
+        schema=None,
+        service=car_part_catalog_service,
+    )
+    return [CarPartCatalogResponse.model_validate(item) for item in mkm]
 
 
 @router.post(
@@ -48,12 +54,12 @@ async def create_part(
     car_brand_info: CarPartCatalogCreate,
     car_part_catalog_service: "CarPartCatalog" = Depends(get_car_part_catalog_service),
 ):
-
-    data = car_brand_info.model_dump()
-    brand = await car_part_catalog_service.create(data=data)
-    if not brand:
-        ExceptionRaiser.raise_exception(status_code=404, detail="naxyu sgonyai")  # TODO
-    return CarPartCatalogResponse.model_validate(brand)
+    part = await exec(
+        mode=RouterMode.POST,
+        schema=car_brand_info,
+        service=car_part_catalog_service,
+    )
+    return CarPartCatalogResponse.model_validate(part)
 
 
 @router.put(
@@ -62,17 +68,18 @@ async def create_part(
     status_code=status.HTTP_200_OK,
 )
 async def update_part(
-    car_brand_id: str,
+    car_part_id: int,
     new_car_brand_info: CarPartCatalogUpdate,
     car_part_catalog_service: "CarPartCatalog" = Depends(get_car_part_catalog_service),
 ):
-    data = new_car_brand_info.model_dump(exclude_unset=True)
-    upd_car_brand_data = await car_part_catalog_service.update(
-        id=car_brand_id, new_data=data
+    part = await exec(
+        mode=RouterMode.PUT,
+        schema=new_car_brand_info,
+        service=car_part_catalog_service,
+        id=car_part_id,
     )
-    if not upd_car_brand_data:
-        ExceptionRaiser.raise_exception(status_code=404)  # TODO
-    return CarPartCatalogResponse.model_validate(upd_car_brand_data)
+
+    return CarPartCatalogResponse.model_validate(part)
 
 
 @router.delete(
@@ -81,10 +88,14 @@ async def update_part(
     status_code=status.HTTP_200_OK,
 )
 async def delete_part(
-    car_brand_id: str,
+    car_brand_id: int,
     car_part_catalog_service: "CarPartCatalog" = Depends(get_car_part_catalog_service),
 ):
-    result = await car_part_catalog_service.delete(id=car_brand_id)
-    if not result:
-        ExceptionRaiser.raise_exception(status_code=404)  # TODO
+    part = await exec(
+        id=car_brand_id,
+        mode=RouterMode.DELETE,
+        schema=None,
+        service=car_part_catalog_service,
+    )
+
     return {"msg": "success"}

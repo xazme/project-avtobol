@@ -13,7 +13,6 @@ from app.core.config import settings
 def generate_id():
     id = uuid.uuid4()
     new_id = int(id) >> 100
-    print(type(new_id))
     return new_id
 
 
