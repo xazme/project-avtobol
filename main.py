@@ -3,11 +3,15 @@ import uvicorn
 from fastapi import FastAPI
 from app.user import user_router
 from app.auth import auth_router
+
 from app.car.car_brand import car_brand_router
+
 from app.car.car_series import car_series_router
-from app.car.car_brand_series_assoc import car_part_router
+
+# from app.car.car_brand_series_assoc import car_part_router
 from app.car.car_part_catalog import car_part_catalog_router
-from app.token import token_router
+
+# from app.token import token_router
 from app.core.config import settings
 from app.database.db_service import DBService
 from app.storage.storage_service_dependencies import storage_service
@@ -27,13 +31,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.include_router(user_router)
-app.include_router(auth_router)
-# app.include_router(car_brand_router)
-# app.include_router(car_series_router)
+# app.include_router(user_router)
+# app.include_router(auth_router)
+app.include_router(car_brand_router)
+app.include_router(car_series_router)
 # app.include_router(car_part_router)
 app.include_router(car_part_catalog_router)
-app.include_router(token_router)
+# app.include_router(token_router)
 
 if __name__ == "__main__":
     uvicorn.run(

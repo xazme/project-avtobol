@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class CRUDGenerator:
+class BaseCRUD:
     """CRUD GENERATOR"""
 
     def __init__(self, session: AsyncSession, model: DeclarativeBase):

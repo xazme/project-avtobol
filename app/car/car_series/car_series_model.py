@@ -30,4 +30,6 @@ class CarSeries(Base):
         back_populates="series",
     )
 
-    car_part: Mapped["CarBrandPartSeriesAssoc"] = relationship(back_populates="series")
+    car_part: Mapped["CarBrandPartSeriesAssoc"] = relationship(
+        back_populates="series",
+    )

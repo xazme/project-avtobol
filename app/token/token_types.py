@@ -1,4 +1,4 @@
-from typing import NewType
+# from typing import NewType
 
-AccessToken = NewType("AccessToken", str)
-RefreshToken = NewType("RefreshToken", str)
+# AccessToken = NewType("AccessToken", str)
+# RefreshToken = NewType("RefreshToken", str)

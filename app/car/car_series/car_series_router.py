@@ -3,81 +3,77 @@ from fastapi import APIRouter, Depends, status
 from app.core import settings
 from app.shared import ExceptionRaiser
 from .car_series_schema import CarSeriesUpdate, CarSeriesCreate, CarSeriesResponse
-from .car_series_dependencies import get_car_series_service
+from .car_series_dependencies import get_car_series_handler
 
 if TYPE_CHECKING:
-    from .car_series_service import CarSeriesService
+    from .car_series_handler import CarSeriesHandler
 
 router = APIRouter(prefix=settings.api.car_series_prefix, tags=["Car Series"])
 
 
-@router.get("/")
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=CarSeriesResponse,
+)
 async def get_series(
-    id: str,
-    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
+    car_series_id: str,
+    car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    series = await car_series_service.get(id=id)
-    if not series:
-        ExceptionRaiser.raise_exception(status_code=404)  # TODO
+    series = await car_series_handler.get(id=car_series_id)
     return CarSeriesResponse.model_validate(series)
 
 
 @router.get(
     "/all",
     status_code=status.HTTP_200_OK,
+    response_model=list,
 )
 async def get_all_car_series(
-    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
+    car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    car_series = await car_series_service.get_all()
-    return car_series
+    car_series = await car_series_handler.get_all()
+    return [CarSeriesResponse(car_serie) for car_serie in car_series]
 
 
 @router.post(
     "/",
-    response_model=CarSeriesResponse,
     status_code=status.HTTP_200_OK,
+    response_model=CarSeriesResponse,
 )
 async def create_series(
-    car_brand_info: CarSeriesCreate,
-    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
+    car_brand_data: CarSeriesCreate,
+    car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    data = car_brand_info.model_dump()
-    series = await car_series_service.create(data=data)
-    if not series:
-        ExceptionRaiser.raise_exception(status_code=404, detail="naxyu sgonyai")  # TODO
+    series = await car_series_handler.create(data=car_brand_data)
     return CarSeriesResponse.model_validate(series)
 
 
 @router.put(
     "/",
-    response_model=CarSeriesResponse,
     status_code=status.HTTP_200_OK,
+    response_model=CarSeriesResponse,
 )
 async def update_series(
-    car_brand_id: str,
-    new_car_series_info: CarSeriesUpdate,
-    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
+    car_series_id: str,
+    new_car_series_data: CarSeriesUpdate,
+    car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    data = new_car_series_info.model_dump(exclude_unset=True)
-    upd_car_series_info = await car_series_service.update(
-        id=car_brand_id, new_data=data
+    updated_series = await car_series_handler.update(
+        id=car_series_id,
+        data=new_car_series_data,
     )
-    if not upd_car_series_info:
-        ExceptionRaiser.raise_exception(status_code=404)  # TODO
-    return CarSeriesResponse.model_validate(upd_car_series_info)
+    return CarSeriesResponse.model_validate(updated_series)
 
 
 @router.delete(
     "/",
-    response_model=None,
     status_code=status.HTTP_200_OK,
+    response_model=None,
 )
 async def delete_series(
-    car_brand_id: str,
-    car_series_service: "CarSeriesService" = Depends(get_car_series_service),
+    car_series_id: str,
+    car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    result = await car_series_service.delete(id=car_brand_id)
-    if not result:
-        ExceptionRaiser.raise_exception(status_code=404)  # TODO
+    await car_series_handler.delete(id=car_series_id)
     return {"msg": "success"}
