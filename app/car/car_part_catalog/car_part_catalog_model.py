@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
-# if TYPE_CHECKING:
-# from app.car.car_brand_series_assoc import CarBrandPartSeriesAssoc
+if TYPE_CHECKING:
+    from app.car.car_brand_series_assoc import CarBrandPartSeriesAssoc
 
 
 class CarPartCatalog(Base):
@@ -15,6 +15,6 @@ class CarPartCatalog(Base):
         nullable=False,
     )
 
-    # car_part: Mapped["CarBrandPartSeriesAssoc"] = relationship(
-    #     back_populates="car_part",
-    # )
+    car_part: Mapped[List["CarBrandPartSeriesAssoc"]] = relationship(
+        back_populates="car_part",
+    )

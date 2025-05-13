@@ -9,5 +9,8 @@ from .car_series_repository import CarSeriesRepository
 def get_car_series_handler(
     session: AsyncSession = Depends(DBService.get_session),
 ) -> CarSeriesHandler:
-    repository = CarSeriesRepository(session=session, model=CarSeries)
+    repository = CarSeriesRepository(
+        session=session,
+        model=CarSeries,
+    )
     return CarSeriesHandler(repository=repository)

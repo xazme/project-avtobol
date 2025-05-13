@@ -11,5 +11,8 @@ from .car_brand_handler import CarSeriesHandler
 def get_car_brand_handler(
     session: AsyncSession = Depends(DBService.get_session),
 ) -> CarSeriesHandler:
-    repository = CarBrandRepository(session=session, model=CarBrand)
+    repository = CarBrandRepository(
+        session=session,
+        model=CarBrand,
+    )
     return CarSeriesHandler(repository=repository, storage=storage_service)
