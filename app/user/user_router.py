@@ -25,7 +25,7 @@ async def get_user(
 
 
 @router.get(
-    "/",
+    "/all",
     status_code=status.HTTP_200_OK,
     response_model=list,
 )
@@ -43,9 +43,9 @@ async def get_all(
 )
 async def create_user(
     user_data: UserCreate,
-    user_service: "UserHandler" = Depends(get_user_handler),
+    user_handler: "UserHandler" = Depends(get_user_handler),
 ):
-    user = await user_service.create(data=user_data)
+    user = await user_handler.create(data=user_data)
     return UserResponce.model_validate(user)
 
 

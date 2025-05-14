@@ -45,5 +45,5 @@ class User(Base):
         default=Roles.WORKER,
     )
 
-    # # relationships
-    # token: Mapped["Token"] = relationship(back_populates="user")
+    # relationships
+    token: Mapped["Token"] = relationship(back_populates="user")

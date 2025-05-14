@@ -1,0 +1,87 @@
+from typing import TYPE_CHECKING
+from fastapi import Depends, Form
+from fastapi.security.http import HTTPAuthorizationCredentials
+from app.user import UserHandler, UserCreate, get_user_handler
+from app.token import (
+    Tokens,
+    TokenHandler,
+    get_token_handler,
+    get_access_token,
+    get_refresh_token,
+)
+from app.shared import HashHelper, ExceptionRaiser
+
+if TYPE_CHECKING:
+    from app.user import User, UserHandler
+    from app.token import TokenHandler
+
+
+class AuthHandler:
+
+    def __init__(
+        self,
+        user_handler: "UserHandler",
+        token_handler: "TokenHandler",
+    ):
+        self.user_handler = user_handler
+        self.token_handler = token_handler
+
+    async def sign_in(
+        self,
+        username: str,
+        password: str,
+    ) -> "User":
+        user = await self.user_handler.get_by_name(name=username)
+        result = HashHelper.check_password(
+            password=password,
+            hashed_password=user.password,
+        )
+
+        if not result:
+            ExceptionRaiser.raise_exception(
+                status_code=401, detail="Invalid credentials"
+            )
+        return user
+
+    async def register(
+        user_data: UserCreate,
+        user_handler: "UserHandler" = Depends(get_user_handler),
+    ) -> "User":
+        user = await user_handler.create(data=user_data)
+        return user
+
+    async def user_from_token(
+        self,
+        token: str,
+        token_type: Tokens,
+        token_handler: "TokenHandler",
+    ) -> "User":
+        user_data = token_handler.manager.decode(token=token, type=token_type)
+        user = await self.user_handler.get(id=user_data.get("id"))
+        if not user:
+            ExceptionRaiser.raise_exception(status_code=404, detail="User Not Found")
+        return user
+
+    async def user_from_access_token(
+        self,
+        token: HTTPAuthorizationCredentials = Depends(get_access_token),
+    ) -> "User":
+        token = await self.token_handler.repository.get_access_token(
+            token=token.credentials,
+        )
+        payload = self.token_handler.manager.decode(token=token, type=Tokens.ACCESS)
+        user_id = payload.get("id")
+        user = await self.user_handler.get(id=user_id)
+        return user
+
+    async def user_from_refresh_token(
+        self,
+        token: HTTPAuthorizationCredentials = Depends(get_access_token),
+    ) -> "User":
+        token = await self.token_handler.repository.get_access_token(
+            token=token.credentials,
+        )
+        payload = self.token_handler.manager.decode(token=token, type=Tokens.ACCESS)
+        user_id = payload.get("id")
+        user = await self.user_handler.get(id=user_id)
+        return user

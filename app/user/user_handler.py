@@ -4,22 +4,32 @@ from .user_repository import UserRepository
 
 
 class UserHandler(BaseHandler):
-    def __init__(self, repository):
+    def __init__(self, repository: UserRepository):
         super().__init__(repository)
+        self.repository: UserRepository = repository
 
     async def create(self, data: BaseModel):
         new_data = data.model_copy()
         new_data.password = HashHelper.hash_password(password=data.password)
         data = new_data.model_dump(exclude_unset=True)
-        car_part = await self.repository.create(
+        user = await self.repository.create(
             data=data,
         )
-        if not car_part:
+        if not user:
             ExceptionRaiser.raise_exception(
                 status_code=400,
                 detail=f"Failed to create obj {data}. Location - {self.__class__.__name__}",
             )
-        return car_part
+        return user
+
+    async def get_by_name(self, name: str):
+        user = await self.repository.get_by_name(name=name)
+        if not user:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail=f"Failed to create obj {user}. Location - {self.__class__.__name__}",
+            )
+        return user
 
     async def update(self, id: int, data: BaseModel):
         data = data.model_copy()

@@ -1,55 +1,60 @@
-# from typing import TYPE_CHECKING
-# from fastapi import APIRouter, Depends, Response
-# from app.user import UserResponce
-# from app.token import (
-#     TokenResponse,
-#     Tokens,
-#     get_token_service,
-# )
-# from app.shared import Roles
-# from .auth_dependencies import (
-#     authentificate_user,
-#     register_user,
-#     user_from_refresh_token,
-# )
-# from .auth_helper import requied_roles, create_token_response
+from typing import TYPE_CHECKING
+from fastapi import APIRouter, Depends, Response, Form
+from app.user import UserResponce
+from app.token import (
+    TokenResponse,
+    Tokens,
+    get_token_handler,
+)
+from app.shared import Roles
+from .auth_dependencies import (
+    AuthHandler,
+    get_auth_handler,
+    # register_user,
+    # user_from_refresh_token,
+)
+from .auth_helper import create_token_response
 
-# if TYPE_CHECKING:
-#     from app.token import TokenService
-#     from app.user import User
-
-
-# router = APIRouter(tags=["Auth"], prefix="/auth")
+if TYPE_CHECKING:
+    from app.token import TokenHandler
+    from app.user import User
 
 
-# @router.post("/sign-in")
-# async def auth(
-#     response: Response,
-#     user: "User" = Depends(authentificate_user),
-#     token_service: "TokenService" = Depends(get_token_service),
-# ) -> TokenResponse:
+router = APIRouter(tags=["Auth"], prefix="/auth")
 
-#     token = await create_token_response(
-#         mode=Tokens.SIGNIN,
-#         response=response,
-#         user=user,
-#         token_service=token_service,
-#     )
-#     return TokenResponse.model_validate(token)
+
+@router.post("/sign-in")
+async def auth(
+    response: Response,
+    username: str = Form(strict=True),
+    password: str = Form(strict=True),
+    auth_handler: "AuthHandler " = Depends(get_auth_handler),
+    token_handler: "TokenHandler" = Depends(get_token_handler),
+) -> TokenResponse:
+    user = await auth_handler.sign_in(
+        username=username,
+        password=password,
+    )
+    token = await create_token_response(
+        mode=Tokens.SIGNIN,
+        user=user,
+        token_handler=token_handler,
+        response=response,
+    )
+    return TokenResponse.model_validate(token)
 
 
 # @router.post("/register")
 # async def register(
 #     response: Response,
 #     user: "User" = Depends(register_user),
-#     token_service: "TokenService" = Depends(get_token_service),
+#     token_handler: "TokenHandler" = Depends(get_token_handler),
 # ):
-
 #     token = await create_token_response(
-#         mode=Tokens.SIGNIN,
+#         mode=Tokens.REGISTER,
 #         response=response,
 #         user=user,
-#         token_service=token_service,
+#         token_handler=token_handler,
 #     )
 #     return TokenResponse.model_validate(token)
 
@@ -71,15 +76,10 @@
 # )
 # async def get_new_access(
 #     user: "User" = Depends(user_from_refresh_token),
-#     token_service: "TokenService" = Depends(get_token_service),
+#     token_handler: "TokenHandler" = Depends(get_token_handler),
 # ):
 
-#     user_data = {
-#         "id": user.id,
-#         "username": user.name,
-#     }
-
-#     access_token = token_service.generate_access_token(data=user_data)
+#     access_token = token_handler.manager.generate_access_token(data=user_data)
 
 #     return TokenResponse(
 #         user_id=user.id,

@@ -1,7 +1,8 @@
-# from enum import Enum
+from enum import Enum
 
 
-# class Tokens(Enum):
-#     SIGNIN: str = "sign-in"
-#     ACCESS: str = "access"
-#     REFRESH: str = "refresh"
+class Tokens(Enum):
+    SIGNIN: str = "sign-in"
+    REGISTER: str = "register"
+    ACCESS: str = "access"
+    REFRESH: str = "refresh"

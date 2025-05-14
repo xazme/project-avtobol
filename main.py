@@ -3,6 +3,7 @@ import uvicorn
 from fastapi import FastAPI
 from app.user import user_router
 from app.auth import auth_router
+from app.token import token_router
 from app.car import car_router
 from app.core.config import settings
 from app.database.db_service import DBService
@@ -14,7 +15,7 @@ async def lifespan(app: FastAPI):
     await DBService.create_tables()
     # await storage_service.create_bucket()
     yield
-    # await DBService.drop_tables()  # TODO turn off
+    await DBService.drop_tables()  # TODO turn off
     # await storage_service.delete_bucket()
     # await DBService.dispose()
 
@@ -24,9 +25,9 @@ app = FastAPI(
 )
 
 app.include_router(user_router)
-# app.include_router(auth_router)
+app.include_router(auth_router)
 app.include_router(car_router)
-# app.include_router(token_router)
+app.include_router(token_router)
 
 if __name__ == "__main__":
     uvicorn.run(
