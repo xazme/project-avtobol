@@ -8,6 +8,7 @@ from app.shared import Roles, Statuses
 
 if TYPE_CHECKING:
     from app.token import Token
+    from app.bucket import Bucket
 
 
 class User(Base):
@@ -21,15 +22,13 @@ class User(Base):
         String,
         nullable=False,
         unique=True,
-        index=True,
     )
     password: Mapped[str] = mapped_column(
         String,
         nullable=False,
         unique=False,
-        index=True,
     )
-    last_activity: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
         server_default=func.now(),
@@ -37,13 +36,14 @@ class User(Base):
     status: Mapped[SqlEnum] = mapped_column(
         SqlEnum(Statuses),
         nullable=False,
-        default=Statuses.OFFLINE,
+        default=Statuses.ACTIVE,
     )
     role: Mapped[SqlEnum] = mapped_column(
         SqlEnum(Roles),
         nullable=False,
-        default=Roles.WORKER,
+        default=Roles.CLIENT,
     )
 
     # relationships
     token: Mapped["Token"] = relationship(back_populates="user")
+    bucket: Mapped["Bucket"] = relationship(back_populates="user")

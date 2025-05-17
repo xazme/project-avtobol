@@ -21,9 +21,18 @@ class TokenHandler(BaseHandler):
         if not token:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="Error while token create",
+                detail="Can Create a token",
             )
         return token
+
+    async def delete(self, id):
+        result = await self.repository.delete(id=id)
+        if not result:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail="Token not found",
+            )
+        return result
 
     async def get_access_token(self, token: str):
         token = await self.repository.get_access_token(token=token)
@@ -31,6 +40,18 @@ class TokenHandler(BaseHandler):
             ExceptionRaiser.raise_exception(
                 status_code=404,
                 detail="Access token not found in database",
+            )
+        return token
+
+    async def update_access_token(self, id: int, token: BaseModel):
+        token = await self.repository.update_access_token(
+            user_id=id,
+            data=token.model_dump(exclude_unset=True),
+        )
+        if not token:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail="Error while we try to update token",
             )
         return token
 

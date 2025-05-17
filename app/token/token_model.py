@@ -12,14 +12,18 @@ class Token(Base):
         Integer,
         ForeignKey("user.id"),
         unique=True,
+        index=True,
+        nullable=False,
     )
     access_token: Mapped[str] = mapped_column(
         Text,
         unique=True,
+        nullable=False,
     )
     refresh_token: Mapped[str] = mapped_column(
         Text,
         unique=True,
+        nullable=False,
     )
 
     # relationships

@@ -18,7 +18,7 @@ class UserHandler(BaseHandler):
         if not user:
             ExceptionRaiser.raise_exception(
                 status_code=400,
-                detail=f"Failed to create obj {data}. Location - {self.__class__.__name__}",
+                detail=f"Failed to create obj. Location - {self.__class__.__name__}",
             )
         return user
 
@@ -27,7 +27,7 @@ class UserHandler(BaseHandler):
         if not user:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail=f"Failed to create obj {user}. Location - {self.__class__.__name__}",
+                detail=f"Failed to get obj {name}. Location - {self.__class__.__name__}",
             )
         return user
 

@@ -67,3 +67,11 @@ class BaseHandler:
                 detail=f"Failed to delete a obj {id}. Location - {self.__class__.__name__}",
             )
         return result
+
+
+# get → fetch_by_id
+# create → insert_record
+# update → modify_record
+# delete → remove_record
+# get_by_name → fetch_by_name
+# get_all → fetch_all

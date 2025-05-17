@@ -1,20 +1,26 @@
 from typing import TYPE_CHECKING
 from fastapi import Depends, Response
-from app.shared import ExceptionRaiser, Roles
-from app.token import TokenResponse, TokenCreate, Tokens
+from app.shared import ExceptionRaiser, Roles, Statuses
+from app.token import (
+    TokenCreate,
+    Tokens,
+)
+from .auth_dependencies import get_user_from_access_token, get_user_from_refresh_token
 
 if TYPE_CHECKING:
     from app.user import User
     from app.token import TokenHandler
 
 
-# def requied_roles(allowed_roles: list[Roles]) -> "User":
-#     def get_user(user: "User" = Depends(user_from_access_token)):
-#         if user.role not in allowed_roles:
-#             ExceptionRaiser.raise_exception(status_code=404)
-#         return user
+def requied_roles(allowed_roles: list[Roles]) -> "User":
+    async def get_user(user: "User" = Depends(get_user_from_access_token)):
+        if user.status != Statuses.ACTIVE:
+            ExceptionRaiser.raise_exception(status_code=303)
+        if user.role not in allowed_roles:
+            ExceptionRaiser.raise_exception(status_code=303)
+        return user
 
-#     return get_user
+    return get_user
 
 
 async def create_token_response(
@@ -38,10 +44,14 @@ async def create_token_response(
     )
 
     if mode == Tokens.REFRESH:
-
-        token = await token_handler.repository.update_access_token(
+        token_data_for_refresh = TokenCreate(
             user_id=user.id,
-            new_data=token_data.model_dump(exclude_unset=True),
+            access_token=access_token,
+        )
+
+        token = await token_handler.update_access_token(
+            id=user.id,
+            token=token_data_for_refresh,
         )
 
     elif mode == Tokens.SIGNIN:
@@ -53,7 +63,7 @@ async def create_token_response(
             secure=True,
             samesite="lax",
         )
-        await token_handler.repository.delete_token(user_id=user.id)
+        await token_handler.delete(id=user.id)
         token = await token_handler.create(token_data)
 
     elif mode == Tokens.REGISTER:
@@ -64,7 +74,7 @@ async def create_token_response(
             secure=True,
             samesite="lax",
         )
-        token = await token_handler.repository.create(token_data.model_dump())
+        token = await token_handler.create(data=token_data)
     else:
         ExceptionRaiser.raise_exception(
             status_code=400,

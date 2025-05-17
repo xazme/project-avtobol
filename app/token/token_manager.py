@@ -61,7 +61,6 @@ class TokenManager:
         key = (
             self.access_public_key if type == Tokens.ACCESS else self.refresh_public_key
         )
-
         try:
             data = jwt.decode(jwt=token, algorithms=[self.alogrithm], key=key)
         except ExpiredSignatureError:

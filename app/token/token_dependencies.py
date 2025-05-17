@@ -1,5 +1,9 @@
 from fastapi import Depends, Request
-from fastapi.security import OAuth2PasswordBearer, HTTPBearer
+from fastapi.security import (
+    OAuth2PasswordBearer,
+    HTTPBearer,
+    HTTPAuthorizationCredentials,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import settings
 from app.database import DBService
@@ -35,11 +39,15 @@ def get_token_handler(
     )
 
 
-def get_access_token(token: str = Depends(http_bearer)) -> str:
+def get_access_token(
+    token: HTTPAuthorizationCredentials = Depends(http_bearer),
+) -> HTTPAuthorizationCredentials:
     return token
 
 
-def get_refresh_token(token: str = Depends(http_bearer)) -> str:
+def get_refresh_token(
+    token: HTTPAuthorizationCredentials = Depends(http_bearer),
+) -> HTTPAuthorizationCredentials:
     return token
 
 

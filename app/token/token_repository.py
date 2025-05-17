@@ -24,14 +24,14 @@ class TokenRepository(BaseCRUD):
     async def update_access_token(
         self,
         user_id: int,
-        new_data: dict,
+        data: dict,
     ) -> DeclarativeBase | None:
         token = await self.get_token_by_owner(id=user_id)
 
         if token is None:
             return None
 
-        for key, value in new_data.items():
+        for key, value in data.items():
             setattr(token, key, value)
 
         await self.session.commit()

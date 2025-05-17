@@ -2,8 +2,7 @@ from enum import Enum
 
 
 class Statuses(str, Enum):
-    ONLIME = "online"
-    OFFLINE = "offline"
+    ACTIVE = "active"
     BANNED = "banned"
 
 
@@ -11,6 +10,7 @@ class Roles(str, Enum):
     OWNER = "owner"
     WORKER = "worker"
     SEO = "seo"
+    CLIENT = "client"
 
 
 class Tokens(str, Enum):
