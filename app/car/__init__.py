@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from .car_brand import CarBrand, car_brand_router
 from .car_part_catalog import CarPartCatalog, car_part_catalog_router
-from .car_series import car_series_router
-from .car_brand_series_assoc import CarBrandPartSeriesAssoc, car_brand_series_router
+from .car_series import CarSeries, car_series_router
+from .product import Product, car_brand_series_router
 
 routers = [
     car_part_catalog_router,

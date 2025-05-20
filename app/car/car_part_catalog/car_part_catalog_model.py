@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 if TYPE_CHECKING:
-    from app.car.car_brand_series_assoc import CarBrandPartSeriesAssoc
+    from app.car.product import Product
 
 
 class CarPartCatalog(Base):
@@ -15,6 +15,6 @@ class CarPartCatalog(Base):
         nullable=False,
     )
 
-    car_part: Mapped[List["CarBrandPartSeriesAssoc"]] = relationship(
+    car_part: Mapped[List["Product"]] = relationship(
         back_populates="car_part",
     )

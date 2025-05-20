@@ -1,10 +1,11 @@
 from pydantic import BaseModel
 
 
-class CarBrandSeriesBase(BaseModel):
+class ProductBase(BaseModel):
     brand_id: int
     car_part_id: int
     series_id: int
+    pictures: list
     # year: int
     # type_of_body: str
     # volume: float
@@ -21,15 +22,15 @@ class CarBrandSeriesBase(BaseModel):
     # condition: str
 
 
-class CarBrandSeriesCreate(CarBrandSeriesBase):
+class ProductCreate(ProductBase):
     pass
 
 
-class CarBrandSeriesUpdate(CarBrandSeriesBase):
+class ProductUpdate(ProductBase):
     pass
 
 
-class CarBrandSeriesResponce(BaseModel):
+class ProductResponce(BaseModel):
     id: int
     brand_id: int
     car_part_id: int

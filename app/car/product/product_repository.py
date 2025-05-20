@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload, DeclarativeBase
 from app.shared import BaseCRUD
 
 
-class CarBrandSeriesRepository(BaseCRUD):
+class ProductRepository(BaseCRUD):
 
     def __init__(self, session: AsyncSession, model: DeclarativeBase):
         super().__init__(

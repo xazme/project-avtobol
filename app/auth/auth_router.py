@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from fastapi import APIRouter, Depends, Response, Form
+from fastapi import APIRouter, Depends, Response
 from fastapi.security import HTTPBasicCredentials
 from app.user import UserResponce, UserCreate
 from app.token import (
@@ -11,14 +11,9 @@ from app.shared import Roles
 from .auth_dependencies import (
     AuthHandler,
     get_auth_handler,
-    # register_user,
-    # user_from_refresh_token,
-)
-from .auth_helper import (
-    create_token_response,
-    requied_roles,
     get_user_from_refresh_token,
 )
+from app.security import create_token_response, requied_roles
 
 if TYPE_CHECKING:
     from app.token import TokenHandler
@@ -36,7 +31,6 @@ async def auth(
     response: Response,
     credentials: HTTPBasicCredentials = Depends(),
     auth_handler: "AuthHandler " = Depends(get_auth_handler),
-    token_handler: "TokenHandler" = Depends(get_token_handler),
 ) -> TokenResponse:
     user = await auth_handler.sign_in(
         username=credentials.username,
@@ -45,7 +39,7 @@ async def auth(
     token = await create_token_response(
         mode=Tokens.SIGNIN,
         user=user,
-        token_handler=token_handler,
+        token_handler=auth_handler.token_handler,
         response=response,
     )
     return TokenResponse.model_validate(token)
@@ -59,14 +53,13 @@ async def register(
     response: Response,
     data: UserCreate,
     auth_handler: "AuthHandler " = Depends(get_auth_handler),
-    token_handler: "TokenHandler" = Depends(get_token_handler),
 ):
     user = await auth_handler.register(user_data=data)
     token = await create_token_response(
         mode=Tokens.REGISTER,
         response=response,
         user=user,
-        token_handler=token_handler,
+        token_handler=auth_handler.token_handler,
     )
     return TokenResponse.model_validate(token)
 

@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
-from fastapi import Depends, Form
+from fastapi import Depends
 from fastapi.security.http import HTTPAuthorizationCredentials
-from app.user import UserHandler, UserCreate, get_user_handler
+from app.user import UserHandler, UserCreate
 from app.token import (
     Tokens,
     TokenHandler,

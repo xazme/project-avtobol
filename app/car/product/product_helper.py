@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 
-def convert_data_for_car_brand_series_object(list_of_car_parts: list):
+def convert_data_for_product(list_of_car_parts: list):
     data = [
         {
             "article": car_part.id,

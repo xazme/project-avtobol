@@ -5,7 +5,7 @@ from app.database import Base
 
 if TYPE_CHECKING:
     from app.car.car_brand import CarBrand
-    from app.car.car_brand_series_assoc import CarBrandPartSeriesAssoc
+    from app.car.product import Product
 
 
 class CarSeries(Base):
@@ -26,10 +26,10 @@ class CarSeries(Base):
     )
 
     # relationship
-    brand: Mapped["CarBrand"] = relationship(
-        back_populates="series",
+    car_brand: Mapped["CarBrand"] = relationship(
+        back_populates="car_series",
     )
 
-    car_part: Mapped[List["CarBrandPartSeriesAssoc"]] = relationship(
-        back_populates="series",
+    car_part: Mapped[List["Product"]] = relationship(
+        back_populates="car_series",
     )

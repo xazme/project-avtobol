@@ -5,7 +5,7 @@ from app.token import (
     TokenCreate,
     Tokens,
 )
-from .auth_dependencies import get_user_from_access_token, get_user_from_refresh_token
+from app.auth import get_user_from_access_token
 
 if TYPE_CHECKING:
     from app.user import User
@@ -84,7 +84,7 @@ async def create_token_response(
     if not token:
         ExceptionRaiser.raise_exception(
             status_code=500,
-            detail="token create error",
+            detail="Token error",
         )
 
     return token

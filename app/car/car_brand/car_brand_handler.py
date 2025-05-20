@@ -18,6 +18,11 @@ class CarSeriesHandler(BaseHandler):
         car_brand_data_upd = car_brand_data.model_dump()
 
         brand = await self.repository.create(data=car_brand_data_upd)
+        if not brand:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail=f"We cant create a object. Location - {self.__class__.__name__}",
+            )
         return brand
 
     async def delete(self, id: int):

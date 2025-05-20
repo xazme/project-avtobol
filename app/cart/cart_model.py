@@ -5,6 +5,7 @@ from app.database import Base
 
 if TYPE_CHECKING:
     from app.user import User
+    from app.car.product import Product
 
 
 class Cart(Base):
@@ -14,9 +15,13 @@ class Cart(Base):
         nullable=False,
         index=True,
     )
-    items: Mapped[list] = mapped_column(
-        ARRAY,
+    product_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("product.id"),
+        nullable=False,
+        index=True,
     )
 
     # relationship
-    user: Mapped["User"] = relationship(back_populates="bucket")
+    user: Mapped["User"] = relationship(back_populates="cart")
+    product: Mapped["Product"] = relationship(back_populates="cart")

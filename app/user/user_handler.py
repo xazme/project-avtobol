@@ -9,8 +9,10 @@ class UserHandler(BaseHandler):
         self.repository: UserRepository = repository
 
     async def create(self, data: BaseModel):
-        new_data = data.model_copy()
-        new_data.password = HashHelper.hash_password(password=data.password)
+        # TODO РОЛЬ ПО ДЕФОЛТУ ПОСТАВИТЬ НА КЛИЕНТА
+        new_data = data.model_copy(
+            update={"password": HashHelper.hash_password(password=data.password)}
+        )
         data = new_data.model_dump(exclude_unset=True)
         user = await self.repository.create(
             data=data,
@@ -32,16 +34,17 @@ class UserHandler(BaseHandler):
         return user
 
     async def update(self, id: int, data: BaseModel):
-        data = data.model_copy()
-        data.password = HashHelper.hash_password(password=data.password)
-        new_data = data.model_dump(exclude_unset=True)
-        updated_car_part = await self.repository.update(
-            id=id,
-            data=new_data,
+        new_data = data.model_copy(
+            update={"password": HashHelper.hash_password(password=data.password)}
         )
-        if not updated_car_part:
+        data = new_data.model_dump(exclude_unset=True)
+        updated_user = await self.repository.update(
+            id=id,
+            data=data,
+        )
+        if not updated_user:
             ExceptionRaiser.raise_exception(
                 status_code=422,
                 detail=f"Failed to update a obj {id}. Location - {self.__class__.__name__}",
             )
-        return updated_car_part
+        return updated_user
