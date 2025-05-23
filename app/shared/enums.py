@@ -6,6 +6,12 @@ class Statuses(str, Enum):
     BANNED = "banned"
 
 
+class OrderStatuses(str, Enum):
+    OPEN = "open"
+    CLOSED = "closed"
+    DENIED = "denied"
+
+
 class Roles(str, Enum):
     OWNER = "owner"
     WORKER = "worker"

@@ -26,11 +26,11 @@ class Product(Base):
         ForeignKey("carpartcatalog.id"),
         nullable=False,
     )
-    # pictures: Mapped[list] = mapped_column(
-    #     ARRAY(String),
-    #     nullable=False,
-    #     unique=True,
-    # )
+    pictures: Mapped[list] = mapped_column(
+        ARRAY(String),
+        nullable=False,
+        unique=True,
+    )
 
     # relationships
     car_brand: Mapped["CarBrand"] = relationship(back_populates="car_part")

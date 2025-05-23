@@ -21,15 +21,16 @@ class ProductHandler(BaseHandler):
         files: list[bytes | UploadFile],
     ):
         filenames = await self.storage.create_files(list_of_files=files)
-        car_part = data.model_copy()
-        car_part.pictures = filenames
+        car_part = data.model_dump(exclude_unset=True)
+        car_part.update({"pictures": filenames})
+        print(car_part)
         product = await self.repository.create(
-            car_part.model_dump(exclude_unset=True),
+            data=car_part,
         )
 
-        if not product:
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="We can create this product",
-            )
+        # if not product:
+        #     ExceptionRaiser.raise_exception(
+        #         status_code=404,
+        #         detail="We can create this product",
+        #     )
         return product

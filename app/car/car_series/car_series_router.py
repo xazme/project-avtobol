@@ -33,7 +33,7 @@ async def get_all_car_series(
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
     car_series = await car_series_handler.get_all()
-    return [CarSeriesResponse(car_serie) for car_serie in car_series]
+    return [CarSeriesResponse.model_validate(car_serie) for car_serie in car_series]
 
 
 @router.post(

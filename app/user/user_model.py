@@ -12,12 +12,12 @@ if TYPE_CHECKING:
 
 
 class User(Base):
-    # name: Mapped[str] = mapped_column(
-    #     String,
-    #     nullable=False,
-    #     unique=True,
-    #     index=True,
-    # )
+    name: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        unique=True,
+        index=True,
+    )
     email: Mapped[str] = mapped_column(
         String,
         nullable=False,
@@ -28,22 +28,22 @@ class User(Base):
         nullable=False,
         unique=False,
     )
-    # created_at: Mapped[datetime] = mapped_column(
-    #     DateTime,
-    #     nullable=False,
-    #     server_default=func.now(),
-    # )
-    # status: Mapped[SqlEnum] = mapped_column(
-    #     SqlEnum(Statuses),
-    #     nullable=False,
-    #     default=Statuses.ACTIVE,
-    # )
-    # role: Mapped[SqlEnum] = mapped_column(
-    #     SqlEnum(Roles),
-    #     nullable=False,
-    #     default=Roles.CLIENT,
-    # )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+    )
+    status: Mapped[SqlEnum] = mapped_column(
+        SqlEnum(Statuses),
+        nullable=False,
+        default=Statuses.ACTIVE,
+    )
+    role: Mapped[SqlEnum] = mapped_column(
+        SqlEnum(Roles),
+        nullable=False,
+        default=Roles.CLIENT,
+    )
 
     # relationships
-    # token: Mapped["Token"] = relationship(back_populates="user")
+    token: Mapped["Token"] = relationship(back_populates="user")
     cart: Mapped[list["Cart"]] = relationship(back_populates="user")

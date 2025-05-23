@@ -2,13 +2,11 @@ from pydantic import BaseModel
 
 
 class CartBase(BaseModel):
-    user_id: int
     product_id: int
 
 
 class CartCreate(CartBase):
-    user_id: int
-    product_id: int
+    user_id: int = 0
 
 
 class CartResponse(CartBase):

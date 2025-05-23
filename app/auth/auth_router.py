@@ -2,18 +2,14 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends, Response
 from fastapi.security import HTTPBasicCredentials
 from app.user import UserResponce, UserCreate
-from app.token import (
-    TokenResponse,
-    Tokens,
-    get_token_handler,
-)
+from app.token import TokenResponse, Tokens, get_token_handler, create_token_response
 from app.shared import Roles
 from .auth_dependencies import (
     AuthHandler,
     get_auth_handler,
+    requied_roles,
     get_user_from_refresh_token,
 )
-from app.security import create_token_response, requied_roles
 
 if TYPE_CHECKING:
     from app.token import TokenHandler

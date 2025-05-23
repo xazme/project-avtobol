@@ -5,7 +5,6 @@ class ProductBase(BaseModel):
     brand_id: int
     car_part_id: int
     series_id: int
-    pictures: list
     # year: int
     # type_of_body: str
     # volume: float
@@ -30,11 +29,9 @@ class ProductUpdate(ProductBase):
     pass
 
 
-class ProductResponce(BaseModel):
+class ProductResponce(ProductBase):
     id: int
-    brand_id: int
-    car_part_id: int
-    series_id: int
+    pictures: list = [str]
 
     class Config:
         from_attributes = True

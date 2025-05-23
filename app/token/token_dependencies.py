@@ -1,4 +1,5 @@
-from fastapi import Depends, Request
+from typing import TYPE_CHECKING
+from fastapi import Depends, Request, Response
 from fastapi.security import (
     OAuth2PasswordBearer,
     HTTPBearer,
@@ -7,11 +8,16 @@ from fastapi.security import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import settings
 from app.database import DBService
+from app.shared import ExceptionRaiser
 from .token_repository import TokenRepository
 from .token_manager import TokenManager
 from .token_handler import TokenHandler
 from .token_model import Token
 from .token_enum import Tokens
+from .token_schema import TokenCreate
+
+if TYPE_CHECKING:
+    from app.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.auth.access_token_url)
 http_bearer = HTTPBearer(auto_error=False)
@@ -48,6 +54,73 @@ def get_access_token(
 def get_refresh_token(
     token: HTTPAuthorizationCredentials = Depends(http_bearer),
 ) -> HTTPAuthorizationCredentials:
+    return token
+
+
+async def create_token_response(
+    mode: Tokens,
+    user: "User",
+    token_handler: "TokenHandler",
+    response: Response,
+):
+    user_data = {
+        "id": user.id,
+        "username": user.name,
+    }
+
+    access_token = token_handler.manager.generate_access_token(data=user_data)
+    refresh_token = token_handler.manager.generate_refresh_token(data=user_data)
+
+    token_data = TokenCreate(
+        user_id=user.id,
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
+
+    if mode == Tokens.REFRESH:
+        token_data_for_refresh = TokenCreate(
+            user_id=user.id,
+            access_token=access_token,
+        )
+
+        token = await token_handler.update_access_token(
+            id=user.id,
+            token=token_data_for_refresh,
+        )
+
+    elif mode == Tokens.SIGNIN:
+
+        response.set_cookie(
+            key=refresh_token,
+            value=refresh_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+        )
+        await token_handler.delete(id=user.id)
+        token = await token_handler.create(token_data)
+
+    elif mode == Tokens.REGISTER:
+        response.set_cookie(
+            key=refresh_token,
+            value=refresh_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+        )
+        token = await token_handler.create(data=token_data)
+    else:
+        ExceptionRaiser.raise_exception(
+            status_code=400,
+            detail="Invalid token mode",
+        )
+
+    if not token:
+        ExceptionRaiser.raise_exception(
+            status_code=500,
+            detail="Token error",
+        )
+
     return token
 
 

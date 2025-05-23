@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from app.shared import BaseHandler, ExceptionRaiser, HashHelper
+from app.shared import BaseHandler, ExceptionRaiser, HashHelper, Roles
 from .user_repository import UserRepository
 
 
@@ -9,9 +9,11 @@ class UserHandler(BaseHandler):
         self.repository: UserRepository = repository
 
     async def create(self, data: BaseModel):
-        # TODO РОЛЬ ПО ДЕФОЛТУ ПОСТАВИТЬ НА КЛИЕНТА
         new_data = data.model_copy(
-            update={"password": HashHelper.hash_password(password=data.password)}
+            update={
+                "password": HashHelper.hash_password(password=data.password),
+                "role": Roles.CLIENT,
+            }
         )
         data = new_data.model_dump(exclude_unset=True)
         user = await self.repository.create(

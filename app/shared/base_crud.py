@@ -24,8 +24,9 @@ class BaseCRUD:
             await self.session.refresh(obj)
             return obj
 
-        except IntegrityError:
+        except IntegrityError as e:
             await self.session.rollback()
+            # print(e)
             return None
 
     async def update(self, id: int, data: dict) -> DeclarativeBase | None:

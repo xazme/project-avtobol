@@ -13,10 +13,10 @@ class CarBrand(Base):
         String,
         unique=True,
     )
-    # picture: Mapped[str] = mapped_column(
-    #     String,
-    #     unique=True,
-    # )
+    picture: Mapped[str] = mapped_column(
+        String,
+        unique=True,
+    )
 
     # relationship
     car_series: Mapped[List["CarSeries"]] = relationship(

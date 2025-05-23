@@ -64,6 +64,7 @@ async def update_brand(
     car_brand_pic: UploadFile = File(...),
     car_brand_handler: "CarSeriesHandler" = Depends(get_car_brand_handler),
 ):
+    # TODO ПЕРЕДЕЛАТЬ ЛОГИКУ СОЗДАНИЯ
     updated_brand = await car_brand_handler.update(
         id=car_brand_id,
         file=car_brand_pic,

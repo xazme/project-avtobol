@@ -14,8 +14,8 @@ class ProductRepository(BaseCRUD):
 
     async def get_all(self):
         stmt = Select(self.model).options(
-            selectinload(self.model.brand),
-            selectinload(self.model.series),
+            selectinload(self.model.car_brand),
+            selectinload(self.model.car_series),
             selectinload(self.model.car_part),
         )
         result: Result = await self.session.execute(statement=stmt)

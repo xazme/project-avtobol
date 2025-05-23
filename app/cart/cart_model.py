@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from sqlalchemy import Integer, ForeignKey, ARRAY
+from sqlalchemy import Integer, ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from app.database import Base
 
@@ -18,6 +18,7 @@ class Cart(Base):
     product_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("product.id"),
+        unique=False,
         nullable=False,
         index=True,
     )

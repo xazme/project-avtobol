@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from fastapi import APIRouter, Depends, status, File, UploadFile
+from fastapi import APIRouter, Depends, status, File, UploadFile, BackgroundTasks
 from app.core import settings
 from .product_schema import (
     ProductCreate,
@@ -40,21 +40,30 @@ async def get_all_products(
     return convert_data_for_product(list_of_car_parts=products)
 
 
-@router.post(
-    "/",
-    status_code=status.HTTP_200_OK,
-    response_model=ProductResponce,
-)
-async def create_product(
-    product_data: ProductCreate,
-    product_pictures: UploadFile = File(...),
-    product_handler: "ProductHandler" = Depends(get_product_handler),
-):
-    car_part = await product_handler.create(
-        data=product_data,
-        files=product_pictures,
-    )
-    return ProductResponce.model_validate(car_part)
+# @router.post(
+#     "/",
+#     status_code=status.HTTP_200_OK,
+#     response_model=dict,
+# )
+# async def create_product(
+#     bt: BackgroundTasks,
+#     product_data: ProductCreate = Depends(),
+#     product_pictures: list[UploadFile] = File(...),
+#     product_handler: "ProductHandler" = Depends(get_product_handler),
+# ):
+#     files_data = [await file.read() for file in product_pictures]
+#     bt.add_task(
+#         product_handler.create,
+#         data=product_data,
+#         files=files_data,
+#     )
+#     # TODO ПЕРЕДЕЛАТЬ ЛОГИКУ СОЗДАНИЯ
+#     return {"msg": "in process"}
+#     # car_part = await product_handler.create(
+#     #     data=product_data,
+#     #     files=product_pictures,
+#     # )
+#     # return ProductResponce.model_validate(car_part)
 
 
 @router.put(

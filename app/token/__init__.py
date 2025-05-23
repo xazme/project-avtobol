@@ -4,4 +4,9 @@ from .token_handler import TokenHandler
 from .token_types import AccessToken, RefreshToken
 from .token_enum import Tokens
 from .token_model import Token
-from .token_dependencies import get_access_token, get_refresh_token, get_token_handler
+from .token_dependencies import (
+    get_access_token,
+    get_refresh_token,
+    get_token_handler,
+    create_token_response,
+)

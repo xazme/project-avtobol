@@ -1,4 +1,4 @@
-from .enums import Statuses, Roles
+from .enums import Statuses, Roles, OrderStatuses
 from .exceptions import ExceptionRaiser
 from .hash_helper import HashHelper
 from .base_crud import BaseCRUD

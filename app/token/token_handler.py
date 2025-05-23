@@ -26,7 +26,7 @@ class TokenHandler(BaseHandler):
         return token
 
     async def delete(self, id):
-        result = await self.repository.delete(id=id)
+        result = await self.repository.delete_token(user_id=id)
         if not result:
             ExceptionRaiser.raise_exception(
                 status_code=404,
