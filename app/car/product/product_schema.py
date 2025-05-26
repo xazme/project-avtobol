@@ -31,8 +31,9 @@ class ProductUpdate(ProductBase):
 
 class ProductResponce(ProductBase):
     id: int
-    pictures: list = [str]
+    pictures: list = []
 
+    # TODO
     class Config:
         from_attributes = True
         validate_by_name = True

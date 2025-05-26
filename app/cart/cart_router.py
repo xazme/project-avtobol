@@ -27,12 +27,11 @@ async def add_position(
     user: "User" = Depends(requied_roles([Roles.CLIENT])),
     cart_handler: "CartHandler" = Depends(get_cart_handler),
 ):
-    # TODO ПРОВЕРКА НА ТО ЧТО ТОВАРА НЕТУ В КОРЗИНЕ
-    position = await cart_handler.add_position(data=cart_data, user_id=user.id)
+    position = await cart_handler.create_position(data=cart_data, user_id=user.id)
     return CartResponse.model_validate(position)
 
 
-@router.delete("/dx`")
+@router.delete("/d")
 async def delete_position(
     position_id: int,
     user: "User" = Depends(requied_roles([Roles.CLIENT])),

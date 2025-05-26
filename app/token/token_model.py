@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from app.database import Base
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import String, Integer, DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -8,22 +9,24 @@ if TYPE_CHECKING:
 
 
 class Token(Base):
-    user_id: Mapped[int] = mapped_column(
-        Integer,
+    user_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("user.id"),
         unique=True,
-        index=True,
         nullable=False,
+        index=True,
     )
     access_token: Mapped[str] = mapped_column(
         Text,
         unique=True,
         nullable=False,
+        index=True,
     )
     refresh_token: Mapped[str] = mapped_column(
         Text,
         unique=True,
         nullable=False,
+        index=True,
     )
 
     # relationships

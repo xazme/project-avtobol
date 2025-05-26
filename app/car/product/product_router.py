@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from uuid import UUID
 from fastapi import APIRouter, Depends, status, File, UploadFile, BackgroundTasks
 from app.core import settings
 from .product_schema import (
@@ -21,10 +22,10 @@ router = APIRouter(prefix=settings.api.product, tags=["Product"])
     response_model=ProductResponce,
 )
 async def get_product(
-    product_id: int,
+    product_id: UUID,
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ):
-    product = await product_handler.get(id=product_id)
+    product = await product_handler.get_product_by_id(id=product_id)
     return ProductResponce.model_validate(product)
 
 
@@ -36,34 +37,26 @@ async def get_product(
 async def get_all_products(
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ):
-    products = await product_handler.get_all()
+    # TODO
+    products = await product_handler.get_all_products()
     return convert_data_for_product(list_of_car_parts=products)
 
 
-# @router.post(
-#     "/",
-#     status_code=status.HTTP_200_OK,
-#     response_model=dict,
-# )
-# async def create_product(
-#     bt: BackgroundTasks,
-#     product_data: ProductCreate = Depends(),
-#     product_pictures: list[UploadFile] = File(...),
-#     product_handler: "ProductHandler" = Depends(get_product_handler),
-# ):
-#     files_data = [await file.read() for file in product_pictures]
-#     bt.add_task(
-#         product_handler.create,
-#         data=product_data,
-#         files=files_data,
-#     )
-#     # TODO ПЕРЕДЕЛАТЬ ЛОГИКУ СОЗДАНИЯ
-#     return {"msg": "in process"}
-#     # car_part = await product_handler.create(
-#     #     data=product_data,
-#     #     files=product_pictures,
-#     # )
-#     # return ProductResponce.model_validate(car_part)
+@router.post(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=ProductResponce,
+)
+async def create_product(
+    product_data: ProductCreate = Depends(),
+    product_pictures: list[UploadFile] = File(...),
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+):
+    car_part = await product_handler.create_product(
+        data=product_data,
+        files=product_pictures,
+    )
+    return ProductResponce.model_validate(car_part)
 
 
 @router.put(
@@ -76,7 +69,7 @@ async def update_product(
     new_product_data: ProductUpdate,
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ):
-    upd_product = await product_handler.update(
+    upd_product = await product_handler.update_product(
         id=product_id,
         data=new_product_data,
     )
@@ -92,6 +85,6 @@ async def delete_product(
     product_id: int,
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ):
-    result = await product_handler.delete(id=product_id)
+    result = await product_handler.delete_product(id=product_id)
 
     return {"msg": "success"}

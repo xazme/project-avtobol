@@ -1,5 +1,6 @@
+from uuid import UUID
 from pydantic import BaseModel
-from app.storage import StorageService
+from sqlalchemy.orm import DeclarativeBase
 from .exceptions import ExceptionRaiser
 from .base_crud import BaseCRUD
 
@@ -12,7 +13,10 @@ class BaseHandler:
     ):
         self.repository = repository
 
-    async def create(self, data: BaseModel):
+    async def create_obj(
+        self,
+        data: BaseModel,
+    ) -> DeclarativeBase | None:
         data = data.model_dump(exclude_unset=True)
         obj = await self.repository.create(
             data=data,
@@ -24,31 +28,13 @@ class BaseHandler:
             )
         return obj
 
-    async def get(self, id: int):
-        obj = await self.repository.get(id=id)
-        if not obj:
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail=f"Obj {id} not found. Location - {self.__class__.__name__}",
-            )
-        return obj
-
-    async def get_all(self):
-        all_obj = await self.repository.get_all()
-        return all_obj
-
-    async def get_by_name(self, name: str):
-        obj = self.repository.get_by_name(name=name)
-        if not obj:
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail=f"Obj {id} not found. Location - {self.__class__.__name__}",
-            )
-        return obj
-
-    async def update(self, id: int, data: BaseModel):
+    async def update_obj(
+        self,
+        id: UUID,
+        data: BaseModel,
+    ) -> DeclarativeBase | None:
         data = data.model_dump(exclude_unset=True)
-        updated_obj = await self.repository.update(
+        updated_obj = await self.repository.update_by_id(
             id=id,
             data=data,
         )
@@ -59,8 +45,11 @@ class BaseHandler:
             )
         return updated_obj
 
-    async def delete(self, id: int):
-        result = await self.repository.delete(id=id)
+    async def delete_obj(
+        self,
+        id: UUID,
+    ) -> DeclarativeBase | None:
+        result = await self.repository.delete_by_id(id=id)
         if not result:
             ExceptionRaiser.raise_exception(
                 status_code=409,
@@ -68,10 +57,30 @@ class BaseHandler:
             )
         return result
 
+    async def get_obj_by_id(
+        self,
+        id: UUID,
+    ) -> DeclarativeBase | None:
+        obj = await self.repository.get_by_id(id=id)
+        if not obj:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail=f"Obj {id} not found. Location - {self.__class__.__name__}",
+            )
+        return obj
 
-# get → fetch_by_id
-# create → insert_record
-# update → modify_record
-# delete → remove_record
-# get_by_name → fetch_by_name
-# get_all → fetch_all
+    async def get_all_obj(self) -> DeclarativeBase | None:
+        all_obj = await self.repository.get_all()
+        return all_obj
+
+    async def get_obj_by_name(
+        self,
+        name: str,
+    ) -> None | DeclarativeBase:
+        obj = await self.repository.get_by_name(name=name)
+        if not obj:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail=f"Obj {name} not found. Location - {self.__class__.__name__}",
+            )
+        return obj

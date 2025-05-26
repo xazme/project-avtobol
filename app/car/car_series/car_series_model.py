@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, List
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
@@ -18,9 +19,13 @@ class CarSeries(Base):
         unique=False,
     )
 
-    brand_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey("carbrand.id"),
+    brand_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "carbrand.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
         index=True,
         unique=False,
     )
@@ -28,8 +33,11 @@ class CarSeries(Base):
     # relationship
     car_brand: Mapped["CarBrand"] = relationship(
         back_populates="car_series",
+        cascade="all, delete-orphan",
+        single_parent=True,
     )
 
     car_part: Mapped[List["Product"]] = relationship(
         back_populates="car_series",
+        cascade="all,delete-orphan",
     )

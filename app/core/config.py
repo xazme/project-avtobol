@@ -82,7 +82,7 @@ class Auth(BaseModel):
 
     access_token_url: str = "/auth/sign-in"
     algorithm: str = DataFromEnv.ALGORITHM
-    expire_minutes: int = 15
+    expire_minutes: int = 60
     expire_days: int = 7
 
     @property

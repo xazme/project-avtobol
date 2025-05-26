@@ -30,7 +30,7 @@ class AuthHandler:
         username: str,
         password: str,
     ) -> "User":
-        user = await self.user_handler.get_by_name(name=username)
+        user = await self.user_handler.get_user_by_email(email=email)
         result = HashHelper.check_password(
             password=password,
             hashed_password=user.password,
@@ -46,7 +46,7 @@ class AuthHandler:
         self,
         user_data: UserCreate,
     ) -> "User":
-        user = await self.user_handler.create(data=user_data)
+        user = await self.user_handler.create_user(data=user_data)
         return user
 
     async def user_from_access_token(
@@ -66,7 +66,7 @@ class AuthHandler:
             type=Tokens.ACCESS,
         )
         user_id = payload.get("id")
-        user = await self.user_handler.get(id=user_id)
+        user = await self.user_handler.get_user_by_id(id=user_id)
         return user
 
     async def user_from_refresh_token(

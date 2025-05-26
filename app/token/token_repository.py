@@ -1,7 +1,8 @@
-from app.shared import BaseCRUD
+from uuid import UUID
 from sqlalchemy import Select, Result
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.shared import BaseCRUD
 
 
 class TokenRepository(BaseCRUD):
@@ -13,20 +14,12 @@ class TokenRepository(BaseCRUD):
     ):
         super().__init__(session, model)
 
-    async def get_token_by_owner(
-        self,
-        id: int,
-    ) -> DeclarativeBase | None:
-        stmt = Select(self.model).where(self.model.user_id == id)
-        result: Result = await self.session.execute(statement=stmt)
-        return result.scalar_one_or_none()
-
     async def update_access_token(
         self,
-        user_id: int,
+        user_id: UUID,
         data: dict,
     ) -> DeclarativeBase | None:
-        token = await self.get_token_by_owner(id=user_id)
+        token = await self.get_access_token_by_id(id=user_id)
 
         if token is None:
             return None
@@ -38,8 +31,11 @@ class TokenRepository(BaseCRUD):
         await self.session.refresh(token)
         return token
 
-    async def delete_token(self, user_id):
-        token = await self.get_token_by_owner(id=user_id)
+    async def delete_tokens_by_user_id(
+        self,
+        user_id: UUID,
+    ):
+        token = await self.get_user_tokens_by_id(id=user_id)
 
         if token is None:
             return None
@@ -48,7 +44,7 @@ class TokenRepository(BaseCRUD):
         await self.session.commit()
         return True
 
-    async def get_access_token(
+    async def get_access_token_by_token(
         self,
         token: str,
     ) -> DeclarativeBase | None:
@@ -56,10 +52,36 @@ class TokenRepository(BaseCRUD):
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
-    async def get_refresh_token(
+    async def get_refresh_token_by_token(
         self,
         token: str,
     ) -> DeclarativeBase | None:
         stmt = Select(self.model).where(self.model.refresh_token == token)
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalar_one_or_none()
+
+    async def get_access_token_by_id(
+        self,
+        user_id: UUID,
+    ):
+        stmt = Select(self.model).where(self.model.user_id == user_id)
+        result: Result = await self.session.execute(statement=stmt)
+        token = result.scalar_one_or_none()
+        return token.access_token
+
+    async def get_access_token_by_id(
+        self,
+        user_id: UUID,
+    ):
+        stmt = Select(self.model).where(self.model.user_id == user_id)
+        result: Result = await self.session.execute(statement=stmt)
+        token = result.scalar_one_or_none()
+        return token.refresh_token
+
+    async def get_user_tokens_by_id(
+        self,
+        user_id: UUID,
+    ):
+        stmt = Select(self.model).where(self.model.user_id == user_id)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()

@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from app.token import Token
     from app.cart import Cart
 
+    # from app.order import Order
+
 
 class User(Base):
     name: Mapped[str] = mapped_column(
@@ -22,6 +24,13 @@ class User(Base):
         String,
         nullable=False,
         unique=True,
+        index=True,
+    )
+    phone_number: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        unique=True,
+        index=True,
     )
     password: Mapped[str] = mapped_column(
         String,
@@ -45,5 +54,13 @@ class User(Base):
     )
 
     # relationships
-    token: Mapped["Token"] = relationship(back_populates="user")
-    cart: Mapped[list["Cart"]] = relationship(back_populates="user")
+    token: Mapped["Token"] = relationship(
+        back_populates="user",
+    )
+    cart: Mapped[list["Cart"]] = relationship(
+        back_populates="user",
+    )
+    # order: Mapped[list["Order"]] = relationship(
+    #     back_populates="user",
+    #     cascade="all, delete-orphan",
+    # )

@@ -1,6 +1,3 @@
-from typing import TYPE_CHECKING
-
-
 def convert_data_for_product(list_of_car_parts: list):
     data = [
         {

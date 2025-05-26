@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from fastapi import Depends, Request, Response
+from fastapi import Depends, Response
 from fastapi.security import (
     OAuth2PasswordBearer,
     HTTPBearer,
@@ -97,8 +97,8 @@ async def create_token_response(
             secure=True,
             samesite="lax",
         )
-        await token_handler.delete(id=user.id)
-        token = await token_handler.create(token_data)
+        await token_handler.delete_tokens_by_user_id(user_id=user.id)
+        token = await token_handler.create_token(token_data)
 
     elif mode == Tokens.REGISTER:
         response.set_cookie(
@@ -108,12 +108,7 @@ async def create_token_response(
             secure=True,
             samesite="lax",
         )
-        token = await token_handler.create(data=token_data)
-    else:
-        ExceptionRaiser.raise_exception(
-            status_code=400,
-            detail="Invalid token mode",
-        )
+        token = await token_handler.create_token(data=token_data)
 
     if not token:
         ExceptionRaiser.raise_exception(

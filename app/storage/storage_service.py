@@ -1,15 +1,11 @@
 import io
 import asyncio
 import uuid
-from PIL import Image
+import logging
 from typing import cast
 from datetime import datetime
 from contextlib import asynccontextmanager
-import logging
-
-from fastapi import UploadFile
-
-# from starlette.datastructures import UploadFile
+from PIL import Image
 from aiobotocore.session import get_session
 from types_aiobotocore_s3 import S3Client as AioS3Client
 from .storage_decorators import s3_error_handler
@@ -52,17 +48,11 @@ class StorageService:
             logger.info(f"Bucket '{self.bucket_name}' deleted.")
 
     @s3_error_handler
-    async def create_file(self, file: UploadFile | bytes) -> str:
+    async def create_file(self, file: bytes) -> str:
         async with self.get_client() as client:
-            if hasattr(file, "read"):
-                file_bytes = await file.read()
-            elif type(file) == bytes:
-                file_bytes = file
-            else:
-                raise TypeError(
-                    f"Arg 'file' must be a UploadFile type or bytes, not {type(file)}"
-                )
-            file_bytes = await self._convert_to_webp(file=file_bytes)
+            if not isinstance(file, bytes):
+                raise TypeError(f"file must be bytes not {type(bytes)}")
+            file_bytes = await self._convert_to_webp(file=file)
             filename = self._generate_name() + ".webp"
             await client.put_object(
                 Bucket=self.bucket_name,
@@ -73,7 +63,7 @@ class StorageService:
             return filename
 
     @s3_error_handler
-    async def delete_file(self, filename: str):
+    async def delete_file(self, filename: str) -> None:
         async with self.get_client() as client:
             await client.delete_object(Bucket=self.bucket_name, Key=filename)
             logger.info(f"File '{filename}' deleted.")
@@ -81,8 +71,13 @@ class StorageService:
     @s3_error_handler
     async def file_exists(self, filename: str) -> bool:
         async with self.get_client() as client:
-            await client.get_object(Bucket=self.bucket_name, Key=filename)
-            logger.info(f"File '{filename}' was found.")
+            try:
+                response = await client.get_object(
+                    Bucket=self.bucket_name, Key=filename
+                )
+                logger.info(f"File '{filename}' was found.")
+            except Exception as e:
+                return None
             return True
 
     @s3_error_handler
@@ -98,16 +93,8 @@ class StorageService:
         await asyncio.gather(*tasks, return_exceptions=False)
         logger.info("All files deleted")
 
-    async def _convert_to_webp(self, file: UploadFile | bytes) -> bytes:
-        if hasattr(file, "read"):
-            file_bytes = await file.read()
-        elif isinstance(file, bytes):
-            file_bytes = file
-        else:
-            raise TypeError(
-                f"Аргумент 'file' должен быть UploadFile или bytes, а не {type(file)}"
-            )
-        with Image.open(io.BytesIO(file_bytes)) as img:
+    async def _convert_to_webp(self, file: bytes) -> bytes:
+        with Image.open(io.BytesIO(file)) as img:
             output_buffer = io.BytesIO()
             img.save(output_buffer, format="WEBP", quality=80)
             return output_buffer.getvalue()

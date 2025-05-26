@@ -6,7 +6,7 @@ class CartBase(BaseModel):
 
 
 class CartCreate(CartBase):
-    user_id: int = 0
+    pass
 
 
 class CartResponse(CartBase):

@@ -1,4 +1,5 @@
-from sqlalchemy import Integer, BigInteger
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.schema import MetaData
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -6,14 +7,7 @@ from sqlalchemy.orm import (
     Mapped,
     mapped_column,
 )
-import uuid
 from app.core.config import settings
-
-
-def generate_id():
-    id = uuid.uuid4()
-    new_id = int(id) >> 100
-    return new_id
 
 
 class Base(DeclarativeBase):
@@ -21,19 +15,19 @@ class Base(DeclarativeBase):
 
     __abstract__ = True
 
-    metadata = MetaData(
-        naming_convention=settings.db.naming_convention,
-    )
+    # metadata = MetaData(
+    #     naming_convention=settings.db.naming_convention,
+    # )
 
     @declared_attr.directive
     def __tablename__(cls):
         return cls.__name__.lower()
 
-    id: Mapped[int] = mapped_column(
-        BigInteger,
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
         unique=True,
         nullable=False,
         primary_key=True,
         index=True,
-        default=generate_id,
+        default=uuid.uuid4,
     )

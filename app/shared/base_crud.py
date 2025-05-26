@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import Select, Result
 from sqlalchemy.exc import IntegrityError
@@ -7,16 +8,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class BaseCRUD:
     """CRUD GENERATOR"""
 
-    def __init__(self, session: AsyncSession, model: DeclarativeBase):
+    def __init__(
+        self,
+        session: AsyncSession,
+        model: DeclarativeBase,
+    ):
         self.session = session
         self.model = model
 
-    async def get(self, id: int) -> DeclarativeBase | None:
-        stmt = Select(self.model).where(self.model.id == id).limit(1)
-        result: Result = await self.session.execute(statement=stmt)
-        return result.scalar_one_or_none()
-
-    async def create(self, data: dict) -> DeclarativeBase | None:
+    async def create(
+        self,
+        data: dict,
+    ) -> DeclarativeBase | None:
         obj = self.model(**data)
         try:
             self.session.add(obj)
@@ -26,11 +29,14 @@ class BaseCRUD:
 
         except IntegrityError as e:
             await self.session.rollback()
-            # print(e)
             return None
 
-    async def update(self, id: int, data: dict) -> DeclarativeBase | None:
-        obj = await self.get(id=id)
+    async def update_by_id(
+        self,
+        id: UUID,
+        data: dict,
+    ) -> DeclarativeBase | None:
+        obj = await self.get_by_id(id=id)
 
         if obj is None:
             return None
@@ -42,8 +48,11 @@ class BaseCRUD:
         await self.session.refresh(obj)
         return obj
 
-    async def delete(self, id: int) -> bool | None:
-        obj = await self.get(id=id)
+    async def delete_by_id(
+        self,
+        id: UUID,
+    ) -> bool | None:
+        obj = await self.get_by_id(id=id)
 
         if obj is None:
             return None
@@ -52,7 +61,18 @@ class BaseCRUD:
         await self.session.commit()
         return True
 
-    async def get_by_name(self, name: str) -> DeclarativeBase | None:
+    async def get_by_id(
+        self,
+        id: UUID,
+    ) -> DeclarativeBase | None:
+        stmt = Select(self.model).where(self.model.id == id).limit(1)
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalar_one_or_none()
+
+    async def get_by_name(
+        self,
+        name: str,
+    ) -> DeclarativeBase | None:
         stmt = Select(self.model).where(self.model.name == name)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()

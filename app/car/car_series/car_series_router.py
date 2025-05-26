@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
+from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from app.core import settings
-from app.shared import ExceptionRaiser
 from .car_series_schema import CarSeriesUpdate, CarSeriesCreate, CarSeriesResponse
 from .car_series_dependencies import get_car_series_handler
 
@@ -17,22 +17,22 @@ router = APIRouter(prefix=settings.api.car_series_prefix, tags=["Car Series"])
     response_model=CarSeriesResponse,
 )
 async def get_series(
-    car_series_id: str,
+    car_series_id: UUID,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    series = await car_series_handler.get(id=car_series_id)
+    series = await car_series_handler.get_obj_by_id(id=car_series_id)
     return CarSeriesResponse.model_validate(series)
 
 
 @router.get(
     "/all",
     status_code=status.HTTP_200_OK,
-    response_model=list,
+    response_model=list[CarSeriesResponse],
 )
 async def get_all_car_series(
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    car_series = await car_series_handler.get_all()
+    car_series = await car_series_handler.get_all_series_obj()
     return [CarSeriesResponse.model_validate(car_serie) for car_serie in car_series]
 
 
@@ -45,7 +45,7 @@ async def create_series(
     car_brand_data: CarSeriesCreate,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    series = await car_series_handler.create(data=car_brand_data)
+    series = await car_series_handler.create_series(data=car_brand_data)
     return CarSeriesResponse.model_validate(series)
 
 
@@ -55,11 +55,11 @@ async def create_series(
     response_model=CarSeriesResponse,
 )
 async def update_series(
-    car_series_id: str,
+    car_series_id: UUID,
     new_car_series_data: CarSeriesUpdate,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    updated_series = await car_series_handler.update(
+    updated_series = await car_series_handler.update_series(
         id=car_series_id,
         data=new_car_series_data,
     )
@@ -72,8 +72,8 @@ async def update_series(
     response_model=None,
 )
 async def delete_series(
-    car_series_id: str,
+    car_series_id: UUID,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    await car_series_handler.delete(id=car_series_id)
+    result = await car_series_handler.delete_series(id=car_series_id)
     return {"msg": "success"}

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class CarBrandBase(BaseModel):
     name: str = Form(...)
-    picture: str = Form(...)
+    picture: str
 
 
 class CarBrandCreate(CarBrandBase):

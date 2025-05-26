@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 from app.database import Base
-from sqlalchemy import String, Integer, Float, ForeignKey, ARRAY
+from sqlalchemy import String, Integer, ForeignKey, ARRAY
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
@@ -9,34 +10,63 @@ if TYPE_CHECKING:
     from app.car.car_part_catalog import CarPartCatalog
     from app.cart import Cart
 
+    # from app.order import Order
+
 
 class Product(Base):
-    brand_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey("carbrand.id"),
+    brand_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "carbrand.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
         nullable=False,
+        index=True,
     )
-    series_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey("carseries.id"),
+    series_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "carseries.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
         nullable=False,
+        index=True,
     )
-    car_part_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey("carpartcatalog.id"),
+    car_part_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "carpartcatalog.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
         nullable=False,
+        index=True,
     )
-    pictures: Mapped[list] = mapped_column(
-        ARRAY(String),
-        nullable=False,
-        unique=True,
-    )
+    # pictures: Mapped[list] = mapped_column(
+    #     ARRAY(String),
+    #     nullable=False,
+    #     unique=True,
+    # )
 
     # relationships
-    car_brand: Mapped["CarBrand"] = relationship(back_populates="car_part")
-    car_series: Mapped["CarSeries"] = relationship(back_populates="car_part")
-    car_part: Mapped["CarPartCatalog"] = relationship(back_populates="car_part")
-    cart: Mapped[list["Cart"]] = relationship(back_populates="product")
+    car_brand: Mapped["CarBrand"] = relationship(
+        back_populates="car_part",
+    )
+    car_series: Mapped["CarSeries"] = relationship(
+        back_populates="car_part",
+    )
+    car_part: Mapped["CarPartCatalog"] = relationship(
+        back_populates="car_part",
+    )
+    cart: Mapped[list["Cart"]] = relationship(
+        back_populates="product",
+    )
+    # order: Mapped[list["Order"]] = relationship(
+    #     back_populates="product",
+    #     cascade="all, delete-orphan",
+    # )
 
     # year: Mapped[int] = mapped_column(
     #     Integer,
