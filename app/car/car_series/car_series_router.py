@@ -20,7 +20,7 @@ async def get_series(
     car_series_id: UUID,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    series = await car_series_handler.get_obj_by_id(id=car_series_id)
+    series = await car_series_handler.get_series_by_id(series_id=car_series_id)
     return CarSeriesResponse.model_validate(series)
 
 
@@ -60,7 +60,7 @@ async def update_series(
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
     updated_series = await car_series_handler.update_series(
-        id=car_series_id,
+        series_id=car_series_id,
         data=new_car_series_data,
     )
     return CarSeriesResponse.model_validate(updated_series)
@@ -69,11 +69,11 @@ async def update_series(
 @router.delete(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=None,
+    response_model=dict,
 )
 async def delete_series(
     car_series_id: UUID,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ):
-    result = await car_series_handler.delete_series(id=car_series_id)
+    await car_series_handler.delete_series(series_id=car_series_id)
     return {"msg": "success"}

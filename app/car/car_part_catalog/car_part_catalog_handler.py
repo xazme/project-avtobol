@@ -16,22 +16,22 @@ class CarPartCatalogHandler(BaseHandler):
 
     async def update_part(
         self,
-        id: UUID,
+        part_id: UUID,
         data: CarPartCatalogUpdate,
     ):
-        return await super().update_obj(id, data)
+        return await super().update_obj(id=part_id, data=data)
 
     async def delete_part(
         self,
-        id: UUID,
+        part_id: UUID,
     ):
-        return await super().delete_obj(id)
+        return await super().delete_obj(id=part_id)
 
     async def get_part_by_id(
         self,
-        id: UUID,
+        part_id: UUID,
     ):
-        return await super().get_obj_by_id(id)
+        return await super().get_obj_by_id(id=part_id)
 
     async def get_all_parts(self):
         return await super().get_all_obj()

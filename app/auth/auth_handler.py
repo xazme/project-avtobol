@@ -1,18 +1,13 @@
 from typing import TYPE_CHECKING
 from fastapi import Depends
 from fastapi.security.http import HTTPAuthorizationCredentials
-from app.user import UserHandler, UserCreate
-from app.token import (
-    Tokens,
-    TokenHandler,
-    get_access_token,
-    get_refresh_token,
-)
+from app.user import UserCreate
+from app.token import TokenType, TokenHandler, get_access_token, get_refresh_token
 from app.shared import HashHelper, ExceptionRaiser
 
 if TYPE_CHECKING:
     from app.user import User, UserHandler
-    from app.token import TokenHandler
+    from app.token import TokenHandler, Token
 
 
 class AuthHandler:
@@ -27,15 +22,14 @@ class AuthHandler:
 
     async def sign_in(
         self,
-        username: str,
+        email: str,
         password: str,
     ) -> "User":
-        user = await self.user_handler.get_user_by_email(email=email)
+        user: "User" = await self.user_handler.get_user_by_email(email=email)
         result = HashHelper.check_password(
             password=password,
             hashed_password=user.password,
         )
-
         if not result:
             ExceptionRaiser.raise_exception(
                 status_code=401, detail="Invalid credentials"
@@ -46,7 +40,7 @@ class AuthHandler:
         self,
         user_data: UserCreate,
     ) -> "User":
-        user = await self.user_handler.create_user(data=user_data)
+        user: "User" = await self.user_handler.create_user(data=user_data)
         return user
 
     async def user_from_access_token(
@@ -58,15 +52,15 @@ class AuthHandler:
                 status_code=401,
                 detail="Not Auth",
             )
-        token = await self.token_handler.get_access_token(
+        token: "Token" = await self.token_handler.get_access_token(
             token=token.credentials,
         )
         payload = self.token_handler.manager.decode(
             token=token.access_token,
-            type=Tokens.ACCESS,
+            type=TokenType.ACCESS,
         )
         user_id = payload.get("id")
-        user = await self.user_handler.get_user_by_id(id=user_id)
+        user: "User" = await self.user_handler.get_user_by_id(user_id=user_id)
         return user
 
     async def user_from_refresh_token(
@@ -78,13 +72,13 @@ class AuthHandler:
                 status_code=401,
                 detail="Not Auth",
             )
-        token = await self.token_handler.get_refresh_token(
+        token: "Token" = await self.token_handler.get_refresh_token(
             token=token.credentials,
         )
         payload = self.token_handler.manager.decode(
             token=token.refresh_token,
-            type=Tokens.REFRESH,
+            type=TokenType.REFRESH,
         )
         user_id = payload.get("id")
-        user = await self.user_handler.get(id=user_id)
+        user: "User" = await self.user_handler.get_user_by_id(user_id=user_id)
         return user

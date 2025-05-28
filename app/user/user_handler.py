@@ -1,8 +1,10 @@
 from uuid import UUID
 from pydantic import EmailStr
-from app.shared import BaseHandler, ExceptionRaiser, HashHelper, Roles
+from app.shared import BaseHandler, ExceptionRaiser, HashHelper
 from .user_repository import UserRepository
 from .user_schema import UserCreate, UserUpdate
+from .user_model import User
+from .user_enums import UserRoles, UserStatuses
 
 
 class UserHandler(BaseHandler):
@@ -13,11 +15,12 @@ class UserHandler(BaseHandler):
     async def create_user(
         self,
         data: UserCreate,
-    ):
+    ) -> User:
         new_data = data.model_copy(
             update={
                 "password": HashHelper.hash_password(password=data.password),
-                "role": Roles.CLIENT,
+                "role": UserRoles.CLIENT,
+                "status": UserStatuses.ACTIVE,
             }
         )
         data = new_data.model_dump(exclude_unset=True)
@@ -34,7 +37,7 @@ class UserHandler(BaseHandler):
     async def delete_user(
         self,
         user_id: UUID,
-    ):
+    ) -> bool:
         result = await self.repository.delete_by_id(id=user_id)
         if not result:
             ExceptionRaiser.raise_exception(
@@ -47,7 +50,7 @@ class UserHandler(BaseHandler):
         self,
         user_id: UUID,
         data: UserUpdate,
-    ):
+    ) -> User:
         new_data = data.model_copy(
             update={"password": HashHelper.hash_password(password=data.password)}
         )
@@ -63,14 +66,14 @@ class UserHandler(BaseHandler):
             )
         return updated_user
 
-    async def get_all_users(self):
+    async def get_all_users(self) -> list[User]:
         return await self.repository.get_all()
 
     async def get_user_by_id(
         self,
         user_id: UUID,
-    ):
-        user = await self.repository.get_by_id(id=user_id)
+    ) -> User:
+        user = await self.repository.get_user_by_id(id=user_id)
         if not user:
             ExceptionRaiser.raise_exception(
                 status_code=404,
@@ -81,8 +84,8 @@ class UserHandler(BaseHandler):
     async def get_user_by_name(
         self,
         name: str,
-    ):
-        user = await self.repository.get_by_name(name=name)
+    ) -> User:
+        user = await self.repository.get_user_by_name(name=name)
         if not user:
             ExceptionRaiser.raise_exception(
                 status_code=404,
@@ -90,7 +93,10 @@ class UserHandler(BaseHandler):
             )
         return user
 
-    async def get_user_by_email(self, email: EmailStr):
+    async def get_user_by_email(
+        self,
+        email: EmailStr,
+    ) -> User:
         user = await self.repository.get_user_by_email(email=email)
         if not user:
             ExceptionRaiser.raise_exception(

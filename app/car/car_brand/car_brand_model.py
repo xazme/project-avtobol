@@ -13,10 +13,10 @@ class CarBrand(Base):
         String,
         unique=True,
     )
-    # picture: Mapped[str] = mapped_column(
-    #     String,
-    #     unique=True,
-    # )
+    picture: Mapped[str] = mapped_column(
+        String,
+        unique=True,
+    )
 
     # relationship
     car_series: Mapped[List["CarSeries"]] = relationship(
@@ -24,7 +24,7 @@ class CarBrand(Base):
         cascade="all, delete-orphan",
     )
 
-    car_part: Mapped["Product"] = relationship(
+    product: Mapped[list["Product"]] = relationship(
         back_populates="car_brand",
         cascade="all,delete-orphan",
     )

@@ -1,17 +1,18 @@
+from uuid import UUID
 from pydantic import BaseModel
 
 
 class CartBase(BaseModel):
-    product_id: int
+    product_id: UUID
 
 
 class CartCreate(CartBase):
-    pass
+    user_id: UUID
 
 
 class CartResponse(CartBase):
-    user_id: int
-    product_id: int
+    user_id: UUID
+    product_id: UUID
 
     class Config:
         from_attributes = True

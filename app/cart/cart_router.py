@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
+from uuid import UUID
 from fastapi import APIRouter, status, Depends
+from app.user import UserRoles
 from app.auth import requied_roles
-from app.shared import Roles
 from .cart_dependencies import get_cart_handler
 from .cart_schema import CartResponse, CartCreate
 
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 
 @router.get("/")
 async def get_user_cart(
-    user: "User" = Depends(requied_roles([Roles.CLIENT])),
+    user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     cart_handler: "CartHandler" = Depends(get_cart_handler),
 ):
     cart = await cart_handler.get_all_user_positions(user_id=user.id)
@@ -24,7 +25,7 @@ async def get_user_cart(
 @router.post("/")
 async def add_position(
     cart_data: CartCreate,
-    user: "User" = Depends(requied_roles([Roles.CLIENT])),
+    user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     cart_handler: "CartHandler" = Depends(get_cart_handler),
 ):
     position = await cart_handler.create_position(data=cart_data, user_id=user.id)
@@ -33,8 +34,8 @@ async def add_position(
 
 @router.delete("/d")
 async def delete_position(
-    position_id: int,
-    user: "User" = Depends(requied_roles([Roles.CLIENT])),
+    position_id: UUID,
+    user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     cart_handler: "CartHandler" = Depends(get_cart_handler),
 ):
     result = await cart_handler.delete_position(
@@ -49,8 +50,8 @@ async def delete_position(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_all_positions(
-    user: "User" = Depends(requied_roles([Roles.CLIENT])),
+    user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     cart_handler: "CartHandler" = Depends(get_cart_handler),
 ):
-    result = await cart_handler.delete_all_positions(user_id=user.id)
+    await cart_handler.delete_all_positions(user_id=user.id)
     return {"msg": "success"}

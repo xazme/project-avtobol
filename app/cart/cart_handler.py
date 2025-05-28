@@ -1,7 +1,7 @@
 from uuid import UUID
-from pydantic import BaseModel
 from app.shared import BaseHandler, ExceptionRaiser
 from .cart_repository import CartRepository
+from .cart_schema import CartCreate
 
 
 class CartHandler(BaseHandler):
@@ -20,13 +20,12 @@ class CartHandler(BaseHandler):
 
     async def create_position(
         self,
-        user_id: int,
-        data: BaseModel,
+        user_id: UUID,
+        data: CartCreate,
     ):
-        position_data = data.model_dump(exclude_unset=True)
+        position_data = data.model_copy(update={"user_id": user_id})
         obj = await self.repository.create_position(
-            user_id=user_id,
-            **position_data,
+            position_data=position_data.model_dump(exclude_unset=True)
         )
         if not obj:
             ExceptionRaiser.raise_exception(
@@ -37,8 +36,8 @@ class CartHandler(BaseHandler):
 
     async def delete_position(
         self,
-        user_id: int,
-        position_id: int,
+        user_id: UUID,
+        position_id: UUID,
     ):
         result = await self.repository.delete_position(
             user_id=user_id,
@@ -51,6 +50,9 @@ class CartHandler(BaseHandler):
             )
         return result
 
-    async def delete_all_positions(self, user_id: int):
+    async def delete_all_positions(
+        self,
+        user_id: UUID,
+    ):
         result = await self.repository.delete_all_positions(user_id=user_id)
         return result

@@ -39,26 +39,26 @@ class CarBrandHandler(BaseHandler):
 
     async def delete_brand(
         self,
-        id: UUID,
+        brand_id: UUID,
     ):
-        brand: "CarBrand" = await self.repository.get_by_id(id=id)
+        brand: "CarBrand" = await self.repository.get_by_id(id=brand_id)
         if not brand:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail=f"Obj {id} not found. Location - {self.__class__.__name__}",
+                detail=f"Obj {brand_id} not found. Location - {self.__class__.__name__}",
             )
 
         await self.storage.delete_file(brand.picture)
-        await self.repository.delete_by_id(id=id)
+        await self.repository.delete_by_id(id=brand_id)
 
     async def update_brand(
         self,
-        id: UUID,
+        brand_id: UUID,
         data: CarBrandUpdate,
         file: UploadFile | None = None,
     ):
         file = await file.read()
-        brand: "CarBrand" = await self.repository.get_by_id(id=id)
+        brand: "CarBrand" = await self.repository.get_by_id(id=brand_id)
         if not brand:
             ExceptionRaiser.raise_exception(
                 status_code=404,
@@ -88,6 +88,6 @@ class CarBrandHandler(BaseHandler):
 
     async def get_brand_by_id(
         self,
-        id: UUID,
+        brand_id: UUID,
     ):
-        return await super().get_obj_by_id(id)
+        return await super().get_obj_by_id(id=brand_id)

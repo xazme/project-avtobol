@@ -21,7 +21,7 @@ async def get_brand(
     car_brand_id: UUID,
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ):
-    brand = await car_brand_handler.get_brand_by_id(id=car_brand_id)
+    brand = await car_brand_handler.get_brand_by_id(brand_id=car_brand_id)
     return CarBrandResponse.model_validate(brand)
 
 
@@ -47,12 +47,10 @@ async def create_brand(
     car_brand_pic: UploadFile = File(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ):
-
     brand = await car_brand_handler.create_brand(
         file=car_brand_pic,
         data=car_brand_data,
     )
-
     return CarBrandResponse.model_validate(brand)
 
 
@@ -68,7 +66,7 @@ async def update_brand(
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ):
     updated_brand = await car_brand_handler.update_brand(
-        id=car_brand_id,
+        brand_id=car_brand_id,
         file=car_brand_pic,
         data=new_car_brand_data,
     )
@@ -78,11 +76,11 @@ async def update_brand(
 @router.delete(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=None,
+    response_model=dict,
 )
 async def delete_brand(
     car_brand_id: UUID,
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ):
-    await car_brand_handler.delete_obj(id=car_brand_id)
+    await car_brand_handler.delete_brand(brand_id=car_brand_id)
     return {"msg": "success"}

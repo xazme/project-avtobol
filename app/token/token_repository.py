@@ -14,12 +14,12 @@ class TokenRepository(BaseCRUD):
     ):
         super().__init__(session, model)
 
-    async def update_access_token(
+    async def update_user_access_token(
         self,
         user_id: UUID,
         data: dict,
     ) -> DeclarativeBase | None:
-        token = await self.get_access_token_by_id(id=user_id)
+        token = await self.get_user_tokens_by_id(user_id=user_id)
 
         if token is None:
             return None
@@ -35,7 +35,7 @@ class TokenRepository(BaseCRUD):
         self,
         user_id: UUID,
     ):
-        token = await self.get_user_tokens_by_id(id=user_id)
+        token = await self.get_user_tokens_by_id(user_id=user_id)
 
         if token is None:
             return None
@@ -59,24 +59,6 @@ class TokenRepository(BaseCRUD):
         stmt = Select(self.model).where(self.model.refresh_token == token)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
-
-    async def get_access_token_by_id(
-        self,
-        user_id: UUID,
-    ):
-        stmt = Select(self.model).where(self.model.user_id == user_id)
-        result: Result = await self.session.execute(statement=stmt)
-        token = result.scalar_one_or_none()
-        return token.access_token
-
-    async def get_access_token_by_id(
-        self,
-        user_id: UUID,
-    ):
-        stmt = Select(self.model).where(self.model.user_id == user_id)
-        result: Result = await self.session.execute(statement=stmt)
-        token = result.scalar_one_or_none()
-        return token.refresh_token
 
     async def get_user_tokens_by_id(
         self,

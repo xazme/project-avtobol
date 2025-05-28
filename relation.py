@@ -1,7 +1,7 @@
 import asyncio
 from uuid import UUID
 from app.database import Base
-from sqlalchemy import Select, Result, Delete
+from sqlalchemy import Select, Result, Delete, and_, exists
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
@@ -117,6 +117,19 @@ async def get_all_user_positions(
     )
     result: Result = await session.execute(statement=stmt)
     return result.scalars().all()
+
+
+async def check(
+    session: AsyncSession,
+    brand_id: UUID,
+    series_id: UUID,
+):
+    stmt = exists().where(
+        CarSeries.id == series_id,
+        CarSeries.brand_id == brand_id,
+    )
+    result: Result = await session.execute(statement=stmt)
+    return result.scalar()
 
 
 async def main():
@@ -241,20 +254,28 @@ async def main():
         await create_cart(session=session, user_id=user_3.id, product_id=product_6.id)
         await create_cart(session=session, user_id=user_3.id, product_id=product_7.id)
 
-        all = await get_all_user_positions(session=session, user_id=user_1.id)
+        # all = await get_all_user_positions(session=session, user_id=user_1.id)
 
-        nig = (
-            {
-                "user_id": order.user_id,
-                "product_id": order.product_id,
-                "product_car_brand": order.product.car_brand.name,
-                "product_car_series": order.product.car_series.name,
-                "product_car_part": order.product.car_part.name,
-            }
-            for order in all
+        # nig = (
+        #     {
+        #         "user_id": order.user_id,
+        #         "product_id": order.product_id,
+        #         "product_car_brand": order.product.car_brand.name,
+        #         "product_car_series": order.product.car_series.name,
+        #         "product_car_part": order.product.car_part.name,
+        #     }
+        #     for order in all
+        # )
+        # for elem in nig:
+        #     print(elem)
+
+        result = await check(
+            session=session,
+            brand_id=brand_mercedes.id,
+            series_id=series_merc_1.id,
+            part=car_part_merc_1.id,
         )
-        for elem in nig:
-            print(elem)
+        print(result)
 
 
 asyncio.run(main=main())

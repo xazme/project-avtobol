@@ -1,9 +1,9 @@
 from uuid import UUID
-from pydantic import BaseModel
 from app.shared import BaseHandler, ExceptionRaiser
 from .token_repository import TokenRepository
 from .token_manager import TokenManager
 from .token_schema import TokenCreate, TokenUpdate
+from .token_model import Token
 
 
 class TokenHandler(BaseHandler):
@@ -20,7 +20,7 @@ class TokenHandler(BaseHandler):
     async def create_token(
         self,
         data: TokenCreate,
-    ):
+    ) -> Token:
         data = data.model_dump(exclude_unset=True)
         token = await self.repository.create(data=data)
         if not token:
@@ -33,7 +33,7 @@ class TokenHandler(BaseHandler):
     async def delete_tokens_by_user_id(
         self,
         user_id: UUID,
-    ):
+    ) -> bool:
         result = await self.repository.delete_tokens_by_user_id(user_id=user_id)
         if not result:
             ExceptionRaiser.raise_exception(
@@ -44,11 +44,11 @@ class TokenHandler(BaseHandler):
 
     async def update_access_token(
         self,
-        id: UUID,
+        user_id: UUID,
         data: TokenUpdate,
-    ):
-        token = await self.repository.update_access_token(
-            user_id=id,
+    ) -> Token:
+        token = await self.repository.update_user_access_token(
+            user_id=user_id,
             data=data.model_dump(exclude_unset=True),
         )
         if not token:
@@ -58,13 +58,13 @@ class TokenHandler(BaseHandler):
             )
         return token
 
-    async def get_all_tokens(self):
+    async def get_all_tokens(self) -> list[Token]:
         return await self.get_all_obj()
 
     async def get_access_token(
         self,
         token: str,
-    ):
+    ) -> Token:
         token = await self.repository.get_access_token_by_token(token=token)
         if not token:
             ExceptionRaiser.raise_exception(
@@ -76,7 +76,7 @@ class TokenHandler(BaseHandler):
     async def get_refresh_token(
         self,
         token: str,
-    ):
+    ) -> Token:
         token = await self.repository.get_refresh_token_by_token(token=token)
         if not token:
             ExceptionRaiser.raise_exception(

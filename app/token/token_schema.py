@@ -1,8 +1,9 @@
+from uuid import UUID
 from pydantic import BaseModel
 
 
 class TokenBase(BaseModel):
-    user_id: int
+    user_id: UUID
     access_token: str | None = None
     refresh_token: str | None = None
 

@@ -11,7 +11,11 @@ if TYPE_CHECKING:
 class Token(Base):
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("user.id"),
+        ForeignKey(
+            "user.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
         unique=True,
         nullable=False,
         index=True,

@@ -1,10 +1,11 @@
+from uuid import UUID
 from pydantic import BaseModel
 
 
 class ProductBase(BaseModel):
-    brand_id: int
-    car_part_id: int
-    series_id: int
+    brand_id: UUID
+    car_part_id: UUID
+    series_id: UUID
     # year: int
     # type_of_body: str
     # volume: float
@@ -30,10 +31,9 @@ class ProductUpdate(ProductBase):
 
 
 class ProductResponce(ProductBase):
-    id: int
+    id: UUID
     pictures: list = []
 
-    # TODO
     class Config:
         from_attributes = True
         validate_by_name = True

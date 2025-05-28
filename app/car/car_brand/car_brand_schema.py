@@ -1,10 +1,10 @@
+from uuid import UUID
 from fastapi import Form
 from pydantic import BaseModel
 
 
 class CarBrandBase(BaseModel):
     name: str = Form(...)
-    picture: str
 
 
 class CarBrandCreate(CarBrandBase):
@@ -16,7 +16,8 @@ class CarBrandUpdate(CarBrandBase):
 
 
 class CarBrandResponse(CarBrandBase):
-    id: int
+    id: UUID
+    picture: str
 
     class Config:
         from_attributes = True

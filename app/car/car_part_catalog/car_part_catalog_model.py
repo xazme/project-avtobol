@@ -15,7 +15,7 @@ class CarPartCatalog(Base):
         nullable=False,
     )
 
-    car_part: Mapped[List["Product"]] = relationship(
+    product: Mapped[List["Product"]] = relationship(
         back_populates="car_part",
         cascade="all,delete-orphan",
     )

@@ -1,5 +1,5 @@
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jwt.exceptions import (
     InvalidSignatureError,
     ExpiredSignatureError,
@@ -9,7 +9,7 @@ from jwt.exceptions import (
     InvalidAudienceError,
 )
 from app.shared import ExceptionRaiser
-from .token_enum import Tokens
+from .token_enums import TokenType
 from .token_types import AccessToken, RefreshToken
 
 
@@ -55,11 +55,13 @@ class TokenManager:
     def decode(
         self,
         token: str,
-        type: Tokens,
+        type: TokenType,
     ) -> dict:
 
         key = (
-            self.access_public_key if type == Tokens.ACCESS else self.refresh_public_key
+            self.access_public_key
+            if type == TokenType.ACCESS
+            else self.refresh_public_key
         )
         try:
             data = jwt.decode(jwt=token, algorithms=[self.alogrithm], key=key)
@@ -108,12 +110,14 @@ class TokenManager:
         expire_minutes: int | None = None,
         expire_days: int | None = None,
     ) -> str:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         if expire_minutes:
             exp = now + timedelta(minutes=expire_minutes)
-        else:
+        elif expire_days:
             exp = now + timedelta(days=expire_days)
+        else:
+            exp = now + timedelta(days=1)
 
         data_to_encode = data.copy()
         data_to_encode.update(

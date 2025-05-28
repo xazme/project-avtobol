@@ -39,44 +39,44 @@ class CartRepository(BaseCRUD):
     async def get_user_position(
         self,
         user_id: UUID,
-        position_id: UUID,
+        product_id: UUID,
     ):
         stmt = Select(self.model).where(
-            and_(self.model.user_id == user_id, self.model.position_id == position_id)
+            and_(self.model.user_id == user_id, self.model.product_id == product_id)
         )
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
     async def create_position(
         self,
-        user_id: UUID,
-        position_id: UUID,
+        position_data: dict,
     ):
+        print(position_data)
         position = await self.get_user_position(
-            user_id=user_id,
-            position_id=position_id,
+            user_id=position_data.get("user_id"),
+            product_id=position_data.get("product_id"),
         )
-
         if position:
             return None
-
+        new_position = self.model(**position_data)
         try:
-            self.session.add(position)
+            self.session.add(new_position)
             await self.session.commit()
-            await self.session.refresh(position)
-            return position
-        except IntegrityError:
+            await self.session.refresh(new_position)
+            return new_position
+        except IntegrityError as e:
+            print(f"{e} INTEGRITY")
             await self.session.rollback()
             return None
 
     async def delete_position(
         self,
         user_id: UUID,
-        position_id: UUID,
+        product_id: UUID,
     ):
         position = await self.get_user_position(
             user_id=user_id,
-            position_id=position_id,
+            product_id=product_id,
         )
 
         if not position:

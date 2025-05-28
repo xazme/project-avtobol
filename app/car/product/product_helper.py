@@ -1,3 +1,6 @@
+from .product_schema import ProductResponce
+
+
 def convert_data_for_product(list_of_car_parts: list):
     data = [
         {

@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 from app.database import Base
-from sqlalchemy import String, Integer, ForeignKey, ARRAY
+from sqlalchemy import String, ForeignKey, ARRAY, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -9,8 +9,7 @@ if TYPE_CHECKING:
     from app.car.car_series import CarSeries
     from app.car.car_part_catalog import CarPartCatalog
     from app.cart import Cart
-
-    # from app.order import Order
+    from app.order import Order
 
 
 class Product(Base):
@@ -44,29 +43,34 @@ class Product(Base):
         nullable=False,
         index=True,
     )
-    # pictures: Mapped[list] = mapped_column(
-    #     ARRAY(String),
-    #     nullable=False,
-    #     unique=True,
-    # )
+    pictures: Mapped[list] = mapped_column(
+        ARRAY(String),
+        nullable=False,
+        unique=False,
+    )
+    is_alailible: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+    )
 
     # relationships
     car_brand: Mapped["CarBrand"] = relationship(
-        back_populates="car_part",
+        back_populates="product",
     )
     car_series: Mapped["CarSeries"] = relationship(
-        back_populates="car_part",
+        back_populates="product",
     )
     car_part: Mapped["CarPartCatalog"] = relationship(
-        back_populates="car_part",
+        back_populates="product",
     )
     cart: Mapped[list["Cart"]] = relationship(
         back_populates="product",
     )
-    # order: Mapped[list["Order"]] = relationship(
-    #     back_populates="product",
-    #     cascade="all, delete-orphan",
-    # )
+    order: Mapped[list["Order"]] = relationship(
+        back_populates="product",
+        cascade="all, delete-orphan",
+    )
 
     # year: Mapped[int] = mapped_column(
     #     Integer,

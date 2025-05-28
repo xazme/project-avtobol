@@ -40,13 +40,16 @@ class BaseCRUD:
 
         if obj is None:
             return None
+        try:
+            for key, value in data.items():
+                setattr(obj, key, value)
 
-        for key, value in data.items():
-            setattr(obj, key, value)
-
-        await self.session.commit()
-        await self.session.refresh(obj)
-        return obj
+            await self.session.commit()
+            await self.session.refresh(obj)
+            return obj
+        except IntegrityError:
+            await self.session.rollback()
+            return None
 
     async def delete_by_id(
         self,

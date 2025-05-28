@@ -6,6 +6,7 @@ from app.auth import auth_router
 from app.token import token_router
 from app.car import car_router
 from app.cart import cart_router
+from app.order import order_router
 from app.core.config import settings
 from app.database.db_service import DBService
 from app.storage.storage_service_dependencies import storage_service
@@ -16,8 +17,7 @@ async def lifespan(app: FastAPI):
     await DBService.create_tables()
     # await storage_service.create_bucket()
     yield
-    await DBService.drop_tables()  # TODO turn off
-    # await storage_service.delete_bucket()
+    # await DBService.drop_tables()  # TODO turn off
     # await DBService.dispose()
 
 
@@ -29,6 +29,7 @@ app.include_router(auth_router)
 app.include_router(car_router)
 app.include_router(token_router)
 app.include_router(cart_router)
+app.include_router(order_router)
 
 if __name__ == "__main__":
     uvicorn.run(

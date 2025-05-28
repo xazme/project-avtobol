@@ -28,7 +28,7 @@ async def get_part(
         get_car_part_catalog_handler,
     ),
 ):
-    part = await car_part_catalog_handler.get_part_by_id(id=car_part_id)
+    part = await car_part_catalog_handler.get_part_by_id(part_id=car_part_id)
     return CarPartCatalogResponse.model_validate(part)
 
 
@@ -74,7 +74,7 @@ async def update_part(
     ),
 ):
     updated_part = await car_part_catalog_handler.update_part(
-        id=car_part_id,
+        part_id=car_part_id,
         data=new_car_part_data,
     )
 
@@ -92,5 +92,5 @@ async def delete_part(
         get_car_part_catalog_handler
     ),
 ):
-    await car_part_catalog_handler.delete_part(id=car_part_id)
+    await car_part_catalog_handler.delete_part(part_id=car_part_id)
     return {"msg": "success"}

@@ -4,13 +4,12 @@ from sqlalchemy import func
 from sqlalchemy import String, DateTime, Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
-from app.shared import Roles, Statuses
+from .user_enums import UserRoles, UserStatuses
 
 if TYPE_CHECKING:
     from app.token import Token
     from app.cart import Cart
-
-    # from app.order import Order
+    from app.order import Order
 
 
 class User(Base):
@@ -43,24 +42,26 @@ class User(Base):
         server_default=func.now(),
     )
     status: Mapped[SqlEnum] = mapped_column(
-        SqlEnum(Statuses),
+        SqlEnum(UserStatuses),
         nullable=False,
-        default=Statuses.ACTIVE,
+        default=UserStatuses.ACTIVE,
     )
     role: Mapped[SqlEnum] = mapped_column(
-        SqlEnum(Roles),
+        SqlEnum(UserRoles),
         nullable=False,
-        default=Roles.CLIENT,
+        default=UserRoles.CLIENT,
     )
 
     # relationships
     token: Mapped["Token"] = relationship(
         back_populates="user",
+        cascade="all, delete-orphan",
     )
     cart: Mapped[list["Cart"]] = relationship(
         back_populates="user",
+        cascade="all, delete-orphan",
     )
-    # order: Mapped[list["Order"]] = relationship(
-    #     back_populates="user",
-    #     cascade="all, delete-orphan",
-    # )
+    order: Mapped[list["Order"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
