@@ -1,24 +1,23 @@
 from enum import Enum
+from uuid import UUID
 from datetime import datetime
 from pydantic import BaseModel
 
 
 class OrderCreate(BaseModel):
-    user_id: int
-    product_id: int
-    created_at: datetime
     description: str
     status: Enum = None
     # COUNTRY CITY POSTCODE
 
-    class Config:
-        from_attributes = True
-        validate_by_name = True
-
 
 class OrderResponse(BaseModel):
-    user_id: int
-    product_id: int
+    user_id: UUID
+    user_name: str
+    user_phone: str
+    product_id: UUID
+    product_brand: str
+    product_series: str
+    product_part: str
     created_at: datetime
     description: str
     status: Enum

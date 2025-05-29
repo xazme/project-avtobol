@@ -13,6 +13,9 @@ class CartCreate(CartBase):
 class CartResponse(CartBase):
     user_id: UUID
     product_id: UUID
+    product_brand: str
+    product_series: str
+    product_part: str
 
     class Config:
         from_attributes = True

@@ -87,6 +87,19 @@ async def delete_user(
     return {"message": "success"}
 
 
+@router.put(
+    "/",
+    dependencies=[Depends(requied_roles([UserRoles.ADMIN, UserRoles.OWNER]))],
+)
+async def change_role(
+    role: UserRoles,
+    user_id: UUID,
+    user_handler: "UserHandler" = Depends(get_user_handler),
+):
+    updated_user = await user_handler.change_user_role(user_id=user_id, new_role=role)
+    return UserResponce.model_validate(updated_user)
+
+
 @router.get(
     "/me",
     status_code=status.HTTP_200_OK,

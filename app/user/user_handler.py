@@ -46,6 +46,16 @@ class UserHandler(BaseHandler):
             )
         return result
 
+    async def change_user_role(
+        self,
+        user_id: UUID,
+        new_role: UserRoles,
+    ) -> User:
+        user = await self.repository.change_user_role(id=user_id, new_role=new_role)
+        if not user:
+            ExceptionRaiser.raise_exception(status_code=500, detail="cant change")
+        return user
+
     async def update_user(
         self,
         user_id: UUID,

@@ -12,7 +12,9 @@ class CarSeriesRepository(BaseCRUD):
         session: AsyncSession,
         model: CarSeries,
     ):
-        super().__init__(session, model)
+        super().__init__(session=session, model=model)
+        self.model = model
+        self.session = session
 
     async def check_relation(
         self,

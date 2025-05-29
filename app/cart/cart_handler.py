@@ -21,11 +21,11 @@ class CartHandler(BaseHandler):
     async def create_position(
         self,
         user_id: UUID,
-        data: CartCreate,
+        product_id: UUID,
     ):
-        position_data = data.model_copy(update={"user_id": user_id})
         obj = await self.repository.create_position(
-            position_data=position_data.model_dump(exclude_unset=True)
+            user_id=user_id,
+            product_id=product_id,
         )
         if not obj:
             ExceptionRaiser.raise_exception(
@@ -37,16 +37,16 @@ class CartHandler(BaseHandler):
     async def delete_position(
         self,
         user_id: UUID,
-        position_id: UUID,
+        product_id: UUID,
     ):
         result = await self.repository.delete_position(
             user_id=user_id,
-            position_id=position_id,
+            product_id=product_id,
         )
         if not result:
             ExceptionRaiser.raise_exception(
                 status_code=409,
-                detail=f"Failed to delete a obj {position_id}. Location - {self.__class__.__name__}",
+                detail=f"Failed to delete a obj {product_id}. Location - {self.__class__.__name__}",
             )
         return result
 
@@ -55,4 +55,6 @@ class CartHandler(BaseHandler):
         user_id: UUID,
     ):
         result = await self.repository.delete_all_positions(user_id=user_id)
+        if not result:
+            ExceptionRaiser.raise_exception(status_code=404, detail="Nothing to delete")
         return result

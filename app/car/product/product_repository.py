@@ -1,24 +1,28 @@
 from uuid import UUID
 from sqlalchemy import Select, Result
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload, DeclarativeBase
+from sqlalchemy.orm import selectinload
 from app.shared import BaseCRUD
 from app.car.car_brand import CarBrand
+from .product_model import Product
 
 
 class ProductRepository(BaseCRUD):
 
-    def __init__(self, session: AsyncSession, model: DeclarativeBase):
-        super().__init__(
-            session=session,
-            model=model,
-        )
+    def __init__(
+        self,
+        session: AsyncSession,
+        model: Product,
+    ):
+        super().__init__(session=session, model=model)
+        self.session = session
+        self.model = model
 
     async def get_all_products(
         self,
         page: int,
         page_size: int,
-    ):
+    ) -> list[Product]:
         stmt = (
             Select(self.model)
             .options(
@@ -37,7 +41,7 @@ class ProductRepository(BaseCRUD):
     async def get_product_by_id(
         self,
         id: UUID,
-    ):
+    ) -> Product | None:
         stmt = (
             Select(self.model)
             .where(self.model.id == id)
@@ -54,7 +58,7 @@ class ProductRepository(BaseCRUD):
         self,
         product_id: UUID,
         new_available_status: bool,
-    ):
+    ) -> Product | None:
         product = await self.get_product_by_id(id=product_id)
         try:
             product.is_alailible = new_available_status
@@ -64,3 +68,14 @@ class ProductRepository(BaseCRUD):
         except:
             await self.session.rollback()
             return None
+
+    async def check_availability(
+        self,
+        product_id: UUID,
+    ):
+        product = await super().get_by_id(id=product_id)
+        # TODO ИСПРАВИТЬ ОШИБКУ
+        if product.is_alailible:
+            return True
+        else:
+            return False

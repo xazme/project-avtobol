@@ -1,8 +1,8 @@
 from uuid import UUID
 from sqlalchemy import Select, Result
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.shared import BaseCRUD
+from .token_model import Token
 
 
 class TokenRepository(BaseCRUD):
@@ -10,15 +10,17 @@ class TokenRepository(BaseCRUD):
     def __init__(
         self,
         session: AsyncSession,
-        model: DeclarativeBase,
+        model: Token,
     ):
-        super().__init__(session, model)
+        super().__init__(session=session, model=model)
+        self.session = session
+        self.model = model
 
     async def update_user_access_token(
         self,
         user_id: UUID,
         data: dict,
-    ) -> DeclarativeBase | None:
+    ) -> Token | None:
         token = await self.get_user_tokens_by_id(user_id=user_id)
 
         if token is None:
@@ -34,7 +36,7 @@ class TokenRepository(BaseCRUD):
     async def delete_tokens_by_user_id(
         self,
         user_id: UUID,
-    ):
+    ) -> bool | None:
         token = await self.get_user_tokens_by_id(user_id=user_id)
 
         if token is None:
@@ -47,7 +49,7 @@ class TokenRepository(BaseCRUD):
     async def get_access_token_by_token(
         self,
         token: str,
-    ) -> DeclarativeBase | None:
+    ) -> Token | None:
         stmt = Select(self.model).where(self.model.access_token == token)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
@@ -55,7 +57,7 @@ class TokenRepository(BaseCRUD):
     async def get_refresh_token_by_token(
         self,
         token: str,
-    ) -> DeclarativeBase | None:
+    ) -> Token | None:
         stmt = Select(self.model).where(self.model.refresh_token == token)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
@@ -63,7 +65,7 @@ class TokenRepository(BaseCRUD):
     async def get_user_tokens_by_id(
         self,
         user_id: UUID,
-    ):
+    ) -> Token | None:
         stmt = Select(self.model).where(self.model.user_id == user_id)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()

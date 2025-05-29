@@ -10,4 +10,6 @@ class CarBrandRepository(BaseCRUD):
         session: AsyncSession,
         model: CarBrand,
     ):
-        super().__init__(session, model)
+        super().__init__(session=session, model=model)
+        self.model = model
+        self.session = session

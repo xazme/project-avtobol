@@ -1,8 +1,10 @@
 from uuid import UUID
 from sqlalchemy import Select, Result
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from app.shared import BaseCRUD
 from .user_model import User
+from .user_enums import UserRoles
 
 
 class UserRepository(BaseCRUD):
@@ -12,12 +14,30 @@ class UserRepository(BaseCRUD):
         session: AsyncSession,
         model: User,
     ):
-        super().__init__(session, model)
+        super().__init__(session=session, model=model)
+        self.session = session
+        self.model = model
+
+    async def change_user_role(
+        self,
+        id: UUID,
+        new_role: UserRoles,
+    ) -> User | None:
+        user = await self.get_by_id(id=id)
+        if not user:
+            return None
+        try:
+            user.role = new_role
+            await self.session.refresh(user)
+            return user
+        except IntegrityError:
+            await self.session.rollback()
+            return None
 
     async def get_user_by_email(
         self,
         email: str,
-    ):
+    ) -> User | None:
         stmt = Select(self.model).where(self.model.email == email)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
@@ -25,11 +45,11 @@ class UserRepository(BaseCRUD):
     async def get_user_by_id(
         self,
         id: UUID,
-    ):
+    ) -> User | None:
         return await super().get_by_id(id)
 
     async def get_user_by_name(
         self,
         name: str,
-    ):
+    ) -> User | None:
         return await super().get_by_name(name)

@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 from datetime import datetime
-from sqlalchemy import String, Integer, DateTime, ForeignKey, func, Enum as SqlEnum
+from sqlalchemy import String, DateTime, ForeignKey, func, Enum as SqlEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base

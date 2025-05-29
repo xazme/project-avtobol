@@ -105,3 +105,11 @@ class ProductHandler(BaseHandler):
             page=page,
             page_size=page_size,
         )
+
+    async def check_availability(self, product_id: UUID):
+        result = await self.repository.check_availability(product_id=product_id)
+        if result is False:
+            ExceptionRaiser.raise_exception(
+                status_code=400, detail="Продукт недоступен для продажи"
+            )
+        return result
