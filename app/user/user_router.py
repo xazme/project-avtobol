@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from app.auth import requied_roles
 from app.core.config import settings
-from app.user.user_schema import UserResponce, UserUpdate
+from app.user.user_schema import UserResponse, UserUpdate
 from .user_dependencies import get_user_handler
 from .user_model import User
 from .user_enums import UserRoles
@@ -18,7 +18,7 @@ router = APIRouter(prefix=settings.api.user_prefix, tags=["Users"])
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=UserResponce,
+    response_model=UserResponse,
     dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
 )
 async def get_user(
@@ -26,7 +26,7 @@ async def get_user(
     user_handler: "UserHandler" = Depends(get_user_handler),
 ):
     user = await user_handler.get_user_by_id(user_id=user_id)
-    return UserResponce.model_validate(user)
+    return UserResponse.model_validate(user)
 
 
 @router.delete(
@@ -46,20 +46,20 @@ async def delete_user(
 @router.get(
     "/all",
     status_code=status.HTTP_200_OK,
-    response_model=list[UserResponce],
+    response_model=list[UserResponse],
     dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
 )
 async def get_all(
     user_handler: "UserHandler" = Depends(get_user_handler),
 ):
     users = await user_handler.get_all_users()
-    return [UserResponce.model_validate(user) for user in users]
+    return [UserResponse.model_validate(user) for user in users]
 
 
 @router.put(
     "/",
     status_code=status.HTTP_201_CREATED,
-    response_model=UserResponce,
+    response_model=UserResponse,
 )
 async def update_user(
     user_data: UserUpdate,
@@ -71,7 +71,7 @@ async def update_user(
         data=user_data,
     )
 
-    return UserResponce.model_validate(updated_user)
+    return UserResponse.model_validate(updated_user)
 
 
 @router.delete(
@@ -97,15 +97,15 @@ async def change_role(
     user_handler: "UserHandler" = Depends(get_user_handler),
 ):
     updated_user = await user_handler.change_user_role(user_id=user_id, new_role=role)
-    return UserResponce.model_validate(updated_user)
+    return UserResponse.model_validate(updated_user)
 
 
 @router.get(
     "/me",
     status_code=status.HTTP_200_OK,
-    response_model=UserResponce,
+    response_model=UserResponse,
 )
 async def info(
     user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
 ):
-    return UserResponce.model_validate(user)
+    return UserResponse.model_validate(user)

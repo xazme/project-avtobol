@@ -5,11 +5,12 @@ from app.core import settings
 from app.car.car_series import get_car_series_handler
 from .product_schema import (
     ProductCreate,
-    ProductResponce,
+    ProductResponse,
     ProductUpdate,
 )
 from .product_dependencies import get_product_handler
 from .product_helper import convert_data_for_product
+from .product_schema import ProductFilters
 
 if TYPE_CHECKING:
     from app.car.car_series import CarSeriesHandler
@@ -21,14 +22,14 @@ router = APIRouter(prefix=settings.api.product, tags=["Product"])
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=ProductResponce,
+    response_model=ProductResponse,
 )
 async def get_product(
     product_id: UUID,
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ):
     product = await product_handler.get_product_by_id(product_id=product_id)
-    return ProductResponce.model_validate(product)
+    return ProductResponse.model_validate(product)
 
 
 @router.get(
@@ -39,19 +40,21 @@ async def get_product(
 async def get_all_products(
     page: int,
     page_size: int,
+    filters: ProductFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ):
     products = await product_handler.get_all_products(
         page=page,
         page_size=page_size,
+        filters=filters,
     )
-    return convert_data_for_product(list_of_car_parts=products)
+    return [ProductResponse.model_validate(product) for product in products]
 
 
 @router.post(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=ProductResponce,
+    response_model=ProductResponse,
 )
 async def create_product(
     product_data: ProductCreate = Depends(),
@@ -60,20 +63,20 @@ async def create_product(
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ):
     await series_handler.check_relation(
-        brand_id=product_data.brand_id,
-        series_id=product_data.series_id,
+        car_brand_id=product_data.car_brand_id,
+        car_series_id=product_data.car_series_id,
     )
     car_part = await product_handler.create_product(
         data=product_data,
         files=product_pictures,
     )
-    return ProductResponce.model_validate(car_part)
+    return ProductResponse.model_validate(car_part)
 
 
 @router.put(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=ProductResponce,
+    response_model=ProductResponse,
 )
 async def update_product(
     product_id: UUID,
@@ -83,15 +86,15 @@ async def update_product(
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ):
     await series_handler.check_relation(
-        brand_id=new_product_data.brand_id,
-        series_id=new_product_data.series_id,
+        car_brand_id=new_product_data.car_brand_id,
+        car_series_id=new_product_data.car_series_id,
     )
     upd_product = await product_handler.update_product(
         id=product_id,
         data=new_product_data,
         files=new_product_pictures,
     )
-    return ProductResponce.model_validate(upd_product)
+    return ProductResponse.model_validate(upd_product)
 
 
 @router.put("/be")
@@ -103,7 +106,7 @@ async def mark_it_sold(
     upd_product = await product_handler.change_availability(
         product_id=product_id, new_status=is_available
     )
-    return ProductResponce.model_validate(upd_product)
+    return ProductResponse.model_validate(upd_product)
 
 
 @router.delete(

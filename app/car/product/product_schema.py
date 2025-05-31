@@ -1,25 +1,37 @@
 from uuid import UUID
 from pydantic import BaseModel
+from .product_enums import GearboxType, BodyType, FuelType, ProductCondition
 
 
 class ProductBase(BaseModel):
-    brand_id: UUID
+    car_brand_id: UUID
+    car_series_id: UUID
     car_part_id: UUID
-    series_id: UUID
-    # year: int
-    # type_of_body: str
-    # volume: float
-    # gearbox: str
-    # fuel: str
-    # type_of_engine: str
-    # VIN: int
-    # oem: int
-    # note: str
-    # description: str
-    # real_price: float
-    # fake_price: float
-    # count: int
-    # condition: str
+    year: int
+    volume: float
+    gearbox: GearboxType | None = None
+    fuel: FuelType | None = None
+    type_of_body: BodyType | None = None
+    condition: ProductCondition
+    description: str
+    real_price: float
+    fake_price: float
+    count: int
+
+
+class ProductFilters(BaseModel):
+    car_brand_id: UUID | None = None
+    car_series_id: UUID | None = None
+    car_part_id: UUID | None = None
+    price_from: float | None = None
+    price_to: float | None = None
+    year_from: int | None = None
+    year_to: int | None = None
+    volume: float | None = None
+    engine: FuelType | None = None
+    gearbox: GearboxType | None = None
+    type_of_body: BodyType | None = None
+    condition: ProductCondition
 
 
 class ProductCreate(ProductBase):
@@ -30,9 +42,9 @@ class ProductUpdate(ProductBase):
     pass
 
 
-class ProductResponce(ProductBase):
+class ProductResponse(ProductBase):
     id: UUID
-    pictures: list = []
+    pictures: list[str] = []
 
     class Config:
         from_attributes = True

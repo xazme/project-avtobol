@@ -16,7 +16,7 @@ class UserUpdate(UserBase):
     password: str
 
 
-class UserResponce(UserBase):
+class UserResponse(UserBase):
     id: UUID
 
     class Config:

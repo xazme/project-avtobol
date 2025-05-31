@@ -33,7 +33,6 @@ class CarSeries(Base):
     # relationship
     car_brand: Mapped["CarBrand"] = relationship(
         back_populates="car_series",
-        cascade="all, delete-orphan",
         single_parent=True,
     )
 

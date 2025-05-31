@@ -3,7 +3,7 @@ from fastapi import UploadFile
 from app.shared import BaseHandler, ExceptionRaiser
 from app.storage import StorageService
 from .product_repository import ProductRepository
-from .product_schema import ProductCreate, ProductUpdate
+from .product_schema import ProductCreate, ProductUpdate, ProductFilters
 
 
 class ProductHandler(BaseHandler):
@@ -100,10 +100,16 @@ class ProductHandler(BaseHandler):
             )
         return product
 
-    async def get_all_products(self, page: int, page_size: int):
+    async def get_all_products(
+        self,
+        page: int,
+        page_size: int,
+        filters: ProductFilters,
+    ):
         return await self.repository.get_all_products(
             page=page,
             page_size=page_size,
+            filters=filters,
         )
 
     async def check_availability(self, product_id: UUID):

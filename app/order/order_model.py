@@ -17,6 +17,7 @@ class Order(Base):
         ForeignKey(
             "user.id",
             ondelete="CASCADE",
+            onupdate="CASCADE",
         ),
         nullable=False,
         index=True,
@@ -26,6 +27,7 @@ class Order(Base):
         ForeignKey(
             "product.id",
             ondelete="CASCADE",
+            onupdate="CASCADE",
         ),
         nullable=False,
         index=True,

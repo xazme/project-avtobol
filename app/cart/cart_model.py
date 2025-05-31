@@ -14,6 +14,8 @@ class Cart(Base):
         UUID(as_uuid=True),
         ForeignKey(
             "user.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
         ),
         nullable=False,
         index=True,
@@ -22,6 +24,8 @@ class Cart(Base):
         UUID(as_uuid=True),
         ForeignKey(
             "product.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
         ),
         unique=False,
         nullable=False,

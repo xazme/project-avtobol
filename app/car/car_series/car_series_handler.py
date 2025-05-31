@@ -41,14 +41,17 @@ class CarSeriesHandler(BaseHandler):
     async def get_all_series_obj(self):
         return await super().get_all_obj()
 
+    async def get_series_by_brand_id(self, brand_id: UUID):
+        return await self.repository.get_series_by_brand_id(brand_id=brand_id)
+
     async def check_relation(
         self,
-        brand_id: UUID,
-        series_id: UUID,
+        car_brand_id: UUID,
+        car_series_id: UUID,
     ):
         result = await self.repository.check_relation(
-            brand_id=brand_id,
-            series_id=series_id,
+            car_brand_id=car_brand_id,
+            car_series_id=car_series_id,
         )
 
         if result is False:

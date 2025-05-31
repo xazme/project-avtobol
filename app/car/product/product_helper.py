@@ -1,4 +1,4 @@
-from .product_schema import ProductResponce
+from .product_schema import ProductResponse
 
 
 def convert_data_for_product(list_of_car_parts: list):

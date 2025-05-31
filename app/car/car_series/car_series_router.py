@@ -36,6 +36,19 @@ async def get_all_car_series(
     return [CarSeriesResponse.model_validate(car_serie) for car_serie in car_series]
 
 
+@router.get(
+    "/series",
+    status_code=status.HTTP_200_OK,
+    response_model=list[CarSeriesResponse],
+)
+async def get_all_car_series(
+    brand_id: UUID,
+    car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
+):
+    car_series = await car_series_handler.get_series_by_brand_id(brand_id=brand_id)
+    return [CarSeriesResponse.model_validate(car_serie) for car_serie in car_series]
+
+
 @router.post(
     "/",
     status_code=status.HTTP_200_OK,

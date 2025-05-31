@@ -18,14 +18,22 @@ class CarSeriesRepository(BaseCRUD):
 
     async def check_relation(
         self,
-        brand_id: UUID,
-        series_id: UUID,
+        car_brand_id: UUID,
+        car_series_id: UUID,
     ) -> bool:
         stmt = Select(
             exists().where(
-                self.model.id == series_id,
-                self.model.brand_id == brand_id,
+                self.model.id == car_series_id,
+                self.model.brand_id == car_brand_id,
             )
         )
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar()
+
+    async def get_series_by_brand_id(
+        self,
+        brand_id: UUID,
+    ):
+        stmt = Select(self.model).where(self.model.brand_id == brand_id)
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalars().all()
