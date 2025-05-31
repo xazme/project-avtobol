@@ -24,12 +24,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     lifespan=lifespan,
 )
-app.include_router(user_router)
 app.include_router(auth_router)
 app.include_router(car_router)
-app.include_router(token_router)
+app.include_router(user_router)
 app.include_router(cart_router)
 app.include_router(order_router)
+app.include_router(token_router)
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -19,7 +19,7 @@ class CarSeries(Base):
         unique=False,
     )
 
-    brand_id: Mapped[UUID] = mapped_column(
+    car_brand_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(
             "carbrand.id",

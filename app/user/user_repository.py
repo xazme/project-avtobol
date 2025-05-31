@@ -9,21 +9,17 @@ from .user_enums import UserRoles
 
 class UserRepository(BaseCRUD):
 
-    def __init__(
-        self,
-        session: AsyncSession,
-        model: User,
-    ):
+    def __init__(self, session: AsyncSession, model: type[User]):
         super().__init__(session=session, model=model)
-        self.session = session
-        self.model = model
+        self.session: AsyncSession = session
+        self.model: type[User] = model
 
     async def change_user_role(
         self,
         id: UUID,
         new_role: UserRoles,
     ) -> User | None:
-        user = await self.get_by_id(id=id)
+        user: User | None = await self.get_by_id(id=id)
         if not user:
             return None
         try:
@@ -38,7 +34,7 @@ class UserRepository(BaseCRUD):
         self,
         email: str,
     ) -> User | None:
-        stmt = Select(self.model).where(self.model.email == email)
+        stmt: Select = Select(self.model).where(self.model.email == email)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
@@ -46,10 +42,10 @@ class UserRepository(BaseCRUD):
         self,
         id: UUID,
     ) -> User | None:
-        return await super().get_by_id(id)
+        return await self.get_by_id(id=id)
 
     async def get_user_by_name(
         self,
         name: str,
     ) -> User | None:
-        return await super().get_by_name(name)
+        return await self.get_by_name(name=name)

@@ -1,3 +1,4 @@
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel
 from sqlalchemy.orm import DeclarativeBase
@@ -16,7 +17,7 @@ class BaseHandler:
     async def create_obj(
         self,
         data: BaseModel,
-    ) -> DeclarativeBase | None:
+    ) -> Optional[DeclarativeBase]:
         data = data.model_dump(exclude_unset=True)
         obj = await self.repository.create(
             data=data,
@@ -32,7 +33,7 @@ class BaseHandler:
         self,
         id: UUID,
         data: BaseModel,
-    ) -> DeclarativeBase | None:
+    ) -> Optional[DeclarativeBase]:
         data = data.model_dump(exclude_unset=True)
         updated_obj = await self.repository.update_by_id(
             id=id,
@@ -48,7 +49,7 @@ class BaseHandler:
     async def delete_obj(
         self,
         id: UUID,
-    ) -> DeclarativeBase | None:
+    ) -> Optional[DeclarativeBase]:
         result = await self.repository.delete_by_id(id=id)
         if not result:
             ExceptionRaiser.raise_exception(
@@ -60,7 +61,7 @@ class BaseHandler:
     async def get_obj_by_id(
         self,
         id: UUID,
-    ) -> DeclarativeBase | None:
+    ) -> Optional[DeclarativeBase]:
         obj = await self.repository.get_by_id(id=id)
         if not obj:
             ExceptionRaiser.raise_exception(
@@ -69,14 +70,16 @@ class BaseHandler:
             )
         return obj
 
-    async def get_all_obj(self) -> DeclarativeBase | None:
+    async def get_all_obj(
+        self,
+    ) -> list[DeclarativeBase]:
         all_obj = await self.repository.get_all()
         return all_obj
 
     async def get_obj_by_name(
         self,
         name: str,
-    ) -> None | DeclarativeBase:
+    ) -> Optional[DeclarativeBase]:
         obj = await self.repository.get_by_name(name=name)
         if not obj:
             ExceptionRaiser.raise_exception(

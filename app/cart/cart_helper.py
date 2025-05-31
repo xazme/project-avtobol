@@ -2,7 +2,7 @@ from .cart_model import Cart
 from .cart_schema import CartResponse
 
 
-def convert_data_for_cart(list_of_orders: list[Cart]):
+def convert_data_for_many_positions_in_cart(list_of_positions: list[Cart]):
     return [
         CartResponse(
             user_id=order.user_id,
@@ -11,5 +11,5 @@ def convert_data_for_cart(list_of_orders: list[Cart]):
             product_series=order.product.car_series.name,
             product_part=order.product.car_part.name,
         )
-        for order in list_of_orders
+        for order in list_of_positions
     ]

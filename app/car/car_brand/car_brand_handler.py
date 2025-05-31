@@ -1,93 +1,125 @@
 from uuid import UUID
 from fastapi import UploadFile
-from app.shared import ExceptionRaiser
-from app.shared import BaseHandler
+from app.shared import ExceptionRaiser, BaseHandler
 from app.storage import StorageService
 from .car_brand_schema import CarBrandCreate, CarBrandUpdate
 from .car_brand_repository import CarBrandRepository
 from .car_brand_model import CarBrand
+from typing import Optional
 
 
 class CarBrandHandler(BaseHandler):
 
-    def __init__(
-        self,
-        repository: CarBrandRepository,
-        storage: StorageService,
-    ):
+    def __init__(self, repository: CarBrandRepository, storage: StorageService):
         super().__init__(repository)
-        self.storage = storage
-        self.repository = repository
+        self.storage: StorageService = storage
+        self.repository: CarBrandRepository = repository
 
-    async def create_brand(
+    async def create_car_brand(
         self,
         file: UploadFile,
         data: CarBrandCreate,
-    ):
-        file = await file.read()
-        filename = await self.storage.create_file(file)
-        car_brand_data = data.model_dump(exclude_unset=True)
+    ) -> Optional[CarBrand]:
+        allowed_formats = [
+            "image/jpeg",
+            "application/octet-stream",
+            "image/png",
+            "image/webp",
+        ]
+        if file.content_type not in allowed_formats:
+            ExceptionRaiser.raise_exception(
+                status_code=400,
+                detail=f"Wrong file extension. Allowed formats - {allowed_formats}. Get {file.content_type}",
+            )
+
+        file_bytes: bytes = await file.read()
+        filename: str = await self.storage.create_file(file_bytes)
+        car_brand_data: dict = data.model_dump(exclude_unset=True)
         car_brand_data.update({"picture": filename})
 
-        brand: CarBrand = await self.repository.create(data=car_brand_data)
+        brand: CarBrand | None = await self.repository.create(data=car_brand_data)
         if not brand:
             ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail=f"We cant create a object. Location - {self.__class__.__name__}",
+                status_code=400,
+                detail="Failed to create car brand.",
             )
         return brand
 
-    async def delete_brand(
+    async def delete_car_brand(
         self,
-        brand_id: UUID,
-    ):
-        brand: "CarBrand" = await self.repository.get_by_id(id=brand_id)
+        car_brand_id: UUID,
+    ) -> bool:
+        brand: CarBrand | None = await self.repository.get_by_id(id=car_brand_id)
         if not brand:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail=f"Obj {brand_id} not found. Location - {self.__class__.__name__}",
+                detail=f"Car brand {car_brand_id} not found.",
             )
 
         await self.storage.delete_file(brand.picture)
-        await self.repository.delete_by_id(id=brand_id)
+        result: bool = await self.repository.delete_by_id(id=car_brand_id)
+        return result
 
-    async def update_brand(
+    async def update_car_brand(
         self,
-        brand_id: UUID,
+        car_brand_id: UUID,
         data: CarBrandUpdate,
         file: UploadFile | None = None,
-    ):
-        file = await file.read()
-        brand: "CarBrand" = await self.repository.get_by_id(id=brand_id)
+    ) -> CarBrand:
+        brand: CarBrand | None = await self.repository.get_by_id(id=car_brand_id)
         if not brand:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail=f"Obj {id} not found. Location - {self.__class__.__name__}",
+                detail=f"Car brand {car_brand_id} not found.",
             )
 
         if file:
+            allowed_formats = [
+                "image/jpeg",
+                "application/octet-stream",
+                "image/png",
+                "image/webp",
+            ]
+            if file.content_type not in allowed_formats:
+                ExceptionRaiser.raise_exception(
+                    status_code=400,
+                    detail=f"Wrong file extension. Allowed formats - {allowed_formats}. Get {file.content_type}",
+                )
             if brand.picture:
                 await self.storage.delete_file(brand.picture)
-            filename = await self.storage.create_file(file=file)
-            data.picture = filename
+            filename: str = await self.storage.create_file(await file.read())
 
-        updated_data = data.model_dump(exclude_unset=True)
+        updated_data: dict = data.model_dump(exclude_unset=True)
 
-        updated_brand = await self.repository.update_by_id(id=id, data=updated_data)
+        if filename:
+            updated_data.update({"picture": filename})
+
+        updated_brand: CarBrand | None = await self.repository.update_by_id(
+            id=car_brand_id, data=updated_data
+        )
         if not updated_brand:
-            await self.storage.delete_file(filename=filename)
+            if file:
+                await self.storage.delete_file(filename)
             ExceptionRaiser.raise_exception(
                 status_code=422,
-                detail=f"Failed to update obj {id}. Location - {self.__class__.__name__}",
+                detail=f"Failed to update car brand {car_brand_id}.",
             )
 
         return updated_brand
 
-    async def get_all_brands(self):
-        return await super().get_all_obj()
-
-    async def get_brand_by_id(
+    async def get_all_brands(
         self,
-        brand_id: UUID,
-    ):
-        return await super().get_obj_by_id(id=brand_id)
+    ) -> list[CarBrand]:
+        return await self.get_all_obj()
+
+    async def get_car_brand_by_id(
+        self,
+        car_brand_id: UUID,
+    ) -> CarBrand:
+        brand: CarBrand | None = await self.get_obj_by_id(id=car_brand_id)
+        if not brand:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail="Car brand not found.",
+            )
+        return brand

@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
-from sqlalchemy import Select, Result
 from app.shared import BaseHandler, ExceptionRaiser
 from .order_repository import OrderRepository
+from .order_model import Order
 from .order_enums import OrderStatuses
 from .order_schema import OrderCreate
 
@@ -12,18 +12,15 @@ if TYPE_CHECKING:
 
 class OrderHandler(BaseHandler):
 
-    def __init__(
-        self,
-        repository: OrderRepository,
-    ):
+    def __init__(self, repository: OrderRepository):
         super().__init__(repository)
-        self.repository = repository
+        self.repository: OrderRepository = repository
 
     async def get_all_orders_by_user_id(
         self,
         user_id: UUID,
         status: OrderStatuses,
-    ):
+    ) -> list[Order]:
         return await self.repository.get_all_orders_by_user_id(
             user_id=user_id,
             status=status,
@@ -33,7 +30,7 @@ class OrderHandler(BaseHandler):
         self,
         order_id: UUID,
         status: OrderStatuses,
-    ):
+    ) -> Optional[Order]:
         upd_order = await self.repository.change_order_status(
             order_id=order_id,
             status=status,
@@ -41,8 +38,9 @@ class OrderHandler(BaseHandler):
         if not upd_order:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="Заказ не найден или уже закрыт",
+                detail="Order not found or already closed.",
             )
+
         return upd_order
 
     async def get_all_orders(
@@ -50,7 +48,7 @@ class OrderHandler(BaseHandler):
         page: int,
         page_size: int,
         status: OrderStatuses,
-    ):
+    ) -> list[Order]:
         return await self.repository.get_all_orders(
             page=page,
             page_size=page_size,
@@ -61,12 +59,13 @@ class OrderHandler(BaseHandler):
         self,
         user_positions: list["Cart"],
         data: OrderCreate,
-    ):
+    ) -> list[Order]:
         if not user_positions:
             ExceptionRaiser.raise_exception(
                 status_code=400,
-                detail="Корзина пуста, нечего отправлять.",
+                detail="Cart is empty, nothing to process.",
             )
+
         order_data = data.model_dump(exclude_unset=True)
 
         updated_positions = [
@@ -85,6 +84,7 @@ class OrderHandler(BaseHandler):
         if not positions_in_order:
             ExceptionRaiser.raise_exception(
                 status_code=409,
-                detail="Ошибка создания заказа, попробуйте позже",
+                detail="Failed to create order, please try again later.",
             )
+
         return positions_in_order

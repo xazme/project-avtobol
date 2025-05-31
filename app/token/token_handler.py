@@ -1,3 +1,4 @@
+from typing import Optional
 from uuid import UUID
 from app.shared import BaseHandler, ExceptionRaiser
 from .token_repository import TokenRepository
@@ -14,20 +15,21 @@ class TokenHandler(BaseHandler):
         manager: TokenManager,
     ):
         super().__init__(repository)
-        self.repository = repository
-        self.manager = manager
+        self.repository: TokenRepository = repository
+        self.manager: TokenManager = manager
 
     async def create_token(
         self,
         data: TokenCreate,
-    ) -> Token:
+    ) -> Optional[Token]:
         data = data.model_dump(exclude_unset=True)
         token = await self.repository.create(data=data)
         if not token:
             ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="Can Create a token",
+                status_code=400,
+                detail="Cannot create token.",
             )
+
         return token
 
     async def delete_tokens_by_user_id(
@@ -38,49 +40,55 @@ class TokenHandler(BaseHandler):
         if not result:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="Token not found",
+                detail="Token not found.",
             )
+
         return result
 
     async def update_access_token(
         self,
         user_id: UUID,
         data: TokenUpdate,
-    ) -> Token:
+    ) -> Optional[Token]:
         token = await self.repository.update_user_access_token(
             user_id=user_id,
             data=data.model_dump(exclude_unset=True),
         )
         if not token:
             ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="Error while we try to update token",
+                status_code=409,
+                detail="Error while updating token.",
             )
+
         return token
 
-    async def get_all_tokens(self) -> list[Token]:
+    async def get_all_tokens(
+        self,
+    ) -> list[Token]:
         return await self.get_all_obj()
 
     async def get_access_token(
         self,
         token: str,
-    ) -> Token:
-        token = await self.repository.get_access_token_by_token(token=token)
-        if not token:
+    ) -> Optional[Token]:
+        token_obj = await self.repository.get_access_token_by_token(token=token)
+        if not token_obj:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="Access token not found in database",
+                detail="Access token not found.",
             )
-        return token
+
+        return token_obj
 
     async def get_refresh_token(
         self,
         token: str,
-    ) -> Token:
-        token = await self.repository.get_refresh_token_by_token(token=token)
-        if not token:
+    ) -> Optional[Token]:
+        token_obj = await self.repository.get_refresh_token_by_token(token=token)
+        if not token_obj:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="Refresh token not found in database",
+                detail="Refresh token not found.",
             )
-        return token
+
+        return token_obj

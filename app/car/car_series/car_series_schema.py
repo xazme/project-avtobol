@@ -8,7 +8,7 @@ class CarSeriesBase(BaseModel):
 
 
 class CarSeriesCreate(CarSeriesBase):
-    brand_id: UUID
+    car_brand_id: UUID
 
 
 class CarSeriesUpdate(CarSeriesBase):
@@ -17,7 +17,7 @@ class CarSeriesUpdate(CarSeriesBase):
 
 class CarSeriesResponse(CarSeriesBase):
     id: UUID
-    brand_id: UUID
+    car_brand_id: UUID
 
     class Config:
         from_attributes = True

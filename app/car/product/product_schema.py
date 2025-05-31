@@ -28,7 +28,7 @@ class ProductFilters(BaseModel):
     year_from: int | None = None
     year_to: int | None = None
     volume: float | None = None
-    engine: FuelType | None = None
+    fuel: FuelType | None = None
     gearbox: GearboxType | None = None
     type_of_body: BodyType | None = None
     condition: ProductCondition
@@ -42,9 +42,22 @@ class ProductUpdate(ProductBase):
     pass
 
 
-class ProductResponse(ProductBase):
+class ProductResponse(BaseModel):
     id: UUID
-    pictures: list[str] = []
+    pictures: list[str]
+    car_brand_name: str
+    car_series_name: str
+    car_part_name: str
+    year: int
+    volume: float
+    gearbox: GearboxType | None
+    fuel: FuelType | None
+    type_of_body: BodyType | None
+    condition: ProductCondition
+    description: str
+    real_price: float
+    fake_price: float
+    count: int
 
     class Config:
         from_attributes = True

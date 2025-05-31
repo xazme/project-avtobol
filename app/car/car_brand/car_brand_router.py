@@ -1,86 +1,109 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, status, UploadFile, File
+from fastapi import APIRouter, Depends, status, UploadFile, File, Query
 from app.core import settings
-from .car_brand_schema import CarBrandCreate, CarBrandUpdate, CarBrandResponse
+from .car_brand_schema import (
+    CarBrandCreate,
+    CarBrandUpdate,
+    CarBrandResponse,
+)
 from .car_brand_dependencies import get_car_brand_handler
 
 if TYPE_CHECKING:
     from .car_brand_handler import CarBrandHandler
 
-
-router = APIRouter(prefix=settings.api.car_brand_prefix, tags=["Car Brand"])
-
-
-@router.get(
-    "/",
-    status_code=status.HTTP_200_OK,
-    response_model=CarBrandResponse,
+router = APIRouter(
+    prefix=settings.api.car_brand_prefix,
+    tags=["Car Brands"],
 )
-async def get_brand(
-    car_brand_id: UUID,
-    car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-):
-    brand = await car_brand_handler.get_brand_by_id(brand_id=car_brand_id)
-    return CarBrandResponse.model_validate(brand)
-
-
-@router.get(
-    "/all",
-    status_code=status.HTTP_200_OK,
-    response_model=list[CarBrandResponse],
-)
-async def get_all_brands(
-    car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-):
-    car_brands = await car_brand_handler.get_all_brands()
-    return [CarBrandResponse.model_validate(car_brand) for car_brand in car_brands]
 
 
 @router.post(
     "/",
-    status_code=status.HTTP_200_OK,
+    summary="Create new car brand",
+    description="Add a new car brand to the system",
     response_model=CarBrandResponse,
+    status_code=status.HTTP_201_CREATED,
 )
-async def create_brand(
-    car_brand_data: CarBrandCreate = Depends(),
-    car_brand_pic: UploadFile = File(...),
+async def create_car_brand(
+    brand_data: CarBrandCreate = Depends(),
+    brand_logo: UploadFile = File(
+        ...,
+        description="Brand logo image file",
+        media_type="image/jpeg,image/png",
+    ),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-):
-    brand = await car_brand_handler.create_brand(
-        file=car_brand_pic,
-        data=car_brand_data,
+) -> CarBrandResponse:
+
+    brand = await car_brand_handler.create_car_brand(
+        file=brand_logo,
+        data=brand_data,
     )
     return CarBrandResponse.model_validate(brand)
 
 
-@router.put(
-    "/",
-    status_code=status.HTTP_200_OK,
+@router.get(
+    "/{car_brand_id}",
+    summary="Get car brand by ID",
+    description="Retrieve detailed information about a specific car brand",
     response_model=CarBrandResponse,
+    status_code=status.HTTP_200_OK,
 )
-async def update_brand(
+async def get_car_brand(
     car_brand_id: UUID,
-    new_car_brand_data: CarBrandUpdate = Depends(),
-    car_brand_pic: UploadFile = File(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-):
-    updated_brand = await car_brand_handler.update_brand(
-        brand_id=car_brand_id,
-        file=car_brand_pic,
-        data=new_car_brand_data,
+) -> CarBrandResponse:
+    brand = await car_brand_handler.get_car_brand_by_id(car_brand_id=car_brand_id)
+    return CarBrandResponse.model_validate(brand)
+
+
+@router.get(
+    "/",
+    summary="Get all car brands",
+    description="Retrieve a complete list of all car brands",
+    response_model=List[CarBrandResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_all_car_brands(
+    car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
+) -> List[CarBrandResponse]:
+    car_brands = await car_brand_handler.get_all_brands()
+    return [CarBrandResponse.model_validate(brand) for brand in car_brands]
+
+
+@router.put(
+    "/{car_brand_id}",
+    summary="Update car brand",
+    description="Modify existing car brand information",
+    response_model=CarBrandResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def update_car_brand(
+    car_brand_id: UUID,
+    updated_data: CarBrandUpdate = Depends(),
+    brand_logo: UploadFile | None = File(
+        description="New brand logo (optional)",
+        media_type="image/jpeg,image/png",
+    ),
+    car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
+) -> CarBrandResponse:
+    updated_brand = await car_brand_handler.update_car_brand(
+        car_brand_id=car_brand_id,
+        file=brand_logo,
+        data=updated_data,
     )
     return CarBrandResponse.model_validate(updated_brand)
 
 
 @router.delete(
-    "/",
+    "/{car_brand_id}",
+    summary="Delete car brand",
+    description="Remove a car brand from the system",
+    response_model=None,
     status_code=status.HTTP_200_OK,
-    response_model=dict,
 )
-async def delete_brand(
+async def delete_car_brand(
     car_brand_id: UUID,
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-):
-    await car_brand_handler.delete_brand(brand_id=car_brand_id)
-    return {"msg": "success"}
+) -> dict[str, str]:
+    await car_brand_handler.delete_car_brand(car_brand_id=car_brand_id)

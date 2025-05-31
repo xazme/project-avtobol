@@ -1,92 +1,114 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from app.core import settings
-from .car_series_schema import CarSeriesUpdate, CarSeriesCreate, CarSeriesResponse
+from .car_series_schema import (
+    CarSeriesUpdate,
+    CarSeriesCreate,
+    CarSeriesResponse,
+)
 from .car_series_dependencies import get_car_series_handler
 
 if TYPE_CHECKING:
     from .car_series_handler import CarSeriesHandler
 
-router = APIRouter(prefix=settings.api.car_series_prefix, tags=["Car Series"])
+router = APIRouter(
+    prefix=settings.api.car_series_prefix,
+    tags=["Car Series"],
+)
+
+
+@router.post(
+    "/",
+    summary="Create new car series",
+    description="Add a new car series to the database",
+    response_model=CarSeriesResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_car_series(
+    series_data: CarSeriesCreate,
+    car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
+) -> CarSeriesResponse:
+
+    series = await car_series_handler.create_series(data=series_data)
+    return CarSeriesResponse.model_validate(series)
 
 
 @router.get(
-    "/",
-    status_code=status.HTTP_200_OK,
+    "/{car_series_id}",
+    summary="Get car series by ID",
+    description="Retrieve detailed information about a specific car series",
     response_model=CarSeriesResponse,
+    status_code=status.HTTP_200_OK,
 )
-async def get_series(
+async def get_car_series(
     car_series_id: UUID,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-):
+) -> CarSeriesResponse:
     series = await car_series_handler.get_series_by_id(series_id=car_series_id)
     return CarSeriesResponse.model_validate(series)
 
 
 @router.get(
-    "/all",
+    "/",
+    summary="Get all car series",
+    description="Retrieve a complete list of all car series in the system",
+    response_model=List[CarSeriesResponse],
     status_code=status.HTTP_200_OK,
-    response_model=list[CarSeriesResponse],
 )
 async def get_all_car_series(
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-):
+) -> List[CarSeriesResponse]:
     car_series = await car_series_handler.get_all_series_obj()
-    return [CarSeriesResponse.model_validate(car_serie) for car_serie in car_series]
+    return [CarSeriesResponse.model_validate(series) for series in car_series]
 
 
 @router.get(
-    "/series",
+    "/brand/{car_brand_id}",
+    summary="Get car series by brand",
+    description="Retrieve all car series associated with a specific car brand",
+    response_model=List[CarSeriesResponse],
     status_code=status.HTTP_200_OK,
-    response_model=list[CarSeriesResponse],
 )
-async def get_all_car_series(
-    brand_id: UUID,
+async def get_car_series_by_brand(
+    car_brand_id: UUID,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-):
-    car_series = await car_series_handler.get_series_by_brand_id(brand_id=brand_id)
-    return [CarSeriesResponse.model_validate(car_serie) for car_serie in car_series]
+) -> List[CarSeriesResponse]:
 
-
-@router.post(
-    "/",
-    status_code=status.HTTP_200_OK,
-    response_model=CarSeriesResponse,
-)
-async def create_series(
-    car_brand_data: CarSeriesCreate,
-    car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-):
-    series = await car_series_handler.create_series(data=car_brand_data)
-    return CarSeriesResponse.model_validate(series)
+    car_series = await car_series_handler.get_series_by_car_brand_id(
+        car_brand_id=car_brand_id
+    )
+    return [CarSeriesResponse.model_validate(series) for series in car_series]
 
 
 @router.put(
-    "/",
-    status_code=status.HTTP_200_OK,
+    "/{car_series_id}",
+    summary="Update car series",
+    description="Modify existing car series information",
     response_model=CarSeriesResponse,
+    status_code=status.HTTP_200_OK,
 )
-async def update_series(
+async def update_car_series(
     car_series_id: UUID,
-    new_car_series_data: CarSeriesUpdate,
+    updated_data: CarSeriesUpdate,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-):
+) -> CarSeriesResponse:
     updated_series = await car_series_handler.update_series(
-        series_id=car_series_id,
-        data=new_car_series_data,
+        car_series_id=car_series_id,
+        data=updated_data,
     )
     return CarSeriesResponse.model_validate(updated_series)
 
 
 @router.delete(
-    "/",
+    "/{car_series_id}",
+    summary="Delete car series",
+    description="Remove a car series from the database",
+    response_model=None,
     status_code=status.HTTP_200_OK,
-    response_model=dict,
 )
-async def delete_series(
+async def delete_car_series(
     car_series_id: UUID,
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-):
+) -> dict[str, str]:
     await car_series_handler.delete_series(series_id=car_series_id)
-    return {"msg": "success"}

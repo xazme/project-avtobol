@@ -8,26 +8,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class BaseCRUD:
     """CRUD GENERATOR"""
 
-    def __init__(
-        self,
-        session: AsyncSession,
-        model: DeclarativeBase,
-    ):
-        self.session = session
-        self.model = model
+    def __init__(self, session: AsyncSession, model: type[DeclarativeBase]):
+        self.session: AsyncSession = session
+        self.model: type[DeclarativeBase] = model
 
     async def create(
         self,
         data: dict,
     ) -> DeclarativeBase | None:
-        obj = self.model(**data)
+        obj: DeclarativeBase = self.model(**data)
         try:
             self.session.add(obj)
             await self.session.commit()
             await self.session.refresh(obj)
             return obj
-
-        except IntegrityError as e:
+        except IntegrityError:
             await self.session.rollback()
             return None
 
@@ -36,7 +31,7 @@ class BaseCRUD:
         id: UUID,
         data: dict,
     ) -> DeclarativeBase | None:
-        obj = await self.get_by_id(id=id)
+        obj: DeclarativeBase | None = await self.get_by_id(id=id)
 
         if obj is None:
             return None
@@ -55,7 +50,7 @@ class BaseCRUD:
         self,
         id: UUID,
     ) -> bool | None:
-        obj = await self.get_by_id(id=id)
+        obj: DeclarativeBase | None = await self.get_by_id(id=id)
 
         if obj is None:
             return None
@@ -68,7 +63,7 @@ class BaseCRUD:
         self,
         id: UUID,
     ) -> DeclarativeBase | None:
-        stmt = Select(self.model).where(self.model.id == id).limit(1)
+        stmt: Select = Select(self.model).where(self.model.id == id).limit(1)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
@@ -76,11 +71,13 @@ class BaseCRUD:
         self,
         name: str,
     ) -> DeclarativeBase | None:
-        stmt = Select(self.model).where(self.model.name == name)
+        stmt: Select = Select(self.model).where(self.model.name == name)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
-    async def get_all(self) -> list:
-        stmt = Select(self.model).order_by(self.model.id)
+    async def get_all(
+        self,
+    ) -> list[DeclarativeBase]:
+        stmt: Select = Select(self.model).order_by(self.model.id)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalars().all()

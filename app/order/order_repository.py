@@ -11,21 +11,17 @@ from .order_enums import OrderStatuses
 
 class OrderRepository(BaseCRUD):
 
-    def __init__(
-        self,
-        session: AsyncSession,
-        model: Order,
-    ):
+    def __init__(self, session: AsyncSession, model: Order):
         super().__init__(session=session, model=model)
-        self.session = session
-        self.model = model
+        self.session: AsyncSession = session
+        self.model: Order = model
 
     async def get_all_orders_by_user_id(
         self,
         user_id: UUID,
         status: OrderStatuses,
-    ):
-        stmt = (
+    ) -> list[Order]:
+        stmt: Select = (
             Select(self.model)
             .where(
                 and_(
@@ -46,11 +42,11 @@ class OrderRepository(BaseCRUD):
 
     async def get_all_orders(
         self,
-        page,
-        page_size,
+        page: int,
+        page_size: int,
         status: OrderStatuses,
-    ):
-        stmt = (
+    ) -> list[Order]:
+        stmt: Select = (
             Select(self.model)
             .options(
                 selectinload(self.model.user),
@@ -70,24 +66,30 @@ class OrderRepository(BaseCRUD):
         self,
         order_id: UUID,
         status: OrderStatuses,
-    ):
-        order = await super().get_by_id(id=order_id)
-
+    ) -> Order | None:
+        order: Order | None = await self.get_by_id(id=order_id)
         try:
-            order.status = status
-            await self.session.commit()
-            await self.session.refresh(order)
-            return order
+            if order:
+                order.status = status
+                await self.session.commit()
+                await self.session.refresh(order)
+                return order
         except IntegrityError:
             await self.session.rollback()
-            return None
 
-    async def create_orders(self, list_of_products: list):
-        list_of_orders = [Order(**order_data) for order_data in list_of_products]
+        return None
+
+    async def create_orders(
+        self,
+        list_of_products: list[dict],
+    ) -> bool:
+        list_of_orders: list[Order] = [
+            Order(**order_data) for order_data in list_of_products
+        ]
         try:
             self.session.add_all(list_of_orders)
             await self.session.commit()
             return True
         except IntegrityError:
             await self.session.rollback()
-            return None
+            return False

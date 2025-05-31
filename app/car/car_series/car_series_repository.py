@@ -7,33 +7,29 @@ from .car_series_model import CarSeries
 
 class CarSeriesRepository(BaseCRUD):
 
-    def __init__(
-        self,
-        session: AsyncSession,
-        model: CarSeries,
-    ):
+    def __init__(self, session: AsyncSession, model: CarSeries):
         super().__init__(session=session, model=model)
-        self.model = model
-        self.session = session
+        self.session: AsyncSession = session
+        self.model: CarSeries = model
 
     async def check_relation(
         self,
         car_brand_id: UUID,
         car_series_id: UUID,
     ) -> bool:
-        stmt = Select(
+        stmt: Select = Select(
             exists().where(
                 self.model.id == car_series_id,
-                self.model.brand_id == car_brand_id,
+                self.model.car_brand_id == car_brand_id,
             )
         )
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar()
 
-    async def get_series_by_brand_id(
+    async def get_series_by_car_brand_id(
         self,
-        brand_id: UUID,
-    ):
-        stmt = Select(self.model).where(self.model.brand_id == brand_id)
+        car_brand_id: UUID,
+    ) -> list[CarSeries]:
+        stmt: Select = Select(self.model).where(self.model.car_brand_id == car_brand_id)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalars().all()

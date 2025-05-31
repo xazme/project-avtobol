@@ -93,6 +93,7 @@ class Product(Base):
         nullable=True,
         default=None,
     )
+    # TODO убрать
     type_of_engine: Mapped[str] = mapped_column(
         String,
         nullable=True,
