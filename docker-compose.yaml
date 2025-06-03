@@ -53,18 +53,17 @@ services:
       - .env
     restart: always
 
-  python-app:
-    image: python:3.12
-    container_name: python-app
-    volumes:
-      - ./app:/app
-    working_dir: /app
-    environment:
-      - PYTHONUNBUFFERED=1
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=admin
-      - RABBITMQ_PASSWORD=adminpass
-    depends_on:
-      - rabbitmq
-    command: bash -c "pip install -r requirements.txt && python main.py"
-    restart: unless-stopped
+python-app:
+  build:
+    context: .
+    dockerfile: Dockerfile
+  container_name: python-app
+  volumes:
+    - ./app:/app
+  environment:
+    - RABBITMQ_HOST=rabbitmq
+    - RABBITMQ_USER=admin
+    - RABBITMQ_PASSWORD=adminpass
+  depends_on:
+    - rabbitmq
+  restart: unless-stopped
