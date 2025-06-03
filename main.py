@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.database.db_service import DBService
 from app.storage.storage_service_dependencies import storage_service
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await DBService.create_tables()
