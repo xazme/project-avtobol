@@ -6,7 +6,7 @@ storage_service = StorageService(
     bucket_name="avtobol",
     access_key=settings.minio.minio_access,
     secret_key=settings.minio.minio_secret,
-    endpoint_url=f"http://{settings.minio.minio_url}",
+    endpoint_url=f"{settings.minio.minio_url}",
 )
 
 
