@@ -1,4 +1,8 @@
-# services:
+services:
+
+  backend:
+    build:
+      context: /app
 #   postgres:
 #     image: postgres:13
 #     container_name: database
