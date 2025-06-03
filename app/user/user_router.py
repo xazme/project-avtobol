@@ -94,7 +94,7 @@ async def delete_current_user(
     await user_handler.delete_user(user_id=user.id)
 
 
-@router.put(
+@router.patch(
     "/{user_id}/role",
     summary="Change user role",
     description="Change a user's role (Admin or Owner access required)",
