@@ -87,6 +87,5 @@ class CartRepository(BaseCRUD):
     async def delete_all_positions(self, user_id: UUID) -> bool:
         stmt: Delete = Delete(self.model).where(self.model.user_id == user_id)
         result: Result = await self.session.execute(statement=stmt)
-
         await self.session.commit()
         return True
