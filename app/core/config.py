@@ -13,6 +13,7 @@ class DataFromEnv:
     DB_USER: str = os.getenv("DB_USER")
     DB_PASS: str = os.getenv("DB_PASS")
     DB_NAME: str = os.getenv("DB_NAME")
+    DB_URL: str = os.getenv("DB_URL")
 
     APP_HOST: str = os.getenv("APP_HOST")
     APP_PORT: int = int(os.getenv("APP_PORT"))
@@ -33,11 +34,13 @@ class DataFromEnv:
 class DataBaseConnection:
     """DataBase data"""
 
-    host: str = DataFromEnv.DB_HOST
-    port: int = DataFromEnv.DB_PORT
-    user: str = DataFromEnv.DB_USER
-    password: str = DataFromEnv.DB_PASS
-    name: str = DataFromEnv.DB_NAME
+    # host: str = DataFromEnv.DB_HOST
+    # port: int = DataFromEnv.DB_PORT
+    # user: str = DataFromEnv.DB_USER
+    # password: str = DataFromEnv.DB_PASS
+    # name: str = DataFromEnv.DB_NAME
+
+    db_url = DataFromEnv.DB_URL
 
     naming_convention: dict[str, str] = {
         "ix": "ix_%(table_name)s_%(column_0_name)s",
@@ -49,7 +52,9 @@ class DataBaseConnection:
 
     @classmethod
     def get_db_url(cls):
-        return f"postgresql+asyncpg://{cls.user}:{cls.password}@{cls.host}:{cls.port}/{cls.name}"
+        # return f"postgresql+asyncpg://{cls.user}:{cls.password}@{cls.host}:{cls.port}/{cls.name}"
+        print(cls.db_url)
+        return cls.db_url
 
 
 class MinIO(BaseModel):
