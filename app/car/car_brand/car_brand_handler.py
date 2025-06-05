@@ -1,8 +1,10 @@
 from uuid import UUID
+import base64
 from fastapi import UploadFile
 from app.shared import ExceptionRaiser, BaseHandler
 from app.storage import StorageService
-from .car_brand_schema import CarBrandCreate, CarBrandUpdate
+from app.faststream import broker
+from .car_brand_schema import CarBrandCreate, CarBrandUpdate, CarBrandMessage
 from .car_brand_repository import CarBrandRepository
 from .car_brand_model import CarBrand
 from typing import Optional
@@ -15,11 +17,11 @@ class CarBrandHandler(BaseHandler):
         self.storage: StorageService = storage
         self.repository: CarBrandRepository = repository
 
-    async def create_car_brand(
+    async def send_to_queue(
         self,
         file: UploadFile,
         data: CarBrandCreate,
-    ) -> Optional[CarBrand]:
+    ):
         allowed_formats = [
             "image/jpeg",
             "application/octet-stream",
@@ -33,17 +35,24 @@ class CarBrandHandler(BaseHandler):
             )
 
         file_bytes: bytes = await file.read()
-        filename: str = await self.storage.create_file(file_bytes)
-        car_brand_data: dict = data.model_dump(exclude_unset=True)
-        car_brand_data.update({"picture": filename})
+        picture_base64 = base64.b64encode(file_bytes).decode("utf-8")
+        # car_brand_data = data.model_dump(exclude_unset=True)
 
-        brand: CarBrand | None = await self.repository.create(data=car_brand_data)
-        if not brand:
-            ExceptionRaiser.raise_exception(
-                status_code=400,
-                detail="Failed to create car brand.",
-            )
-        return brand
+        # msg = CarBrandMessage(name=data.name, picture=picture_base64)
+        # print(msg)
+        # print(type(data.name), type(picture_base64))
+
+        # temp = "what the fuck"
+        msg = CarBrandMessage(
+            name=data.name,
+            picture=picture_base64,
+        )
+        print(msg)
+        await broker.publish(
+            message=msg,
+            queue="brand_input",
+            content_type="application/json",
+        )
 
     async def delete_car_brand(
         self,

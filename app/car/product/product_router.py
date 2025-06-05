@@ -43,11 +43,12 @@ async def create_product(
         car_brand_id=product_data.car_brand_id,
         car_series_id=product_data.car_series_id,
     )
-    product = await product_handler.create_product(
+    product = await product_handler.send_to_queue(
         data=product_data,
         files=product_pictures,
     )
-    return convert_data_for_product(car_part=product)
+    return {"msg": "в очередь пошла"}
+    # return convert_data_for_product(car_part=product)
 
 
 @router.get(
@@ -111,7 +112,7 @@ async def update_product(
         data=new_product_data,
         files=new_product_pictures,
     )
-    return convert_data_for_product(car_part=update_product)
+    return convert_data_for_product(car_part=updated_product)
 
 
 @router.patch(

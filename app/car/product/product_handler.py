@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import UploadFile
 from app.shared import BaseHandler, ExceptionRaiser
 from app.storage import StorageService
+from app.faststream import broker
 from .product_repository import ProductRepository
 from .product_schema import ProductCreate, ProductUpdate, ProductFilters
 from .product_model import Product
@@ -15,11 +16,11 @@ class ProductHandler(BaseHandler):
         self.storage: StorageService = storage
         self.repository: ProductRepository = repository
 
-    async def create_product(
+    async def send_to_queue(
         self,
         data: ProductCreate,
         files: list[UploadFile],
-    ) -> Optional[Product]:
+    ):
         allowed_formats = [
             "image/jpeg",
             "application/octet-stream",
@@ -33,19 +34,29 @@ class ProductHandler(BaseHandler):
                     detail=f"Wrong file extension. Allowed formats - {allowed_formats}. Get {file.content_type}",
                 )
         file_contents: list[bytes] = [await file.read() for file in files]
-        filenames: list[str] = await self.storage.create_files(
-            list_of_files=file_contents
+        msg: dict = {
+            "product_data": data.model_dump(exclude_unset=True),
+            "pictures": file_contents,
+        }
+        await broker.publish(
+            message=msg,
+            queue="product_input",
+            content_type="application/json",
         )
-        product: dict = data.model_dump(exclude_unset=True)
+
+    async def create_product(
+        self,
+        msg: dict,
+    ) -> Optional[Product]:
+        product = msg.copy()
+        filenames: list[str] = await self.storage.create_files(
+            list_of_files=product["pictures"]
+        )
         product.update({"pictures": filenames})
         new_product: Product | None = await self.repository.create(data=product)
 
         if not new_product:
             await self.storage.delete_files(list_of_files=filenames)
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="We can't create this product.",
-            )
         return new_product
 
     async def update_product(

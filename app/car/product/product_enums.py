@@ -33,3 +33,10 @@ class BodyType(str, Enum):
 class ProductCondition(str, Enum):
     NEW = "new"
     USED = "used"
+
+
+class Currency(str, Enum):
+    BYN = "byn"
+    USD = "usd"
+    RUB = "rub"
+    EUR = "eur"

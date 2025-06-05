@@ -1,5 +1,5 @@
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from .product_enums import GearboxType, BodyType, FuelType, ProductCondition
 
 
@@ -7,16 +7,39 @@ class ProductBase(BaseModel):
     car_brand_id: UUID
     car_series_id: UUID
     car_part_id: UUID
-    year: int
-    volume: float
+
+    year: int = Field(
+        default=1885,
+        gt=1884,
+        lt=2077,
+    )
+
+    volume: float = Field(
+        gt=0,
+    )
+
     gearbox: GearboxType | None = None
     fuel: FuelType | None = None
     type_of_body: BodyType | None = None
     condition: ProductCondition
-    description: str
-    real_price: float
-    fake_price: float
-    count: int
+
+    description: str = Field(
+        min_length=5,
+        max_length=500,
+    )
+
+    real_price: float = Field(
+        gt=0,
+    )
+
+    fake_price: float = Field(
+        ge=0,
+    )
+
+    count: int = Field(
+        default=1,
+        ge=1,
+    )
 
 
 class ProductFilters(BaseModel):

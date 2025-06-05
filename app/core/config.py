@@ -53,7 +53,6 @@ class DataBaseConnection:
     @classmethod
     def get_db_url(cls):
         # return f"postgresql+asyncpg://{cls.user}:{cls.password}@{cls.host}:{cls.port}/{cls.name}"
-        print(cls.db_url)
         return cls.db_url
 
 

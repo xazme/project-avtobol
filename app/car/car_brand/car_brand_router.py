@@ -22,7 +22,7 @@ router = APIRouter(
     "/",
     summary="Create new car brand",
     description="Add a new car brand to the system",
-    response_model=CarBrandResponse,
+    # response_model=CarBrandResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_car_brand(
@@ -33,13 +33,13 @@ async def create_car_brand(
         media_type="image/jpeg,image/png",
     ),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-) -> CarBrandResponse:
-
-    brand = await car_brand_handler.create_car_brand(
+):
+    brand = await car_brand_handler.send_to_queue(
         file=brand_logo,
         data=brand_data,
     )
-    return CarBrandResponse.model_validate(brand)
+    # return CarBrandResponse.model_validate(brand)
+    return {"suka": "xyu"}
 
 
 @router.get(
