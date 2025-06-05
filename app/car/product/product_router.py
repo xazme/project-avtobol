@@ -26,7 +26,7 @@ router = APIRouter(
     "/",
     summary="Create new product",
     description="Add a new product to the catalog with images",
-    response_model=ProductResponse,
+    # response_model=ProductResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_product(
@@ -38,7 +38,7 @@ async def create_product(
     ),
     series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
+):
     await series_handler.check_relation(
         car_brand_id=product_data.car_brand_id,
         car_series_id=product_data.car_series_id,
@@ -91,7 +91,7 @@ async def get_all_products(
     "/{product_id}",
     summary="Update product",
     description="Modify existing product information and images",
-    response_model=ProductResponse,
+    # response_model=ProductResponse,
     status_code=status.HTTP_200_OK,
 )
 async def update_product(
@@ -102,17 +102,18 @@ async def update_product(
     ),
     series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
+):
     await series_handler.check_relation(
         car_brand_id=new_product_data.car_brand_id,
         car_series_id=new_product_data.car_series_id,
     )
-    updated_product = await product_handler.update_product(
-        id=product_id,
-        data=new_product_data,
+    updated_product = await product_handler.send_update_to_queue(
+        product_id=product_id,
+        new_data=new_product_data,
         files=new_product_pictures,
     )
-    return convert_data_for_product(car_part=updated_product)
+    # return convert_data_for_product(car_part=updated_product)
+    return {"msg": "nayu"}
 
 
 @router.patch(

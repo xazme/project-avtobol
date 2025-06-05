@@ -1,13 +1,13 @@
+from typing import Optional
 from uuid import UUID
 import base64
 from fastapi import UploadFile
 from app.shared import ExceptionRaiser, BaseHandler
 from app.storage import StorageService
 from app.faststream import broker
-from .car_brand_schema import CarBrandCreate, CarBrandUpdate, CarBrandMessage
+from .car_brand_schema import CarBrandCreate, CarBrandUpdate, CarBrandCreateMessage
 from .car_brand_repository import CarBrandRepository
 from .car_brand_model import CarBrand
-from typing import Optional
 
 
 class CarBrandHandler(BaseHandler):
@@ -22,6 +22,14 @@ class CarBrandHandler(BaseHandler):
         file: UploadFile,
         data: CarBrandCreate,
     ):
+        car_brand: CarBrand = await self.repository.get_by_name(name=data.name)
+
+        if car_brand:
+            ExceptionRaiser.raise_exception(
+                status_code=409,
+                detail=f"Car Brand {data.name} already exists.",
+            )
+
         allowed_formats = [
             "image/jpeg",
             "application/octet-stream",
@@ -36,21 +44,13 @@ class CarBrandHandler(BaseHandler):
 
         file_bytes: bytes = await file.read()
         picture_base64 = base64.b64encode(file_bytes).decode("utf-8")
-        # car_brand_data = data.model_dump(exclude_unset=True)
-
-        # msg = CarBrandMessage(name=data.name, picture=picture_base64)
-        # print(msg)
-        # print(type(data.name), type(picture_base64))
-
-        # temp = "what the fuck"
-        msg = CarBrandMessage(
+        msg = CarBrandCreateMessage(
             name=data.name,
             picture=picture_base64,
         )
-        print(msg)
         await broker.publish(
             message=msg,
-            queue="brand_input",
+            queue="brand_create",
             content_type="application/json",
         )
 

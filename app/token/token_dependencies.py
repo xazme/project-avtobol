@@ -69,7 +69,7 @@ async def create_token_response(
     }
     access_token = token_handler.manager.generate_access_token(data=user_data)
     refresh_token = token_handler.manager.generate_refresh_token(data=user_data)
-
+    refresh_token_key = "refresh_token"
     token_data = TokenCreate(
         user_id=user.id,
         access_token=access_token,
@@ -89,7 +89,7 @@ async def create_token_response(
     elif mode == TokenMode.SIGNIN:
 
         response.set_cookie(
-            key=refresh_token,
+            key=refresh_token_key,
             value=refresh_token,
             httponly=True,
             secure=True,
@@ -100,7 +100,7 @@ async def create_token_response(
 
     elif mode == TokenMode.REGISTER:
         response.set_cookie(
-            key=refresh_token,
+            key=refresh_token_key,
             value=refresh_token,
             httponly=True,
             secure=True,

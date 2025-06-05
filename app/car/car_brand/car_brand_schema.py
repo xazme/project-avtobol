@@ -1,6 +1,5 @@
 from uuid import UUID
-from fastapi import Form
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class CarBrandBase(BaseModel):
@@ -11,9 +10,8 @@ class CarBrandCreate(CarBrandBase):
     pass
 
 
-class CarBrandMessage(BaseModel):
-    name: str = Field(...)
-    picture: str = Field(...)
+class CarBrandCreateMessage(CarBrandCreate):
+    picture: str
 
 
 class CarBrandUpdate(CarBrandBase):

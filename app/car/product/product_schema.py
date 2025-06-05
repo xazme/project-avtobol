@@ -65,6 +65,16 @@ class ProductUpdate(ProductBase):
     pass
 
 
+class ProductCreateMessage(ProductCreate):
+    pictures: list[str]
+
+
+class ProductUpdateMessage(BaseModel):
+    product_id: UUID
+    product_data: dict
+    pictures: list[str] | None
+
+
 class ProductResponse(BaseModel):
     id: UUID
     pictures: list[str]
