@@ -38,7 +38,7 @@ async def add_cart_item(
     position = await cart_handler.create_position(
         user_id=user.id, product_id=product_id
     )
-    return {"msg": "Success"}
+    return {"message": "Success"}
 
 
 @router.get(

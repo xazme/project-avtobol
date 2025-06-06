@@ -24,7 +24,7 @@ async def lifespan(fastapi_app: FastAPI):
     yield
 
     await DBService.dispose()
-
+    # await DBService.drop_tables()
     # await broker.close()
 
 

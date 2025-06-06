@@ -11,7 +11,7 @@ routers = [
     product_router,
 ]
 
-car_router = APIRouter(prefix="/dismanting")
+car_router = APIRouter()
 
 for router in routers:
     car_router.include_router(router)

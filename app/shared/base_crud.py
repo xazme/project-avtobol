@@ -82,3 +82,18 @@ class BaseCRUD:
         stmt: Select = Select(self.model).order_by(self.model.id)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalars().all()
+
+    async def get_all_pagination(
+        self,
+        query: str,
+        page: int,
+        page_size: int,
+    ) -> list[DeclarativeBase]:
+        stmt: Select = (
+            Select(self.model)
+            .where(self.model.name.ilike(f"%{query}%"))
+            .limit(limit=page_size)
+            .offset((page - 1) * page_size)
+        )
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalars().all()

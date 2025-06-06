@@ -76,6 +76,18 @@ class BaseHandler:
         all_obj = await self.repository.get_all()
         return all_obj
 
+    async def get_all_obj_pagination(
+        self,
+        query: str,
+        page: int,
+        page_size: int,
+    ) -> list[DeclarativeBase]:
+        return await self.repository.get_all_pagination(
+            query=query,
+            page=page,
+            page_size=page_size,
+        )
+
     async def get_obj_by_name(
         self,
         name: str,

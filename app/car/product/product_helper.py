@@ -23,6 +23,8 @@ def convert_data_for_list_of_products(
             real_price=car_part.real_price,
             fake_price=car_part.fake_price,
             count=car_part.count,
+            is_available=car_part.is_available,
+            is_printed=car_part.is_printed,
         )
         data.append(response)
 

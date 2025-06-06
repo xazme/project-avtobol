@@ -132,8 +132,15 @@ class CarBrandHandler(BaseHandler):
 
     async def get_all_brands(
         self,
+        query: str,
+        page: int,
+        page_size: int,
     ) -> list[CarBrand]:
-        return await self.get_all_obj()
+        return await self.get_all_obj_pagination(
+            query=query,
+            page=page,
+            page_size=page_size,
+        )
 
     async def get_car_brand_by_id(
         self,

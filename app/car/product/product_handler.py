@@ -127,21 +127,6 @@ class ProductHandler(BaseHandler):
 
         return updated_product
 
-    async def change_availability(
-        self,
-        product_id: UUID,
-        new_status: bool,
-    ) -> dict:
-        product: Product | None = await self.repository.change_availibility(
-            product_id=product_id,
-            new_available_status=new_status,
-        )
-        if not product:
-            ExceptionRaiser.raise_exception(
-                status_code=500, detail="Product update failed."
-            )
-        return product
-
     async def delete_product(
         self,
         product_id: UUID,
@@ -176,14 +161,37 @@ class ProductHandler(BaseHandler):
         result: bool = await self.repository.check_availability(product_id=product_id)
         if not result:
             ExceptionRaiser.raise_exception(
-                status_code=400, detail="Product is not available for sale."
+                status_code=400, detail="Продукт недоступен для продажи."
             )
         return result
 
-    async def change_printed_status(self, products_id: list[UUID]):
-        pass
+    async def bulk_change_availability(
+        self,
+        product_id: list[UUID],
+        new_status: bool,
+    ) -> dict:
+        product: Product | None = await self.repository.bulk_change_availibility(
+            product_id=product_id,
+            new_available_status=new_status,
+        )
+        if not product:
+            ExceptionRaiser.raise_exception(
+                status_code=500, detail="Product update failed."
+            )
+        return product
 
-    def __validate_files(files: list[UploadFile]):
+    async def bulk_change_printed_status(self, products_id: list[UUID], status: bool):
+        result = await self.repository.bulk_change_printed_status(
+            products_id=products_id,
+            status=status,
+        )
+        if not result:
+            ExceptionRaiser.raise_exception(
+                status_code=503, detail="Лок транзакции. Повторите попытку позже."
+            )
+        return True
+
+    def __validate_files(self, files: list[UploadFile]):
         allowed_formats = [
             "image/jpeg",
             "application/octet-stream",

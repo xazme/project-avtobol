@@ -92,6 +92,8 @@ class ProductResponse(BaseModel):
     real_price: float
     fake_price: float
     count: int
+    is_available: bool
+    is_printed: bool
 
     class Config:
         from_attributes = True

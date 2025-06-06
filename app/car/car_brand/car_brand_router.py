@@ -1,6 +1,16 @@
 from typing import TYPE_CHECKING, List
 from uuid import UUID
-from fastapi import APIRouter, Depends, status, UploadFile, File, Body
+from fastapi import (
+    APIRouter,
+    Depends,
+    status,
+    UploadFile,
+    File,
+    Body,
+    Query,
+    Path,
+    Form,
+)
 from app.core import settings
 from .car_brand_schema import (
     CarBrandCreate,
@@ -26,19 +36,16 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_car_brand(
-    brand_data: CarBrandCreate = Depends(),
-    brand_logo: UploadFile = File(
-        ...,
-        description="Brand logo image file",
-        media_type="image/jpeg,image/png",
-    ),
+    brand_data: CarBrandCreate = Form(...),
+    brand_logo: UploadFile = File(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> dict[str, str]:
+    print("s")
     await car_brand_handler.send_to_queue_for_create(
         file=brand_logo,
         data=brand_data,
     )
-    return {"msg": "Добавлено в очередь для создания"}
+    return {"message": "Добавлено в очередь для создания."}
 
 
 @router.get(
@@ -49,7 +56,7 @@ async def create_car_brand(
     status_code=status.HTTP_200_OK,
 )
 async def get_car_brand(
-    car_brand_id: UUID,
+    car_brand_id: UUID = Path(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> CarBrandResponse:
     brand = await car_brand_handler.get_car_brand_by_id(car_brand_id=car_brand_id)
@@ -64,9 +71,16 @@ async def get_car_brand(
     status_code=status.HTTP_200_OK,
 )
 async def get_all_car_brands(
+    query: str = Query(""),
+    page: int = Query(1, gt=0),
+    page_size: int = Query(10, gt=0, le=100),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> List[CarBrandResponse]:
-    car_brands = await car_brand_handler.get_all_brands()
+    car_brands = await car_brand_handler.get_all_brands(
+        query=query,
+        page=page,
+        page_size=page_size,
+    )
     return [CarBrandResponse.model_validate(brand) for brand in car_brands]
 
 
@@ -78,7 +92,7 @@ async def get_all_car_brands(
     status_code=status.HTTP_200_OK,
 )
 async def update_car_brand(
-    car_brand_id: UUID,
+    car_brand_id: UUID = Path(...),
     updated_data: CarBrandUpdate = Depends(),
     brand_logo: UploadFile | None = File(None),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
@@ -88,18 +102,19 @@ async def update_car_brand(
         file=brand_logo,
         data=updated_data,
     )
-    return {"msg": "Добавлено в очередь для обновления"}
+    return {"message": "Добавлено в очередь для обновления."}
 
 
 @router.delete(
     "/{car_brand_id}",
     summary="Delete car brand",
     description="Remove a car brand from the system",
-    response_model=None,
+    response_model=dict[str, str],
     status_code=status.HTTP_200_OK,
 )
 async def delete_car_brand(
-    car_brand_id: UUID,
+    car_brand_id: UUID = Path(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> dict[str, str]:
     await car_brand_handler.delete_car_brand(car_brand_id=car_brand_id)
+    return {"message": "Успешно удаленно."}

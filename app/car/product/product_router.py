@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
-from fastapi import APIRouter, Depends, status, File, UploadFile, Query
+from fastapi import APIRouter, Body, Depends, File, status, UploadFile, Query, Path
 from app.core import settings
 from app.car.car_series import get_car_series_handler
 from .product_schema import (
@@ -31,11 +31,7 @@ router = APIRouter(
 )
 async def create_product(
     product_data: ProductCreate = Depends(),
-    product_pictures: list[UploadFile] = File(
-        ...,
-        description="Brand logo image file",
-        media_type="image/jpeg,image/png",
-    ),
+    product_pictures: list[UploadFile] = File(...),
     series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> dict[str, str]:
@@ -47,7 +43,7 @@ async def create_product(
         data=product_data,
         files=product_pictures,
     )
-    return {"msg": "Добавлено в очередь для создания"}
+    return {"message": "Добавлено в очередь для создания"}
 
 
 @router.get(
@@ -58,7 +54,7 @@ async def create_product(
     status_code=status.HTTP_200_OK,
 )
 async def get_product(
-    product_id: UUID,
+    product_id: UUID = Path(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> ProductResponse:
     product = await product_handler.get_product_by_id(product_id=product_id)
@@ -73,8 +69,8 @@ async def get_product(
     status_code=status.HTTP_200_OK,
 )
 async def get_all_products(
-    page: int = Query(1, gt=0, description="Page number starting from 1"),
-    page_size: int = Query(10, gt=0, le=100, description="Items per page (max 100)"),
+    page: int = Query(1, gt=0),
+    page_size: int = Query(10, gt=0, le=10000),
     filters: ProductFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> list[ProductResponse]:
@@ -94,12 +90,9 @@ async def get_all_products(
     status_code=status.HTTP_200_OK,
 )
 async def update_product(
-    product_id: UUID,
+    product_id: UUID = Path(...),
     new_product_data: ProductUpdate = Depends(),
-    new_product_pictures: list[UploadFile] | None = File(
-        None,
-        description="New product images (optional)",
-    ),
+    new_product_pictures: list[UploadFile] | None = File(None),
     series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> dict[str, str]:
@@ -112,42 +105,49 @@ async def update_product(
         new_data=new_product_data,
         files=new_product_pictures,
     )
-    return {"msg": "Добавлено в очередь для обновления"}
+    return {"message": "Добавлено в очередь для обновления"}
 
 
 @router.patch(
-    "/{product_id}/availability",
+    "/availability",
     summary="Update product availability",
     description="Mark product as available or sold out",
-    response_model=ProductResponse,
+    response_model=dict[str, str],
     status_code=status.HTTP_200_OK,
 )
-async def update_product_availability(
-    product_id: UUID,
-    is_available: bool = False,
+async def update_products_availability(
+    products_id: list[UUID] = Body(...),
+    is_available: bool = Body(False),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
-    updated_product = await product_handler.change_availability(
-        product_id=product_id,
+) -> dict[str, str]:
+    await product_handler.bulk_change_availability(
+        product_id=products_id,
         new_status=is_available,
     )
-    return convert_data_for_product(car_part=updated_product)
+    return {
+        "message": f"Успешно обновленны статусы для {products_id} на значение {is_available}."
+    }
 
 
 @router.patch(
-    "/{product_id}/is_printed",
+    "/is_printed",
     summary="Update product printed status",
     description="Mark product as printed or not",
-    response_model=None,
+    response_model=dict[str, str],
     status_code=status.HTTP_200_OK,
 )
 async def update_product_printed_status(
-    products_id: list[UUID],
-    is_printed: bool = True,
+    products_id: list[UUID] = Body(...),
+    is_printed: bool = Body(True),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
-    updated_product = await product_handler.
-    return convert_data_for_product(car_part=updated_product)
+) -> dict[str, str]:
+    await product_handler.bulk_change_printed_status(
+        products_id=products_id,
+        status=is_printed,
+    )
+    return {
+        "message": f"Успешно обновленны статусы для {products_id} на значение {is_printed}."
+    }
 
 
 @router.delete(
@@ -158,8 +158,8 @@ async def update_product_printed_status(
     status_code=status.HTTP_200_OK,
 )
 async def delete_product(
-    product_id: UUID,
+    product_id: UUID = Path(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> dict[str, str]:
     await product_handler.delete_product(product_id=product_id)
-    return {"msg": "успешно удалено"}
+    return {"message": "Успешно удален."}

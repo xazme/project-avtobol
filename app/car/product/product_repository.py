@@ -1,7 +1,8 @@
 from uuid import UUID
-from sqlalchemy import Select, Result, and_
+from sqlalchemy import Select, Update, Result, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.exc import OperationalError
 from app.shared import BaseCRUD
 from app.car.car_brand import CarBrand
 from .product_model import Product
@@ -80,25 +81,41 @@ class ProductRepository(BaseCRUD):
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
-    async def change_availibility(
+    async def bulk_change_availibility(
         self,
-        product_id: UUID,
-        new_available_status: bool,
+        products_id: list[UUID],
+        new_availables_status: bool,
     ) -> Product | None:
-        product: Product | None = await self.get_product_by_id(id=product_id)
+        stmt = (
+            Update(self.model)
+            .where(self.model.id.in_(products_id))
+            .values(is_available=new_availables_status)
+        )
         try:
-            if product:
-                product.is_available = new_available_status
-                await self.session.commit()
-                await self.session.refresh(product)
-                return product
-        except:
+            await self.session.execute(statement=stmt)
+            await self.session.commit()
+            return True
+        except OperationalError:
             await self.session.rollback()
+            return False
 
-        return None
-
-    async def change_printed_status(self, products_id: list[UUID]):
-        pass
+    async def bulk_change_printed_status(
+        self,
+        products_id: list[UUID],
+        status: bool,
+    ) -> bool:
+        stmt = (
+            Update(self.model)
+            .where(self.model.id.in_(products_id))
+            .values(is_printed=status)
+        )
+        try:
+            await self.session.execute(statement=stmt)
+            await self.session.commit()
+            return True
+        except OperationalError:
+            await self.session.rollback()
+            return False
 
     async def check_availability(
         self,
