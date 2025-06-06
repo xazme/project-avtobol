@@ -65,6 +65,11 @@ class Product(Base):
         nullable=False,
         default=True,
     )
+    is_printed: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,

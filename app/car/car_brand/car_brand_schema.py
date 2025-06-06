@@ -10,12 +10,19 @@ class CarBrandCreate(CarBrandBase):
     pass
 
 
-class CarBrandCreateMessage(CarBrandCreate):
-    picture: str
-
-
 class CarBrandUpdate(CarBrandBase):
     pass
+
+
+class CarBrandCreateMessage(BaseModel):
+    car_brand_data: dict
+    file: str | None
+
+
+class CarBrandUpdateMessage(BaseModel):
+    car_brand_id: UUID
+    car_brand_data: dict
+    file: str | None
 
 
 class CarBrandResponse(CarBrandBase):

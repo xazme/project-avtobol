@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
 from fastapi import APIRouter, Depends, status, File, UploadFile, Query
 from app.core import settings
@@ -26,7 +26,7 @@ router = APIRouter(
     "/",
     summary="Create new product",
     description="Add a new product to the catalog with images",
-    # response_model=ProductResponse,
+    response_model=dict[str, str],
     status_code=status.HTTP_201_CREATED,
 )
 async def create_product(
@@ -38,17 +38,16 @@ async def create_product(
     ),
     series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-):
+) -> dict[str, str]:
     await series_handler.check_relation(
         car_brand_id=product_data.car_brand_id,
         car_series_id=product_data.car_series_id,
     )
-    product = await product_handler.send_to_queue(
+    await product_handler.send_to_queue_for_create(
         data=product_data,
         files=product_pictures,
     )
-    return {"msg": "в очередь пошла"}
-    # return convert_data_for_product(car_part=product)
+    return {"msg": "Добавлено в очередь для создания"}
 
 
 @router.get(
@@ -91,29 +90,29 @@ async def get_all_products(
     "/{product_id}",
     summary="Update product",
     description="Modify existing product information and images",
-    # response_model=ProductResponse,
+    response_model=dict[str, str],
     status_code=status.HTTP_200_OK,
 )
 async def update_product(
     product_id: UUID,
     new_product_data: ProductUpdate = Depends(),
     new_product_pictures: list[UploadFile] | None = File(
-        None, description="New product images (optional)"
+        None,
+        description="New product images (optional)",
     ),
     series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-):
+) -> dict[str, str]:
     await series_handler.check_relation(
         car_brand_id=new_product_data.car_brand_id,
         car_series_id=new_product_data.car_series_id,
     )
-    updated_product = await product_handler.send_update_to_queue(
+    await product_handler.send_to_queue_for_update(
         product_id=product_id,
         new_data=new_product_data,
         files=new_product_pictures,
     )
-    # return convert_data_for_product(car_part=updated_product)
-    return {"msg": "nayu"}
+    return {"msg": "Добавлено в очередь для обновления"}
 
 
 @router.patch(
@@ -129,8 +128,25 @@ async def update_product_availability(
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> ProductResponse:
     updated_product = await product_handler.change_availability(
-        product_id=product_id, new_status=is_available
+        product_id=product_id,
+        new_status=is_available,
     )
+    return convert_data_for_product(car_part=updated_product)
+
+
+@router.patch(
+    "/{product_id}/is_printed",
+    summary="Update product printed status",
+    description="Mark product as printed or not",
+    response_model=None,
+    status_code=status.HTTP_200_OK,
+)
+async def update_product_printed_status(
+    products_id: list[UUID],
+    is_printed: bool = True,
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+) -> ProductResponse:
+    updated_product = await product_handler.
     return convert_data_for_product(car_part=updated_product)
 
 
@@ -138,7 +154,7 @@ async def update_product_availability(
     "/{product_id}",
     summary="Delete product",
     description="Remove product from catalog",
-    response_model=None,
+    response_model=dict[str, str],
     status_code=status.HTTP_200_OK,
 )
 async def delete_product(
@@ -146,3 +162,4 @@ async def delete_product(
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> dict[str, str]:
     await product_handler.delete_product(product_id=product_id)
+    return {"msg": "успешно удалено"}

@@ -1,6 +1,6 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 from uuid import UUID
-from fastapi import APIRouter, Depends, status, UploadFile, File, Query
+from fastapi import APIRouter, Depends, status, UploadFile, File, Body
 from app.core import settings
 from .car_brand_schema import (
     CarBrandCreate,
@@ -22,7 +22,7 @@ router = APIRouter(
     "/",
     summary="Create new car brand",
     description="Add a new car brand to the system",
-    # response_model=CarBrandResponse,
+    response_model=dict[str, str],
     status_code=status.HTTP_201_CREATED,
 )
 async def create_car_brand(
@@ -33,13 +33,12 @@ async def create_car_brand(
         media_type="image/jpeg,image/png",
     ),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-):
-    brand = await car_brand_handler.send_to_queue(
+) -> dict[str, str]:
+    await car_brand_handler.send_to_queue_for_create(
         file=brand_logo,
         data=brand_data,
     )
-    # return CarBrandResponse.model_validate(brand)
-    return {"suka": "xyu"}
+    return {"msg": "Добавлено в очередь для создания"}
 
 
 @router.get(
@@ -75,24 +74,21 @@ async def get_all_car_brands(
     "/{car_brand_id}",
     summary="Update car brand",
     description="Modify existing car brand information",
-    response_model=CarBrandResponse,
+    response_model=dict[str, str],
     status_code=status.HTTP_200_OK,
 )
 async def update_car_brand(
     car_brand_id: UUID,
     updated_data: CarBrandUpdate = Depends(),
-    brand_logo: UploadFile | None = File(
-        description="New brand logo (optional)",
-        media_type="image/jpeg,image/png",
-    ),
+    brand_logo: UploadFile | None = File(None),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-) -> CarBrandResponse:
-    updated_brand = await car_brand_handler.update_car_brand(
+) -> dict[str, str]:
+    await car_brand_handler.send_to_queue_for_update(
         car_brand_id=car_brand_id,
         file=brand_logo,
         data=updated_data,
     )
-    return CarBrandResponse.model_validate(updated_brand)
+    return {"msg": "Добавлено в очередь для обновления"}
 
 
 @router.delete(

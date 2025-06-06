@@ -23,24 +23,13 @@ class ProductHandler(BaseHandler):
         self.storage: StorageService = storage
         self.repository: ProductRepository = repository
 
-    async def send_to_queue(
+    async def send_to_queue_for_create(
         self,
         data: ProductCreate,
         files: list[UploadFile],
     ):
         product_data = data.model_dump(exclude_unset=True)
-        allowed_formats = [
-            "image/jpeg",
-            "application/octet-stream",
-            "image/png",
-            "image/webp",
-        ]
-        for file in files:
-            if file.content_type not in allowed_formats:
-                ExceptionRaiser.raise_exception(
-                    status_code=400,
-                    detail=f"Wrong file extension. Allowed formats - {allowed_formats}. Get {file.content_type}",
-                )
+        self.__validate_files(files=files)
 
         files_base64 = []
         for file in files:
@@ -49,8 +38,8 @@ class ProductHandler(BaseHandler):
             files_base64.append(file_base64)
 
         msg = ProductCreateMessage(
-            pictures=files_base64,
-            **product_data,
+            product_data=product_data,
+            files=files_base64,
         )
         await broker.publish(
             message=msg,
@@ -58,88 +47,21 @@ class ProductHandler(BaseHandler):
             content_type="application/json",
         )
 
-    # async def create_product(
-    #     self,
-    #     msg: dict,
-    # ) -> Optional[Product]:
-    #     product = msg.copy()
-    #     filenames: list[str] = await self.storage.create_files(
-    #         list_of_files=product["pictures"]
-    #     )
-    #     product.update({"pictures": filenames})
-    #     new_product: Product | None = await self.repository.create(data=product)
-
-    #     if not new_product:
-    #         await self.storage.delete_files(list_of_files=filenames)
-    #     return new_product
-
-    # async def update_product(
-    #     self,
-    #     product_id: UUID,
-    #     new_data: ProductUpdate,
-    #     files: Optional[list[UploadFile]],
-    # ) -> Optional[Product]:
-    #     old_product: dict = await self.get_product_by_id(product_id)
-    #     file_contents: list[bytes] = []
-    #     filenames: list[str] = old_product["pictures"]
-
-    #     if files:
-    #         allowed_formats = [
-    #             "image/jpeg",
-    #             "application/octet-stream",
-    #             "image/png",
-    #             "image/webp",
-    #         ]
-    #         for file in files:
-    #             if file.content_type not in allowed_formats:
-    #                 ExceptionRaiser.raise_exception(
-    #                     status_code=400,
-    #                     detail=f"Wrong file extension. Allowed formats - {allowed_formats}. Get {file.content_type}",
-    #                 )
-    #         for file in files:
-    #             file_contents.append(await file.read())
-    #         filenames = await self.storage.create_files(list_of_files=file_contents)
-
-    #     product: dict = new_data.model_dump(exclude_unset=True)
-
-    #     if filenames:
-    #         product.update({"pictures": filenames})
-
-    #     upd_product: Product | None = await self.repository.update_by_id(
-    #         id=product_id, data=product
-    #     )
-    #     if not upd_product:
-    #         ExceptionRaiser.raise_exception(
-    #             status_code=500,
-    #             detail="We can't update this product.",
-    #         )
-    #     if files:
-    #         await self.storage.delete_files(list_of_files=old_product["pictures"])
-    #     return upd_product
-
-    async def send_update_to_queue(
+    async def send_to_queue_for_update(
         self,
         product_id: UUID,
         new_data: ProductUpdate,
         files: Optional[list[UploadFile]],
     ):
         product_data = new_data.model_dump(exclude_unset=True)
-        allowed_formats = [
-            "image/jpeg",
-            "application/octet-stream",
-            "image/png",
-            "image/webp",
-        ]
 
-        files_base64 = []
+        files_base64 = None
+
         if files:
+            self.__validate_files(files=files)
+            files_base64 = []
             for file in files:
-                if file.content_type not in allowed_formats:
-                    ExceptionRaiser.raise_exception(
-                        status_code=400,
-                        detail=f"Wrong file extension. Allowed formats - {allowed_formats}. Get {file.content_type}",
-                    )
-                file_bytes: bytes = await file.read()
+                file_bytes = await file.read()
                 file_base64 = base64.b64encode(file_bytes).decode("utf-8")
                 files_base64.append(file_base64)
 
@@ -154,6 +76,56 @@ class ProductHandler(BaseHandler):
             queue="product_update",
             content_type="application/json",
         )
+
+    async def create_product(
+        self,
+        product_data: dict,
+        files: list[bytes],
+    ) -> Optional[Product]:
+
+        filenames: list[str] = await self.storage.create_files(list_of_files=files)
+        product_data.update({"pictures": filenames})
+        new_product: Product | None = await self.repository.create(data=product_data)
+
+        if not new_product:
+            await self.storage.delete_files(list_of_files=filenames)
+            raise Exception
+        return new_product
+
+    async def update_product(
+        self,
+        product_id: UUID,
+        product_data: dict,
+        files: list[bytes] | None,
+    ) -> Optional[Product]:
+        product: Product = await self.repository.get_by_id(id=product_id)
+
+        filenames: list[str] = product.pictures
+
+        if files:
+            file_contents: list[bytes] = []
+            for file in files:
+                file_contents.append(file)
+
+            new_filenames: list[str] = await self.storage.create_files(
+                list_of_files=file_contents
+            )
+            product_data.update({"pictures": new_filenames})
+
+        updated_product: Product | None = await self.repository.update_by_id(
+            id=product_id,
+            data=product_data,
+        )
+
+        if not updated_product:
+            if files:
+                await self.storage.delete_files(list_of_files=new_filenames)
+                raise Exception
+
+        if files:
+            await self.storage.delete_files(list_of_files=filenames)
+
+        return updated_product
 
     async def change_availability(
         self,
@@ -207,3 +179,21 @@ class ProductHandler(BaseHandler):
                 status_code=400, detail="Product is not available for sale."
             )
         return result
+
+    async def change_printed_status(self, products_id: list[UUID]):
+        pass
+
+    def __validate_files(files: list[UploadFile]):
+        allowed_formats = [
+            "image/jpeg",
+            "application/octet-stream",
+            "image/png",
+            "image/webp",
+        ]
+
+        for file in files:
+            if file.content_type not in allowed_formats:
+                ExceptionRaiser.raise_exception(
+                    status_code=400,
+                    detail=f"Неверный формат файла. Приемлимые форматы файлов - {allowed_formats}. Был дан {file.content_type}.",
+                )

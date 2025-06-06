@@ -97,6 +97,9 @@ class ProductRepository(BaseCRUD):
 
         return None
 
+    async def change_printed_status(self, products_id: list[UUID]):
+        pass
+
     async def check_availability(
         self,
         product_id: UUID,
