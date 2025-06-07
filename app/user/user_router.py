@@ -62,7 +62,7 @@ async def get_all_users(
 
 
 @router.put(
-    "/me",
+    "/me/update",
     summary="Update current user",
     description="Update information for the currently authenticated user",
     status_code=status.HTTP_201_CREATED,
@@ -81,7 +81,7 @@ async def update_current_user(
 
 
 @router.delete(
-    "/me",
+    "/me/delete",
     summary="Delete current user",
     description="Delete the currently authenticated user account",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -112,7 +112,7 @@ async def change_user_role(
 
 
 @router.get(
-    "/me",
+    "/me/info",
     summary="Get current user info",
     description="Retrieve information about the currently authenticated user",
     status_code=status.HTTP_200_OK,

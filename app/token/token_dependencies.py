@@ -63,26 +63,27 @@ async def create_token_response(
     token_handler: "TokenHandler",
     response: Response,
 ):
+    user_id = str(user.id)
     user_data = {
-        "id": str(user.id),
+        "id": user_id,
         "username": user.name,
     }
     access_token = token_handler.manager.generate_access_token(data=user_data)
     refresh_token = token_handler.manager.generate_refresh_token(data=user_data)
     refresh_token_key = "refresh_token"
     token_data = TokenCreate(
-        user_id=user.id,
+        user_id=user_id,
         access_token=access_token,
         refresh_token=refresh_token,
     )
 
     if mode == TokenMode.REFRESH:
         token_data_for_refresh = TokenCreate(
-            user_id=user.id,
+            user_id=user_id,
             access_token=access_token,
         )
         token = await token_handler.update_access_token(
-            user_id=user.id,
+            user_id=user_id,
             data=token_data_for_refresh,
         )
 
@@ -95,7 +96,7 @@ async def create_token_response(
             secure=True,
             samesite="lax",
         )
-        await token_handler.delete_tokens_by_user_id(user_id=user.id)
+        await token_handler.delete_tokens_by_user_id(user_id=user_id)
         token = await token_handler.create_token(token_data)
 
     elif mode == TokenMode.REGISTER:
