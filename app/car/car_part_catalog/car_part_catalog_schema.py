@@ -2,19 +2,19 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class CarPartCatalogBase(BaseModel):
+class CarPartBase(BaseModel):
     name: str
 
 
-class CarPartCatalogCreate(CarPartCatalogBase):
+class CarPartCreate(CarPartBase):
     pass
 
 
-class CarPartCatalogUpdate(CarPartCatalogBase):
+class CarPartUpdate(CarPartBase):
     pass
 
 
-class CarPartCatalogResponse(CarPartCatalogBase):
+class CarPartResponse(CarPartBase):
     id: UUID
 
     class Config:

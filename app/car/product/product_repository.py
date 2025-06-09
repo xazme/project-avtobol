@@ -1,5 +1,5 @@
 from uuid import UUID
-from sqlalchemy import Select, Update, Result, and_
+from sqlalchemy import Select, Update, Result, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import OperationalError
@@ -21,7 +21,7 @@ class ProductRepository(BaseCRUD):
         page: int,
         page_size: int,
         filters: ProductFilters,
-    ) -> list[Product]:
+    ) -> tuple[list[Product], int]:
         product_filters: list = await self.prepare_filters(filters=filters)
         stmt: Select = (
             Select(self.model)
@@ -35,8 +35,11 @@ class ProductRepository(BaseCRUD):
             .offset((page - 1) * page_size)
             .where(and_(*product_filters))
         )
-        result: Result = await self.session.execute(statement=stmt)
-        return result.scalars().all()
+        count_stmt: Select = Select(func.count()).where(and_(*product_filters))
+        product_result: Result = await self.session.execute(stmt)
+        count_result: Result = await self.session.execute(count_stmt)
+
+        return count_result.scalar(), product_result.scalars().all()
 
     async def prepare_filters(
         self,

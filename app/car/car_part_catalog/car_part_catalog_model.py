@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from app.car.product import Product
 
 
-class CarPartCatalog(Base):
+class CarPart(Base):
     name: Mapped[str] = mapped_column(
         String,
         unique=True,

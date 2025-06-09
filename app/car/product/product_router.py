@@ -1,8 +1,7 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Annotated
 from uuid import UUID
-from fastapi import APIRouter, Body, Depends, File, status, UploadFile, Query, Path
+from fastapi import APIRouter, Body, Depends, status, Query, Path, Form
 from app.core import settings
-from app.car.car_series import get_car_series_handler
 from .product_schema import (
     ProductCreate,
     ProductResponse,
@@ -10,10 +9,9 @@ from .product_schema import (
     ProductFilters,
 )
 from .product_dependencies import get_product_handler
-from .product_helper import convert_data_for_product, convert_data_for_list_of_products
+from .product_helper import convert_data
 
 if TYPE_CHECKING:
-    from app.car.car_series import CarSeriesHandler
     from .product_handler import ProductHandler
 
 router = APIRouter(
@@ -25,25 +23,38 @@ router = APIRouter(
 @router.post(
     "/",
     summary="Create new product",
-    description="Add a new product to the catalog with images",
-    response_model=dict[str, str],
+    description="Add a new product to the catalog",
+    response_model=ProductResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_product(
-    product_data: ProductCreate = Depends(),
-    product_pictures: list[UploadFile] = File(...),
-    series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
+    product_data: ProductCreate = Body(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> dict[str, str]:
-    await series_handler.check_relation(
-        car_brand_id=product_data.car_brand_id,
-        car_series_id=product_data.car_series_id,
+) -> ProductResponse:
+    print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+    print(product_data.model_dump(exclude_unset=True))
+    product = await product_handler.create_product(product_data=product_data)
+    return convert_data(product_data=product)
+
+
+@router.put(
+    "/{product_id}",
+    summary="Update product",
+    description="Modify existing product information",
+    response_model=ProductResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def update_product(
+    product_id: UUID = Path(...),
+    new_product_data: ProductUpdate = Depends(ProductUpdate.as_form),
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+) -> ProductResponse:
+
+    product = await product_handler.update_product(
+        product_id=product_id,
+        product_data=new_product_data,
     )
-    await product_handler.send_to_queue_for_create(
-        data=product_data,
-        files=product_pictures,
-    )
-    return {"message": "Добавлено в очередь для создания"}
+    return convert_data(product_data=product)
 
 
 @router.get(
@@ -58,14 +69,14 @@ async def get_product(
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> ProductResponse:
     product = await product_handler.get_product_by_id(product_id=product_id)
-    return convert_data_for_product(car_part=product)
+    return convert_data(product_data=product)
 
 
 @router.get(
     "/",
     summary="Get filtered products",
     description="Retrieve paginated list of products with filtering options",
-    response_model=list[ProductResponse],
+    response_model=dict[str, Any],
     status_code=status.HTTP_200_OK,
 )
 async def get_all_products(
@@ -73,39 +84,16 @@ async def get_all_products(
     page_size: int = Query(10, gt=0, le=10000),
     filters: ProductFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> list[ProductResponse]:
-    products = await product_handler.get_all_products(
+) -> dict[str, Any]:
+    total_count, products = await product_handler.get_all_products(
         page=page,
         page_size=page_size,
         filters=filters,
     )
-    return convert_data_for_list_of_products(list_of_car_parts=products)
-
-
-@router.put(
-    "/{product_id}",
-    summary="Update product",
-    description="Modify existing product information and images",
-    response_model=dict[str, str],
-    status_code=status.HTTP_200_OK,
-)
-async def update_product(
-    product_id: UUID = Path(...),
-    new_product_data: ProductUpdate = Depends(),
-    new_product_pictures: list[UploadFile] | None = File(None),
-    series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-    product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> dict[str, str]:
-    await series_handler.check_relation(
-        car_brand_id=new_product_data.car_brand_id,
-        car_series_id=new_product_data.car_series_id,
-    )
-    await product_handler.send_to_queue_for_update(
-        product_id=product_id,
-        new_data=new_product_data,
-        files=new_product_pictures,
-    )
-    return {"message": "Добавлено в очередь для обновления"}
+    return {
+        "total_count": total_count,
+        "products": convert_data(product_data=products),
+    }
 
 
 @router.patch(

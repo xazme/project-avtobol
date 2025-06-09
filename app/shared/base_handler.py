@@ -88,6 +88,18 @@ class BaseHandler:
             page_size=page_size,
         )
 
+    async def get_all_obj_by_scroll(
+        self,
+        query: str,
+        cursor: int | None,
+        take: int | None,
+    ) -> tuple[int | None, list]:
+        return await self.repository.get_all_by_scrol(
+            query=query,
+            cursor=cursor,
+            take=take,
+        )
+
     async def get_obj_by_name(
         self,
         name: str,

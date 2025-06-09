@@ -1,7 +1,6 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import DBService
-from app.storage import storage_service
 from app.core import settings
 from .car_brand_model import CarBrand
 from .car_brand_repository import CarBrandRepository
@@ -15,4 +14,4 @@ def get_car_brand_handler(
         session=session,
         model=CarBrand,
     )
-    return CarBrandHandler(repository=repository, storage=storage_service)
+    return CarBrandHandler(repository=repository)

@@ -1,10 +1,7 @@
 import uvicorn
-import threading
-import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from faststream import FastStream
-import uvicorn.server
 from app.user import user_router
 from app.auth import auth_router
 from app.token import token_router
@@ -18,8 +15,8 @@ from app.database.db_service import DBService
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
-    # await DBService.create_tables()
-    await broker.connect()
+    await DBService.create_tables()
+    # await broker.connect()
 
     yield
 
@@ -29,7 +26,7 @@ async def lifespan(fastapi_app: FastAPI):
 
 
 fastapi_app = FastAPI(lifespan=lifespan)
-faststream_app = FastStream(broker=broker)
+# faststream_app = FastStream(broker=broker)
 
 # broker.include_router(router=product_router)
 # broker.include_router(router=brand_router)

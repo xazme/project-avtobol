@@ -4,11 +4,9 @@ from fastapi import (
     APIRouter,
     Depends,
     status,
-    UploadFile,
-    File,
-    Body,
     Query,
     Path,
+    Body,
     Form,
 )
 from app.core import settings
@@ -18,6 +16,7 @@ from .car_brand_schema import (
     CarBrandResponse,
 )
 from .car_brand_dependencies import get_car_brand_handler
+from .car_brand_model import CarBrand
 
 if TYPE_CHECKING:
     from .car_brand_handler import CarBrandHandler
@@ -32,20 +31,18 @@ router = APIRouter(
     "/",
     summary="Create new car brand",
     description="Add a new car brand to the system",
-    response_model=dict[str, str],
+    response_model=CarBrandResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_car_brand(
-    brand_data: CarBrandCreate = Form(...),
-    brand_logo: UploadFile = File(...),
+    car_brand_data: CarBrandCreate = Body(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-) -> dict[str, str]:
-    print("s")
-    await car_brand_handler.send_to_queue_for_create(
-        file=brand_logo,
-        data=brand_data,
+) -> CarBrandResponse:
+
+    car_brand: "CarBrand" = await car_brand_handler.create_car_brand(
+        car_brand_data=car_brand_data,
     )
-    return {"message": "Добавлено в очередь для создания."}
+    return CarBrandResponse.model_validate(car_brand)
 
 
 @router.get(
@@ -67,42 +64,47 @@ async def get_car_brand(
     "/",
     summary="Get all car brands",
     description="Retrieve a complete list of all car brands",
-    response_model=List[CarBrandResponse],
+    response_model=dict[str, int | None | list[CarBrandResponse]],
     status_code=status.HTTP_200_OK,
 )
 async def get_all_car_brands(
     query: str = Query(""),
-    page: int = Query(1, gt=0),
-    page_size: int = Query(10, gt=0, le=100),
+    page: int | None = Query(None, gt=0),
+    page_size: int | None = Query(None, gt=0),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-) -> List[CarBrandResponse]:
-    car_brands = await car_brand_handler.get_all_brands(
+) -> dict[str, int | None | list[CarBrandResponse]]:
+    next_cursor, car_brands = await car_brand_handler.get_all_obj_by_scroll(
         query=query,
         page=page,
         page_size=page_size,
     )
-    return [CarBrandResponse.model_validate(brand) for brand in car_brands]
+    return {
+        "next_cursor": next_cursor if car_brands else None,
+        "items": (
+            [CarBrandResponse.model_validate(car_brand) for car_brand in car_brands]
+            if car_brands
+            else []
+        ),
+    }
 
 
 @router.put(
     "/{car_brand_id}",
     summary="Update car brand",
     description="Modify existing car brand information",
-    response_model=dict[str, str],
+    response_model=CarBrandResponse,
     status_code=status.HTTP_200_OK,
 )
 async def update_car_brand(
     car_brand_id: UUID = Path(...),
-    updated_data: CarBrandUpdate = Depends(),
-    brand_logo: UploadFile | None = File(None),
+    updated_data: CarBrandUpdate = Body(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-) -> dict[str, str]:
-    await car_brand_handler.send_to_queue_for_update(
+) -> CarBrandResponse:
+    car_brand = await car_brand_handler.update_car_brand(
         car_brand_id=car_brand_id,
-        file=brand_logo,
-        data=updated_data,
+        car_brand_data=updated_data,
     )
-    return {"message": "Добавлено в очередь для обновления."}
+    return CarBrandResponse.model_validate(car_brand)
 
 
 @router.delete(

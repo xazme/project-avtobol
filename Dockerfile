@@ -1,18 +1,7 @@
-FROM python:3.12-slim
+FROM python:3.12-slim-bookworm
 
-RUN apt-get update && apt-get install -y \
-    gcc \
-    build-essential \
-    python3-dev \
-    libffi-dev \
-    openssl
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 
 COPY . .
-
-CMD ["sh", "-c", "python main.py & faststream run main:faststream_app"]
+CMD ["python","main.py"]

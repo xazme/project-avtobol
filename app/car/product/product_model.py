@@ -19,7 +19,7 @@ from .product_enums import ProductCondition, FuelType, BodyType, GearboxType
 if TYPE_CHECKING:
     from app.car.car_brand import CarBrand
     from app.car.car_series import CarSeries
-    from app.car.car_part_catalog import CarPartCatalog
+    from app.car.car_part_catalog import CarPart
     from app.cart import Cart
     from app.order import Order
 
@@ -48,7 +48,7 @@ class Product(Base):
     car_part_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(
-            "carpartcatalog.id",
+            "carpart.id",
             ondelete="CASCADE",
             onupdate="CASCADE",
         ),
@@ -88,6 +88,11 @@ class Product(Base):
         Float,
         nullable=True,
     )
+    engine_type: Mapped[str] = mapped_column(
+        String,
+        nullable=True,
+        default=None,
+    )
     gearbox: Mapped[SqlEnum] = mapped_column(
         SqlEnum(GearboxType),
         nullable=True,
@@ -98,17 +103,12 @@ class Product(Base):
         nullable=True,
         default=None,
     )
-    # TODO убрать
-    type_of_engine: Mapped[str] = mapped_column(
+    VIN: Mapped[str] = mapped_column(
         String,
         nullable=True,
     )
-    VIN: Mapped[int] = mapped_column(
-        Integer,
-        nullable=True,
-    )
-    oem: Mapped[int] = mapped_column(
-        Integer,
+    OEM: Mapped[str] = mapped_column(
+        String,
         nullable=True,
     )
     note: Mapped[str] = mapped_column(
@@ -144,7 +144,7 @@ class Product(Base):
     car_series: Mapped["CarSeries"] = relationship(
         back_populates="product",
     )
-    car_part: Mapped["CarPartCatalog"] = relationship(
+    car_part: Mapped["CarPart"] = relationship(
         back_populates="product",
     )
     cart: Mapped[list["Cart"]] = relationship(

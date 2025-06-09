@@ -1,6 +1,6 @@
 from uuid import UUID
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Select, Result
+from sqlalchemy import Select, Result, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -97,3 +97,27 @@ class BaseCRUD:
         )
         result: Result = await self.session.execute(statement=stmt)
         return result.scalars().all()
+
+    async def get_all_by_scrol(
+        self,
+        query: str,
+        cursor: int | None,
+        take: int | None,
+    ) -> tuple[int | None, list]:
+        cursor = cursor if cursor is not None else 0
+        stmt_count: Select = Select(func.count(self.model.id))
+        stmt: Select = (
+            Select(self.model).offset(cursor).where(self.model.name.ilike(f"%{query}%"))
+        )
+        if take is not None:
+            stmt = stmt.limit(take)
+
+        result: Result = await self.session.execute(statement=stmt)
+        result_count: Result = await self.session.execute(statement=stmt_count)
+        count = result_count.scalar()
+
+        next_cursor = (
+            cursor + take if take is not None and (cursor + take) <= count else None
+        )
+
+        return next_cursor, result.scalars().all()
