@@ -92,7 +92,7 @@ async def get_all_products(
     )
     return {
         "total_count": total_count,
-        "products": convert_data(product_data=products),
+        "items": convert_data(product_data=products),
     }
 
 
