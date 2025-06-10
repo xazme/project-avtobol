@@ -1,5 +1,5 @@
+import re
 import asyncio
-import httpx
 from httpx import AsyncClient
 
 headers = {
@@ -20,11 +20,70 @@ cookies = {
 
 
 async def main():
-    async with httpx.AsyncClient(headers=headers, cookies=cookies) as client:
-        responce = await client.get("https://idriver.by")
-        # responce = await client.get("https://idriver.by/login")
-        responce = await client.get("https://idriver.by/mylist")
-        print(responce.text)
+    url = "https://idriver.by/"
+    async with AsyncClient(headers=headers, cookies=cookies) as client:
+        response = await client.get(f"{url}")
+        response = await client.get(f"{url}mylist")
+        script_text = await client.get(f"{url}sections/mylist/addpart/new.php")
+
+        match = re.search(r"location\.href=['\"](.*?)['\"]", script_text.text)
+        match_post_id = re.search(r"postID=(\d+)", script_text.text)
+        script_link = match.group(1)
+        product_id = match_post_id.group(1)
+
+        data_dict = {
+            "ajaxDiv": "#addParts+.result",
+            "addPart": "1",
+            "carID": "0",
+            "clubID": "4346",
+            "clubRowID": "4346",
+            "carList": "",
+            "number": f"{product_id}",
+            "partCode": "",
+            "brand": "8",
+            "model": "",
+            "year": "",
+            "body": "0",
+            "driveV": "",
+            "kpp": "",
+            "gas": "",
+            "driveType": "",
+            "vin": "",
+            "cat": "",
+            "D2": "0",
+            "J": "0",
+            "ET": "",
+            "DIA": "",
+            "hole": "0",
+            "PCD": "",
+            "brandDisc": "",
+            "serieID2": "",
+            "D": "0",
+            "w": "",
+            "h": "",
+            "tireYear": "",
+            "loadIndex": "",
+            "type": "0",
+            "brandTyres": "",
+            "serieID": "",
+            "season": "0",
+            "remains": "",
+            "notation": "",
+            "txt": "",
+            "price": "",
+            "prop22": "",
+            "sale": "",
+            "currency": "USD",
+            "quantity": "1",
+            "newPart": "0",
+            "video": "",
+            "undOrder": "",
+            "phones": "",
+            "dop": "",
+            "postID": f"{product_id}",
+        }
+        response = await client.post(f"{url}{script_link}", data=data_dict)
+        print(response.status_code)
 
 
 asyncio.run(main=main())

@@ -69,21 +69,19 @@ async def get_car_brand(
 )
 async def get_all_car_brands(
     query: str = Query(""),
-    page: int | None = Query(None, gt=0),
-    page_size: int | None = Query(None, gt=0),
+    cursor: int | None = Query(None, gt=0),
+    take: int | None = Query(None, gt=0),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> dict[str, int | None | list[CarBrandResponse]]:
     next_cursor, car_brands = await car_brand_handler.get_all_obj_by_scroll(
         query=query,
-        page=page,
-        page_size=page_size,
+        cursor=cursor,
+        take=take,
     )
     return {
         "next_cursor": next_cursor if car_brands else None,
         "items": (
             [CarBrandResponse.model_validate(car_brand) for car_brand in car_brands]
-            if car_brands
-            else []
         ),
     }
 
