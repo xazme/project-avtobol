@@ -72,13 +72,30 @@ class StorageService:
     async def file_exists(self, filename: str) -> bool:
         async with self.get_client() as client:
             try:
-                response = await client.get_object(
-                    Bucket=self.bucket_name, Key=filename
-                )
+                await client.get_object(Bucket=self.bucket_name, Key=filename)
                 logger.info(f"File '{filename}' was found.")
             except Exception as e:
                 return None
             return True
+
+    @s3_error_handler
+    async def get_presigned_upload_url(
+        self, filename: str, content_type: str, expiration: int = 300
+    ) -> str:
+        async with self.get_client() as client:
+            presigned_url = await client.generate_presigned_url(
+                "put_object",
+                Params={
+                    "Bucket": self.bucket_name,
+                    "Key": filename,
+                    "ContentType": content_type,
+                },
+                ExpiresIn=expiration,
+            )
+            logger.info(
+                f"Generated presigned upload URL for '{filename}': {presigned_url}"
+            )
+            return presigned_url
 
     @s3_error_handler
     async def create_files(self, list_of_files: list):
