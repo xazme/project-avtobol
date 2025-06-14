@@ -1,3 +1,0 @@
-<select size="1" name="body" id="carBody">
-                <option value="0">Не важно</option>
-                <option value="1">Седан</option><option value="2">Хэтчбек</option><option value="3">Купе</option><option value="4">Универсал</option><option value="5">Минивен</option><option value="6">Джип</option><option value="7">Микроавтобус</option><option value="8">Кабриолет</option><option value="9">Фургон</option><option value="10">Лифтбек</option><option value="12">Тягач</option><option value="11">Компакт</option>                </select>

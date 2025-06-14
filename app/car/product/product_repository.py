@@ -66,7 +66,10 @@ class ProductRepository(BaseCRUD):
             filters_list.append(self.model.fuel == filters.fuel)
         if filters.condition:
             filters_list.append(self.model.condition == filters.condition)
-
+        if filters.is_available:
+            filters_list.append(self.model.is_available == filters.is_available)
+        if filters.is_printed:
+            filters_list.append(self.model.is_printed == filters.is_printed)
         return filters_list
 
     async def get_product_by_id(
@@ -126,3 +129,25 @@ class ProductRepository(BaseCRUD):
     ) -> bool:
         product: Product | None = await self.get_by_id(id=product_id)
         return product.is_available if product else False
+
+
+{
+    "OEM": "string",
+    "car_brand_id": "afd8e210-03ab-493f-804b-f8e187330e62",
+    "car_series_id": "3d00025f-7943-49bf-b4b3-9f14c7e3bf1e",
+    "car_part_id": "0bf56339-5ecb-4ddf-8dac-92b7f15f929b",
+    "year": 2000,
+    "type_of_body": "sedan",
+    "volume": 1.6,
+    "gearbox": "manual",
+    "fuel": "gasoline",
+    "engine_type": "TDI",
+    "VIN": "string",
+    "pictures": ["photo1.png"],
+    "note": "string",
+    "description": "string",
+    "real_price": 0,
+    "fake_price": 0,
+    "condition": "used",
+    "count": 1,
+}

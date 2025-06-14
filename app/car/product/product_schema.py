@@ -18,6 +18,8 @@ class ProductFilters(BaseModel):
     gearbox: GearboxType | None = None
     type_of_body: BodyType | None = None
     condition: ProductCondition | None = None
+    is_available: bool | None = None
+    is_printed: bool | None = None
 
 
 class ProductCreate(BaseModel):
@@ -41,50 +43,33 @@ class ProductCreate(BaseModel):
     count: int = 1
 
 
-class ProductUpdate(BaseModel):
+class ProductUpdate(ProductCreate):
+    pass
 
-    @classmethod
-    def as_form(
-        cls,
-        OEM: str | None = Form(None),
-        car_brand_id: UUID = Form(...),
-        car_series_id: UUID = Form(...),
-        car_part_id: UUID = Form(...),
-        year: int = Form(default=1885, gt=1884, lt=2077),
-        type_of_body: BodyType | None = Form(None),
-        volume: float = Form(gt=0),
-        gearbox: GearboxType | None = Form(None),
-        fuel: FuelType | None = Form(None),
-        engine_type: str | None = Form(None),
-        VIN: str | None = Form(None),
-        pictures: list[str] = Form(...),
-        note: str = Form(...),
-        description: str = Form(min_length=5, max_length=500),
-        real_price: float = Form(gt=0),
-        fake_price: float = Form(ge=0),
-        condition: ProductCondition = Form(...),
-        count: int = Form(default=1, ge=1),
-    ):
-        return cls(
-            OEM=OEM,
-            car_brand_id=car_brand_id,
-            car_series_id=car_series_id,
-            car_part_id=car_part_id,
-            year=year,
-            type_of_body=type_of_body,
-            volume=volume,
-            gearbox=gearbox,
-            fuel=fuel,
-            engine_type=engine_type,
-            VIN=VIN,
-            pictures=pictures,
-            note=note,
-            description=description,
-            real_price=real_price,
-            fake_price=fake_price,
-            condition=condition,
-            count=count,
-        )
+
+class ProductResponseForWorker(BaseModel):
+    OEM: str | None
+    car_brand_id: UUID
+    car_series_id: UUID
+    car_part_id: UUID
+    year: int
+    type_of_body: BodyType | None
+    volume: float
+    gearbox: GearboxType | None
+    fuel: FuelType | None
+    engine_type: str | None
+    VIN: str | None
+    pictures: list[str]
+    note: str
+    description: str
+    real_price: float
+    fake_price: float | None
+    condition: ProductCondition
+    count: int
+
+    class Config:
+        from_attributes = True
+        validate_by_name = True
 
 
 class ProductResponse(BaseModel):

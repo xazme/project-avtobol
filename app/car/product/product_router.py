@@ -7,6 +7,7 @@ from .product_schema import (
     ProductResponse,
     ProductUpdate,
     ProductFilters,
+    ProductResponseForWorker,
 )
 from .product_dependencies import get_product_handler
 from .product_helper import convert_data
@@ -24,17 +25,15 @@ router = APIRouter(
     "/",
     summary="Create new product",
     description="Add a new product to the catalog",
-    response_model=ProductResponse,
+    response_model=ProductResponseForWorker,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_product(
     product_data: ProductCreate = Body(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
-    print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
-    print(product_data.model_dump(exclude_unset=True))
+) -> ProductResponseForWorker:
     product = await product_handler.create_product(product_data=product_data)
-    return convert_data(product_data=product)
+    return ProductResponseForWorker.model_validate(product)
 
 
 @router.put(
@@ -46,15 +45,15 @@ async def create_product(
 )
 async def update_product(
     product_id: UUID = Path(...),
-    new_product_data: ProductUpdate = Depends(ProductUpdate.as_form),
+    new_product_data: ProductUpdate = Body(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
+) -> ProductResponseForWorker:
 
     product = await product_handler.update_product(
         product_id=product_id,
         product_data=new_product_data,
     )
-    return convert_data(product_data=product)
+    return ProductResponseForWorker.model_validate(product)
 
 
 @router.get(

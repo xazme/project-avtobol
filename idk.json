@@ -1,0 +1,421 @@
+{
+    "0": {
+        "avtobol_brand_id": "AVTOBOL_ID",
+        "idriver_brand_id": "0",
+        "series": [
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": null,
+                "series_name": "Сначала нужно выбрать марку"
+            }
+        ]
+    },
+    "1": {
+        "avtobol_brand_id": "AVTOBOL_ID",
+        "idriver_brand_id": "1",
+        "series": [
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": null,
+                "series_name": "Не важно"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "412995",
+                "series_name": "CL 1  (1996 - 2000)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "412998",
+                "series_name": "CL 2 (2000 - 2003)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416331",
+                "series_name": "EL  (1997 - 2000)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416332",
+                "series_name": "EL 2 (2001 - 2005)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "415228",
+                "series_name": "ILX (2012 - 2015)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413876",
+                "series_name": "ILX restailing (2015 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "412983",
+                "series_name": "Integra 2 (1989 - 1993)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "412999",
+                "series_name": "Integra 3 (1993 - 2001)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417343",
+                "series_name": "Integra 4 (2022 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "412989",
+                "series_name": "Legend 2 (1990 - 1996)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "412992",
+                "series_name": "Legend 3 (1996 - 2004)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "412993",
+                "series_name": "Legend 4 (2004 - 2012)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "412994",
+                "series_name": "Legend 5 (2015 - 2019)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413000",
+                "series_name": "MDX 1 (2001 - 2006)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413001",
+                "series_name": "MDX 2 (2006 - 2013)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413002",
+                "series_name": "MDX 3 (2013 - 2018)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416401",
+                "series_name": "MDX 4 (2021 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413003",
+                "series_name": "RDX 1 (2006 - 2012)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413004",
+                "series_name": "RDX 2 (2013 - 2018)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "415808",
+                "series_name": "RDX 3 (2019 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413005",
+                "series_name": "RL KA9  (1999 - 2004)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413006",
+                "series_name": "RL KB1  (2004 - 2008)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413007",
+                "series_name": "RL KB2  (2008 - 2010)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "10",
+                "series_name": "RSX (2002 - 2007)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "414421",
+                "series_name": "SLX (1996 - 1999)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413008",
+                "series_name": "TL 1 (1996 - 1998)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413009",
+                "series_name": "TL 2 (1998 - 2003)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413010",
+                "series_name": "TL 3 (2003 - 2008)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413011",
+                "series_name": "TL 4 (2009 - 2014)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "414060",
+                "series_name": "TLX (2014 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413013",
+                "series_name": "TSX 1 (2003 - 2008)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413012",
+                "series_name": "TSX 2 (2008 - 2014)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "13",
+                "series_name": "ZDX (2009 - 2013)"
+            }
+        ]
+    },
+    "3": {
+        "avtobol_brand_id": "AVTOBOL_ID",
+        "idriver_brand_id": "3",
+        "series": [
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": null,
+                "series_name": "Не важно"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "16",
+                "series_name": "145 (1994 - 2001)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "17",
+                "series_name": "146 (1994 - 2001)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413014",
+                "series_name": "147 1  (2000 - 2004)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413015",
+                "series_name": "147 2 (2004 - 2010)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "20",
+                "series_name": "155 (1992 - 1997)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "21",
+                "series_name": "156 (1997 - 2007)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "22",
+                "series_name": "159 (2005 - 2011)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "23",
+                "series_name": "164 (1987 - 1998)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "24",
+                "series_name": "166 (1998 - 2007)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "25",
+                "series_name": "33 (1983 - 1994)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "413676",
+                "series_name": "75 (1985 - 1992)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "30",
+                "series_name": "Brera (2005 - 2010)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "415360",
+                "series_name": "Giulia (2015 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "31",
+                "series_name": "Giulietta (2010 - 2018)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "32",
+                "series_name": "GT (2003 - 2010)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "34",
+                "series_name": "GTV (1995 - 2006)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "35",
+                "series_name": "Mito (2008 - 2021)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "36",
+                "series_name": "Spider (2006 - 2010)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416426",
+                "series_name": "Stelvio (2016 - 2025)"
+            }
+        ]
+    },
+    "205": {
+        "avtobol_brand_id": "AVTOBOL_ID",
+        "idriver_brand_id": "205",
+        "series": [
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": null,
+                "series_name": "Не важно"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417239",
+                "series_name": "af-1 "
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417752",
+                "series_name": "AS 125 (1985 - 1987)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417754",
+                "series_name": "Atlantic (2003 - 2009)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417793",
+                "series_name": "Classic (1995 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417797",
+                "series_name": "Climber (1990 - 2000)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417304",
+                "series_name": "Dorsoduro"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417831",
+                "series_name": "ETV (2001 - 2005)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417871",
+                "series_name": "Leonardo (1995 - 2005)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416247",
+                "series_name": "Mana (2000 - 2021)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417265",
+                "series_name": "mojito"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417879",
+                "series_name": "Moto 6.5 (1990 - 2005)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416162",
+                "series_name": "Pegaso (1998 - 2021)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417877",
+                "series_name": "Red Rose (1989 - 1995)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416106",
+                "series_name": "RS (1995 - 2010)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416146",
+                "series_name": "RXV (2000 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417873",
+                "series_name": "Scarabeo (2003 - 2010)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416100",
+                "series_name": "Shiver (1980 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416104",
+                "series_name": "SL (1990 - 2025)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417875",
+                "series_name": "SportCity (2008 - 2013)"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417283",
+                "series_name": "srv"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417285",
+                "series_name": "sx"
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "417291",
+                "series_name": "tuareg "
+            },
+            {
+                "avtobol_series_id": "AVTOBOL_ID",
+                "idriver_series_id": "416150",
+                "series_name": "Tuono (2010 - 2021)"
+            }
+        ]
+    }
+}
