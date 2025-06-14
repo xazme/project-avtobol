@@ -1,0 +1,27 @@
+from enum import Enum
+
+
+class Diametr(str, Enum):
+    NotSpecified = "Не указан"
+    R12 = "R12"
+    R13 = "R13"
+    R13C = "R13C"
+    R14 = "R14"
+    R14C = "R14C"
+    R15 = "R15"
+    R15C = "R15C"
+    R16 = "R16"
+    R16C = "R16C"
+    R16_5 = "R16.5"
+    R17 = "R17"
+    R17_5 = "R17.5"
+    R18 = "R18"
+    R19 = "R19"
+    R19_5 = "R19.5"
+    R20 = "R20"
+    R21 = "R21"
+    R22 = "R22"
+    R22_5 = "R22.5"
+    R23 = "R23"
+    R24 = "R24"
+    R24_5 = "R24.5"

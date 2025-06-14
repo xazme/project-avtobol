@@ -2,41 +2,39 @@ from enum import Enum
 
 
 class GearboxType(str, Enum):
-    MANUAL = "manual"
-    AUTOMATIC = "automatic"
-    ROBOTIC = "robotic"
-    VARIATOR = "variator"
+    MANUAL = "механическая"
+    AUTOMATIC = "автомат"
+    ROBOTIC = "робот"
+    VARIATOR = "вариатор"
 
 
 class FuelType(str, Enum):
-    GASOLINE = "gasoline"
-    DIESEL = "diesel"
-    HYBRID = "hybrid"
-    ELECTRIC = "electric"
+    GASOLINE = "бензин"
+    DIESEL = "дизель"
+    HYBRID = "гибрид"
+    ELECTRIC = "электричество"
 
 
 class BodyType(str, Enum):
-    SEDAN = "sedan"
-    HATCHBACK = "hatchback"
-    COUPE = "coupe"
-    UNIVERSAL = "universal"
-    MINIVAN = "minivan"
-    JEEP = "jeep"
-    MINIBUS = "minibus"
-    CONVERTIBLE = "convertible"
-    VAN = "van"
-    LIFTBACK = "liftback"
-    COMPACT = "compact"
-    TRACTOR = "tractor"
+    SEDAN = "седан"
+    HATCHBACK = "хэтчбек"
+    COUPE = "купе"
+    UNIVERSAL = "универсал"
+    MINIVAN = "минивэн"
+    JEEP = "джип"
+    MINIBUS = "микроавтобус"
+    CONVERTIBLE = "кабриолет"
+    VAN = "фурго"
+    LIFTBACK = "лифтбэк"
+    COMPACT = "компактный"
+    TRACTOR = "трактор"
 
 
 class ProductCondition(str, Enum):
-    NEW = "new"
-    USED = "used"
+    NEW = "новое"
+    USED = "Б/У"
 
 
 class Currency(str, Enum):
-    BYN = "byn"
-    USD = "usd"
-    RUB = "rub"
-    EUR = "eur"
+    PL = "ZLOTY"
+    USD = "USD"

@@ -124,6 +124,8 @@ class ApiPrefix(BaseModel):
     product: str = "/product"
     car_part_prefix: str = "/carpart"
     token_prefix: str = "/token"
+    disc_prefix: str = "/disc"
+    tires_prefix: str = "/tires"
     # etc
 
 

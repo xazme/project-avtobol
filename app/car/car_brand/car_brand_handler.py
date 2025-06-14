@@ -22,7 +22,6 @@ class CarBrandHandler(BaseHandler):
         car_brand: CarBrand = await self.repository.get_by_name(
             name=car_brand_data.name
         )
-
         if car_brand:
             ExceptionRaiser.raise_exception(
                 status_code=409,
@@ -87,8 +86,8 @@ class CarBrandHandler(BaseHandler):
     async def get_all_brands(
         self,
         query: str,
-        page: int,
-        page_size: int,
+        page: int | None,
+        page_size: int | None,
     ) -> list[CarBrand]:
         return await self.get_all_obj_pagination(
             query=query,
