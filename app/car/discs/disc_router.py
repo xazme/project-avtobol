@@ -63,13 +63,13 @@ async def get_disc_brand(
     status_code=status.HTTP_200_OK,
 )
 async def get_all_disc_brands(
-    query: str = Query(""),
+    search: str = Query(""),
     cursor: int | None = Query(None, gt=0),
     take: int | None = Query(None, gt=0),
     disc_brand_handler: "DiscHandler" = Depends(get_disc_handler),
 ) -> dict[str, int | None | list[DiscBrandResponse]]:
     next_cursor, disc_brands = await disc_brand_handler.get_all_obj_by_scroll(
-        query=query,
+        query=search,
         cursor=cursor,
         take=take,
     )

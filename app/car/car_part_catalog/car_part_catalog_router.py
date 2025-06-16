@@ -41,13 +41,13 @@ async def create_car_part(
     status_code=status.HTTP_200_OK,
 )
 async def get_all_car_parts(
+    search: str = Query(""),
     cursor: int | None = Query(None, ge=0),
     take: int | None = Query(None, ge=0),
-    query: str = Query(""),
     car_part_catalog_handler: "CarPartHandler" = Depends(get_car_part_handler),
 ) -> dict[str, int | None | list[CarPartResponse]]:
     next_cursor, parts = await car_part_catalog_handler.get_all_parts(
-        query=query,
+        query=search,
         cursor=cursor,
         take=take,
     )

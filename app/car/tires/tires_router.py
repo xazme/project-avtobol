@@ -61,13 +61,13 @@ async def get_tires_brand(
     status_code=status.HTTP_200_OK,
 )
 async def get_all_tires_brands(
-    query: str = Query(""),
+    search: str = Query(""),
     cursor: int | None = Query(None, gt=0),
     take: int | None = Query(None, gt=0),
     tires_brand_handler: "TiresHandler" = Depends(get_tires_handler),
 ) -> dict[str, int | None | list[TiresBrandResponse]]:
     next_cursor, tires_brands = await tires_brand_handler.get_all_obj_by_scroll(
-        query=query,
+        query=search,
         cursor=cursor,
         take=take,
     )
