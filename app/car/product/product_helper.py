@@ -1,12 +1,13 @@
 from .product_model import Product
-from .product_schema import ProductResponse
+from .product_schema import ProductResponseExtend
 
 
 def convert_data(
     product_data: Product | list[Product],
-) -> ProductResponse | list[ProductResponse]:
-    def _convert(car_part: Product) -> ProductResponse:
-        return ProductResponse(
+) -> ProductResponseExtend | list[ProductResponseExtend]:
+
+    def _convert(car_part: Product) -> ProductResponseExtend:
+        return ProductResponseExtend(
             id=car_part.id,
             OEM=car_part.OEM,
             VIN=car_part.VIN,

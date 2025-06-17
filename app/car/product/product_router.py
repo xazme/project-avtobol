@@ -1,14 +1,14 @@
 from typing import TYPE_CHECKING, Any, Annotated
 from uuid import UUID
 from fastapi import APIRouter, Body, Depends, status, Query, Path, Form
-from fastapi.encoders import jsonable_encoder
 from app.core import settings
 from .product_schema import (
     ProductCreate,
-    ProductResponse,
     ProductUpdate,
     ProductFilters,
-    ProductResponseLite,
+    ProductFilters,
+    ProductResponse,
+    ProductResponseExtend,
 )
 from .product_dependencies import get_product_handler
 from .product_helper import convert_data
@@ -26,49 +26,49 @@ router = APIRouter(
     "/",
     summary="Create new product",
     description="Add a new product to the catalog",
-    response_model=ProductResponseLite,
+    response_model=ProductResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_product(
     product_data: ProductCreate = Body(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponseLite:
+) -> ProductResponse:
     product = await product_handler.create_product(product_data=product_data)
-    return ProductResponseLite.model_validate(product)
+    return ProductResponse.model_validate(product)
 
 
 @router.put(
     "/{product_id}",
     summary="Update product",
     description="Modify existing product information",
-    response_model=ProductResponseLite,
+    response_model=ProductResponse,
     status_code=status.HTTP_200_OK,
 )
 async def update_product(
     product_id: UUID = Path(...),
     new_product_data: ProductUpdate = Body(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponseLite:
+) -> ProductResponse:
 
     product = await product_handler.update_product(
         product_id=product_id,
         product_data=new_product_data,
     )
 
-    return ProductResponseLite.model_validate(product)
+    return ProductResponse.model_validate(product)
 
 
 @router.get(
     "/{product_id}",
     summary="Get product by ID",
     description="Retrieve detailed information about a specific product",
-    response_model=ProductResponse,
+    response_model=ProductResponseExtend,
     status_code=status.HTTP_200_OK,
 )
 async def get_product(
     product_id: UUID = Path(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
+) -> ProductResponseExtend:
     product = await product_handler.get_product_by_id(product_id=product_id)
     return convert_data(product_data=product)
 
@@ -86,30 +86,6 @@ async def get_all_products(
     filters: ProductFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> dict[str, Any]:
-    total_count, products = await product_handler.get_all_products(
-        page=page,
-        page_size=page_size,
-        filters=filters,
-    )
-    return {
-        "total_count": total_count,
-        "items": convert_data(product_data=products),
-    }
-
-
-@router.get(
-    "/",
-    summary="Get filtered products with all filters",
-    description="Retrieve paginated list of products with filtering options",
-    response_model=dict[str, int | ProductResponse],
-    status_code=status.HTTP_200_OK,
-)
-async def get_all_products_max_info(
-    page: int = Query(1, gt=0),
-    page_size: int = Query(10, gt=0, le=10000),
-    filters: ProductFilters = Depends(),
-    product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> dict[str, int | ProductResponse]:
     total_count, products = await product_handler.get_all_products(
         page=page,
         page_size=page_size,

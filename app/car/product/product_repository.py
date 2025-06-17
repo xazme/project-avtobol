@@ -129,6 +129,12 @@ class ProductRepository(BaseCRUD):
         if filters.tires_residue_to:
             filters_list.append(self.model.tires_residue <= filters.tires_residue_to)
 
+        if filters.created_from:
+            filters_list.append(self.model.created_at >= filters.created_from)
+
+        if filters.created_to:
+            filters_list.append(self.model.created_at <= filters.created_to)
+
         return filters_list
 
     async def get_product_by_id(

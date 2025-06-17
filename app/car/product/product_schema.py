@@ -32,8 +32,6 @@ class ProductFilters(BaseModel):
     type_of_body: BodyType | None = None
     condition: ProductCondition | None = None
     availability: Availability | None = None
-    is_printed: bool | None = None
-    is_available: bool | None = None
 
     # Диски
     disc_diametr: Diametr | None = None
@@ -56,6 +54,10 @@ class ProductFilters(BaseModel):
     tires_season: Season | None = None
     tires_residue_from: float | None = None
     tires_residue_to: float | None = None
+    is_printed: bool | None = None
+    is_available: bool | None = True
+    created_from: datetime | None = None
+    created_to: datetime | None = None
 
 
 class ProductCreate(BaseModel):
@@ -107,7 +109,7 @@ class ProductUpdate(ProductCreate):
     pass
 
 
-class ProductResponseLite(BaseModel):
+class ProductResponse(BaseModel):
     OEM: str | None
     car_brand_id: UUID
     car_series_id: UUID
@@ -159,7 +161,7 @@ class ProductResponseLite(BaseModel):
         validate_by_name = True
 
 
-class ProductResponse(BaseModel):
+class ProductResponseExtend(BaseModel):
     id: UUID
     OEM: str | None
     VIN: str | None
