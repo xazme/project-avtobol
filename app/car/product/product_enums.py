@@ -35,6 +35,11 @@ class ProductCondition(str, Enum):
     USED = "Б/У"
 
 
+class Availability(str, Enum):
+    IN_STOCK = "на складе"
+    CUSTOM = "под заказ"
+
+
 class Currency(str, Enum):
     PL = "ZLOTY"
     USD = "USD"

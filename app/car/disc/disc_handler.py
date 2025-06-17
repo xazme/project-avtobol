@@ -12,16 +12,17 @@ class DiscHandler(BaseHandler):
 
     async def create_disc_brand(
         self,
-        data: DiscBrandCreate,
+        disc_brand_data: DiscBrandCreate,
     ):
-        return await super().create_obj(data=data)
+        print(disc_brand_data)
+        return await super().create_obj(data=disc_brand_data)
 
     async def update_disc_brand(
         self,
         disc_brand_id: UUID,
-        data: DiscBrandUpdate,
+        disc_brand_data: DiscBrandUpdate,
     ):
-        return await super().update_obj(id=disc_brand_id, data=data)
+        return await super().update_obj(id=disc_brand_id, data=disc_brand_data)
 
     async def delete_disc_brand(
         self,

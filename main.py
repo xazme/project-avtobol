@@ -10,7 +10,6 @@ from app.cart import cart_router
 from app.order import order_router
 from app.core.config import settings
 from app.storage import s3_router
-from app.faststream import broker
 from app.database.db_service import DBService
 
 

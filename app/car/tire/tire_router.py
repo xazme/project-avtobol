@@ -1,4 +1,3 @@
-from typing import TYPE_CHECKING, List
 from uuid import UUID
 from fastapi import (
     APIRouter,
@@ -9,14 +8,14 @@ from fastapi import (
     Body,
 )
 from app.core import settings
-from .tires_schema import TiresBrandCreate, TiresBrandUpdate, TiresBrandResponse
-from .tires_dependencies import get_tires_handler
-from .tires_model import Tires
-from .tires_handler import TiresHandler
+from .tire_schema import TiresBrandCreate, TiresBrandUpdate, TiresBrandResponse
+from .tire_dependencies import get_tires_handler
+from .tire_model import Tire
+from .tire_handler import TiresHandler
 
 router = APIRouter(
     prefix=settings.api.tires_prefix,
-    tags=["Tires"],
+    tags=["Tire"],
 )
 
 
@@ -28,29 +27,29 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_tires_brand(
-    tires_brand_data: TiresBrandCreate = Body(...),
-    tires_brand_handler: "TiresHandler" = Depends(get_tires_handler),
+    tire_brand_data: TiresBrandCreate = Body(...),
+    tire_brand_handler: "TiresHandler" = Depends(get_tires_handler),
 ) -> TiresBrandResponse:
 
-    tires_brand: "Tires" = await tires_brand_handler.create_tires_brand(
-        data=tires_brand_data,
+    tire_brand: "Tire" = await tire_brand_handler.create_tire_brand(
+        tire_brand_data=tire_brand_data,
     )
-    return TiresBrandResponse.model_validate(tires_brand)
+    return TiresBrandResponse.model_validate(tire_brand)
 
 
 @router.get(
-    "/{tires_brand_id}",
+    "/{tire_brand_id}",
     summary="Get tires brand by ID",
     description="Retrieve detailed information about a specific tires brand",
     response_model=TiresBrandResponse,
     status_code=status.HTTP_200_OK,
 )
 async def get_tires_brand(
-    tires_brand_id: UUID = Path(...),
-    tires_brand_handler: "TiresHandler" = Depends(get_tires_handler),
+    tire_brand_id: UUID = Path(...),
+    tire_brand_handler: "TiresHandler" = Depends(get_tires_handler),
 ) -> TiresBrandResponse:
-    brand = await tires_brand_handler.get_tires_by_id(tires_brand_id=tires_brand_id)
-    return TiresBrandResponse.model_validate(brand)
+    tire_brand = await tire_brand_handler.get_tire_by_id(tire_brand_id=tire_brand_id)
+    return TiresBrandResponse.model_validate(tire_brand)
 
 
 @router.get(
@@ -83,34 +82,34 @@ async def get_all_tires_brands(
 
 
 @router.put(
-    "/{tires_brand_id}",
+    "/{tire_brand_id}",
     summary="Update tires brand",
     description="Modify existing tires brand information",
     response_model=TiresBrandResponse,
     status_code=status.HTTP_200_OK,
 )
 async def update_tires_brand(
-    tires_brand_id: UUID = Path(...),
+    tire_brand_id: UUID = Path(...),
     updated_data: TiresBrandUpdate = Body(...),
-    tires_brand_handler: "TiresHandler" = Depends(get_tires_handler),
+    tire_brand_handler: "TiresHandler" = Depends(get_tires_handler),
 ) -> TiresBrandResponse:
-    tires_brand = await tires_brand_handler.update_tires_brand(
-        tires_brand_id=tires_brand_id,
-        data=updated_data,
+    tire_brand = await tire_brand_handler.update_tire_brand(
+        tire_brand_id=tire_brand_id,
+        tire_brand_data=updated_data,
     )
-    return TiresBrandResponse.model_validate(tires_brand)
+    return TiresBrandResponse.model_validate(tire_brand)
 
 
 @router.delete(
-    "/{tires_brand_id}",
+    "/{tire_brand_id}",
     summary="Delete tires brand",
     description="Remove a tires brand from the system",
     response_model=dict[str, str],
     status_code=status.HTTP_200_OK,
 )
 async def delete_tires_brand(
-    tires_brand_id: UUID = Path(...),
-    tires_brand_handler: "TiresHandler" = Depends(get_tires_handler),
+    tire_brand_id: UUID = Path(...),
+    tire_brand_handler: "TiresHandler" = Depends(get_tires_handler),
 ) -> dict[str, str]:
-    await tires_brand_handler.delete_tires_brand(tires_brand_id=tires_brand_id)
+    await tire_brand_handler.delete_tire_brand(tires_brand_id=tire_brand_id)
     return {"message": "Успешно удалено."}

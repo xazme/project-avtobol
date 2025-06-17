@@ -29,6 +29,8 @@ class ProductRepository(BaseCRUD):
                 selectinload(self.model.car_brand),
                 selectinload(self.model.car_series),
                 selectinload(self.model.car_part),
+                selectinload(self.model.disc),
+                selectinload(self.model.tire),
             )
             .order_by(self.model.created_at)
             .limit(limit=page_size)
@@ -45,7 +47,9 @@ class ProductRepository(BaseCRUD):
         self,
         filters: ProductFilters,
     ) -> list:
-        filters_list: list = [self.model.is_available == True]
+        filters_list: list = []
+
+        # Основные
         if filters.car_brand_id:
             filters_list.append(self.model.car_brand_id == filters.car_brand_id)
         if filters.car_series_id:
@@ -53,23 +57,78 @@ class ProductRepository(BaseCRUD):
         if filters.car_part_id:
             filters_list.append(self.model.car_part_id == filters.car_part_id)
         if filters.price_from:
-            filters_list.append(self.model.real_price >= filters.price_from)
+            filters_list.append(self.model.price >= filters.price_from)
         if filters.price_to:
-            filters_list.append(self.model.real_price <= filters.price_to)
+            filters_list.append(self.model.price <= filters.price_to)
+        if filters.discount_from:
+            filters_list.append(self.model.discount >= filters.discount_from)
+        if filters.discount_to:
+            filters_list.append(self.model.discount <= filters.discount_to)
+        if filters.currency:
+            filters_list.append(self.model.currency == filters.currency)
         if filters.year_from:
             filters_list.append(self.model.year >= filters.year_from)
         if filters.year_to:
             filters_list.append(self.model.year <= filters.year_to)
-        if filters.gearbox:
-            filters_list.append(self.model.gearbox == filters.gearbox)
+        if filters.volume:
+            filters_list.append(self.model.volume == filters.volume)
         if filters.fuel:
             filters_list.append(self.model.fuel == filters.fuel)
+        if filters.gearbox:
+            filters_list.append(self.model.gearbox == filters.gearbox)
+        if filters.type_of_body:
+            filters_list.append(self.model.type_of_body == filters.type_of_body)
         if filters.condition:
             filters_list.append(self.model.condition == filters.condition)
-        if filters.is_available:
+        if filters.availability:
+            filters_list.append(self.model.availability == filters.availability)
+        if filters.is_available is not None:
             filters_list.append(self.model.is_available == filters.is_available)
-        if filters.is_printed:
+        if filters.is_printed is not None:
             filters_list.append(self.model.is_printed == filters.is_printed)
+
+        # Диски
+        if filters.disc_diametr:
+            filters_list.append(self.model.disc_diametr == filters.disc_diametr)
+        if filters.disc_width:
+            filters_list.append(self.model.disc_width == filters.disc_width)
+        if filters.disc_ejection:
+            filters_list.append(self.model.disc_ejection == filters.disc_ejection)
+        if filters.disc_dia:
+            filters_list.append(self.model.disc_dia == filters.disc_dia)
+        if filters.disc_holes:
+            filters_list.append(self.model.disc_holes == filters.disc_holes)
+        if filters.disc_pcd:
+            filters_list.append(self.model.disc_pcd == filters.disc_pcd)
+        if filters.disc_brand_id:
+            filters_list.append(self.model.disc_brand_id == filters.disc_brand_id)
+        if filters.disc_model:
+            filters_list.append(self.model.disc_model.ilike(f"%{filters.disc_model}%"))
+
+        # Шины
+        if filters.tires_diametr:
+            filters_list.append(self.model.tires_diametr == filters.tires_diametr)
+        if filters.tires_width:
+            filters_list.append(self.model.tires_width == filters.tires_width)
+        if filters.tires_height:
+            filters_list.append(self.model.tires_height == filters.tires_height)
+        if filters.tires_index:
+            filters_list.append(self.model.tires_index == filters.tires_index)
+        if filters.tires_car_type:
+            filters_list.append(self.model.tires_car_type == filters.tires_car_type)
+        if filters.tires_brand_id:
+            filters_list.append(self.model.tire_brand_id == filters.tires_brand_id)
+        if filters.tires_model:
+            filters_list.append(
+                self.model.tires_model.ilike(f"%{filters.tires_model}%")
+            )
+        if filters.tires_season:
+            filters_list.append(self.model.tires_season == filters.tires_season)
+        if filters.tires_residue_from:
+            filters_list.append(self.model.tires_residue >= filters.tires_residue_from)
+        if filters.tires_residue_to:
+            filters_list.append(self.model.tires_residue <= filters.tires_residue_to)
+
         return filters_list
 
     async def get_product_by_id(

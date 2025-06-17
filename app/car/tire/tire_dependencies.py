@@ -1,9 +1,9 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import DBService
-from .tires_model import Tires
-from .tires_repository import TiresRepository
-from .tires_handler import TiresHandler
+from .tire_model import Tire
+from .tire_repository import TiresRepository
+from .tire_handler import TiresHandler
 
 
 def get_tires_handler(
@@ -11,6 +11,6 @@ def get_tires_handler(
 ) -> TiresHandler:
     repository = TiresRepository(
         session=session,
-        model=Tires,
+        model=Tire,
     )
     return TiresHandler(repository=repository)

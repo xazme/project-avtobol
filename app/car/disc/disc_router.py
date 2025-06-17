@@ -34,7 +34,7 @@ async def create_disc_brand(
     disc_brand_handler: "DiscHandler" = Depends(get_disc_handler),
 ) -> DiscBrandResponse:
 
-    disc_brand: "Disc" = await disc_brand_handler.create_disc_brand(
+    disc_brand = await disc_brand_handler.create_disc_brand(
         disc_brand_data=disc_brand_data,
     )
     return DiscBrandResponse.model_validate(disc_brand)

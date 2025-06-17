@@ -13,4 +13,6 @@ def get_disc_handler(
         session=session,
         model=Disc,
     )
-    return DiscRepository(repository=repository)
+    return DiscHandler(
+        repository=repository,
+    )

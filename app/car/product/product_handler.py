@@ -29,7 +29,6 @@ class ProductHandler(BaseHandler):
                 status_code=400,
                 detail="Ошибка во время создания продукта",
             )
-
         return new_product
 
     async def update_product(
@@ -105,12 +104,12 @@ class ProductHandler(BaseHandler):
 
     async def bulk_change_availability(
         self,
-        product_id: list[UUID],
+        products_id: list[UUID],
         new_status: bool,
     ) -> dict:
         product: Product | None = await self.repository.bulk_change_availibility(
-            product_id=product_id,
-            new_available_status=new_status,
+            products_id=products_id,
+            new_availables_status=new_status,
         )
         if not product:
             ExceptionRaiser.raise_exception(
