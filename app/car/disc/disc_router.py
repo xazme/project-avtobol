@@ -64,7 +64,7 @@ async def get_disc_brand(
 )
 async def get_all_disc_brands(
     search: str = Query(""),
-    cursor: int | None = Query(None, gt=0),
+    cursor: int | None = Query(None, gt=-1),
     take: int | None = Query(None, gt=0),
     disc_brand_handler: "DiscHandler" = Depends(get_disc_handler),
 ) -> dict[str, int | None | list[DiscBrandResponse]]:
@@ -104,12 +104,11 @@ async def update_disc_brand(
     "/{disc_brand_id}",
     summary="Delete disc brand",
     description="Remove a disc brand from the system",
-    response_model=dict[str, str],
-    status_code=status.HTTP_200_OK,
+    response_model=None,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_disc_brand(
     disc_brand_id: UUID = Path(...),
     disc_brand_handler: "DiscHandler" = Depends(get_disc_handler),
-) -> dict[str, str]:
+) -> None:
     await disc_brand_handler.delete_disc_brand(disc_brand_id=disc_brand_id)
-    return {"message": "Успешно удалено."}

@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, Query, status, UploadFile
+from fastapi import APIRouter, Depends, File, Body, Query, status, UploadFile
 from app.core.config import settings
-from .storage_service import StorageService
-from .storage_service_dependencies import get_storage_service
+from .storage_handler import StorageHandler
+from .storage_service_dependencies import get_storage_handler
 from .storage_schema import StorageResponse, StorageResponsePreview
 
-router = APIRouter(prefix="/storage", tags=["S3"])
+router = APIRouter(prefix=settings.api.storage_prefix, tags=["Minio"])
 
 
 @router.get(
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/storage", tags=["S3"])
 async def generate_presigned_url(
     filename: str = Query(...),
     content_type: str = Query(...),
-    storage_service: StorageService = Depends(get_storage_service),
+    storage_service: StorageHandler = Depends(get_storage_handler),
 ) -> StorageResponse:
     url: str = await storage_service.get_presigned_upload_url(
         filename=filename,
@@ -32,8 +32,8 @@ async def generate_presigned_url(
     status_code=status.HTTP_200_OK,
 )
 async def create_files(
-    files: list[UploadFile],
-    storage_service: StorageService = Depends(get_storage_service),
+    files: list[UploadFile] = File(...),
+    storage_service: StorageHandler = Depends(get_storage_handler),
 ) -> StorageResponsePreview:
     list_of_files = []
     for file in files:
@@ -45,4 +45,15 @@ async def create_files(
     return StorageResponsePreview(list_of_files=filenames)
 
 
-# также и для удаления. просто поверьте
+@router.delete(
+    "/",
+    summary="Delete files from MinIO storage.",
+    response_model=dict[str, str],
+    status_code=status.HTTP_200_OK,
+)
+async def delete_files(
+    filenames: list[str] = Body(...),
+    storage_handler: StorageHandler = Depends(get_storage_handler),
+) -> dict[str, str]:
+    filenames: list[str] = await storage_handler.delete_files(list_of_files=filenames)
+    return {"msg": "успешно удалено"}

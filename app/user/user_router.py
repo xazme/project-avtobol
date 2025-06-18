@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Path, Body, Depends, status
 from app.auth import requied_roles
 from app.core.config import settings
 from app.user.user_schema import UserResponse, UserUpdate
@@ -24,7 +24,7 @@ router = APIRouter(prefix=settings.api.user_prefix, tags=["Users"])
     dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
 )
 async def get_user(
-    user_id: UUID,
+    user_id: UUID = Path(...),
     user_handler: "UserHandler" = Depends(get_user_handler),
 ) -> UserResponse:
     user = await user_handler.get_user_by_id(user_id=user_id)
@@ -40,7 +40,7 @@ async def get_user(
     dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
 )
 async def delete_user_by_id(
-    user_id: UUID,
+    user_id: UUID = Path(...),
     user_handler: "UserHandler" = Depends(get_user_handler),
 ) -> dict[str, str]:
     await user_handler.delete_user(user_id=user_id)
@@ -65,11 +65,11 @@ async def get_all_users(
     "/me/update",
     summary="Update current user",
     description="Update information for the currently authenticated user",
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     response_model=UserResponse,
 )
 async def update_current_user(
-    user_data: UserUpdate,
+    user_data: UserUpdate = Body(...),
     user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     user_handler: "UserHandler" = Depends(get_user_handler),
 ) -> UserResponse:
@@ -90,7 +90,7 @@ async def update_current_user(
 async def delete_current_user(
     user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     user_handler: "UserHandler" = Depends(get_user_handler),
-) -> dict[str, str]:
+) -> None:
     await user_handler.delete_user(user_id=user.id)
 
 
@@ -98,7 +98,7 @@ async def delete_current_user(
     "/{user_id}/role",
     summary="Change user role",
     description="Change a user's role (Admin or Owner access required)",
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     response_model=UserResponse,
     dependencies=[Depends(requied_roles([UserRoles.ADMIN, UserRoles.OWNER]))],
 )

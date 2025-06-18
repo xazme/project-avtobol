@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Body, Query, Path, Depends, status
 from app.core import settings
 from .car_series_schema import (
     CarSeriesUpdate,
@@ -26,7 +26,7 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_car_series(
-    series_data: CarSeriesCreate,
+    series_data: CarSeriesCreate = Body(...),
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ) -> CarSeriesResponse:
 
@@ -42,7 +42,7 @@ async def create_car_series(
     status_code=status.HTTP_200_OK,
 )
 async def get_car_series(
-    car_series_id: UUID,
+    car_series_id: UUID = Path(...),
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ) -> CarSeriesResponse:
     series = await car_series_handler.get_series_by_id(series_id=car_series_id)
@@ -71,12 +71,12 @@ async def get_all_car_series(
     status_code=status.HTTP_200_OK,
 )
 async def get_car_series_by_brand(
-    car_brand_id: UUID,
+    car_brand_id: UUID = Path(...),
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ) -> List[CarSeriesResponse]:
 
     car_series = await car_series_handler.get_series_by_car_brand_id(
-        car_brand_id=car_brand_id
+        car_brand_id=car_brand_id,
     )
     return [CarSeriesResponse.model_validate(series) for series in car_series]
 
@@ -89,8 +89,8 @@ async def get_car_series_by_brand(
     status_code=status.HTTP_200_OK,
 )
 async def update_car_series(
-    car_series_id: UUID,
-    updated_data: CarSeriesUpdate,
+    car_series_id: UUID = Path(...),
+    updated_data: CarSeriesUpdate = Body(...),
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ) -> CarSeriesResponse:
     updated_series = await car_series_handler.update_series(
@@ -105,10 +105,10 @@ async def update_car_series(
     summary="Delete car series",
     description="Remove a car series from the database",
     response_model=None,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_car_series(
-    car_series_id: UUID,
+    car_series_id: UUID = Path(...),
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-) -> dict[str, str]:
+) -> None:
     await car_series_handler.delete_series(series_id=car_series_id)

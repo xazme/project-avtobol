@@ -42,7 +42,7 @@ async def create_car_part(
 )
 async def get_all_car_parts(
     search: str = Query(""),
-    cursor: int | None = Query(None, ge=0),
+    cursor: int | None = Query(None, gt=-1),
     take: int | None = Query(None, ge=0),
     car_part_catalog_handler: "CarPartHandler" = Depends(get_car_part_handler),
 ) -> dict[str, int | None | list[CarPartResponse]]:
@@ -101,5 +101,5 @@ async def update_car_part(
 async def delete_car_part(
     car_part_id: UUID,
     car_part_catalog_handler: "CarPartHandler" = Depends(get_car_part_handler),
-) -> dict[str, str]:
+) -> None:
     await car_part_catalog_handler.delete_part(car_part_id=car_part_id)

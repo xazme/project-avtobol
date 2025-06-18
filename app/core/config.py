@@ -126,6 +126,10 @@ class ApiPrefix(BaseModel):
     token_prefix: str = "/token"
     disc_prefix: str = "/disc"
     tires_prefix: str = "/tire"
+    storage_prefix: str = "/storage"
+    cart_prefix: str = "/cart"
+    order_prefix: str = "/order"
+    auth_prefix: str = "/auth"
     # etc
 
 

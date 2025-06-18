@@ -1,8 +1,7 @@
 from app.core import settings
-from .storage_service import StorageService
+from .storage_handler import StorageHandler
 
-
-storage_service = StorageService(
+storage_handler = StorageHandler(
     bucket_name="avtobol",
     access_key=settings.minio.minio_access,
     secret_key=settings.minio.minio_secret,
@@ -10,5 +9,5 @@ storage_service = StorageService(
 )
 
 
-def get_storage_service():
-    return storage_service
+def get_storage_handler():
+    return storage_handler

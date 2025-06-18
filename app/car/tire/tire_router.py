@@ -61,7 +61,7 @@ async def get_tires_brand(
 )
 async def get_all_tires_brands(
     search: str = Query(""),
-    cursor: int | None = Query(None, gt=0),
+    cursor: int | None = Query(None, gt=-1),
     take: int | None = Query(None, gt=0),
     tires_brand_handler: "TiresHandler" = Depends(get_tires_handler),
 ) -> dict[str, int | None | list[TiresBrandResponse]]:
@@ -104,12 +104,11 @@ async def update_tires_brand(
     "/{tire_brand_id}",
     summary="Delete tires brand",
     description="Remove a tires brand from the system",
-    response_model=dict[str, str],
+    response_model=None,
     status_code=status.HTTP_200_OK,
 )
 async def delete_tires_brand(
     tire_brand_id: UUID = Path(...),
     tire_brand_handler: "TiresHandler" = Depends(get_tires_handler),
-) -> dict[str, str]:
+) -> None:
     await tire_brand_handler.delete_tire_brand(tires_brand_id=tire_brand_id)
-    return {"message": "Успешно удалено."}

@@ -98,7 +98,7 @@ async def get_all_products(
 
 
 @router.patch(
-    "/availability",
+    "/toggle_availible_status",
     summary="Update product availability",
     description="Mark product as available or sold out",
     response_model=dict[str, str],
@@ -119,7 +119,7 @@ async def update_products_availability(
 
 
 @router.patch(
-    "/is_printed",
+    "/toggle_printed_status",
     summary="Update product printed status",
     description="Mark product as printed or not",
     response_model=dict[str, str],
@@ -143,12 +143,11 @@ async def update_product_printed_status(
     "/{product_id}",
     summary="Delete product",
     description="Remove product from catalog",
-    response_model=dict[str, str],
+    response_model=None,
     status_code=status.HTTP_200_OK,
 )
 async def delete_product(
     product_id: UUID = Path(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> dict[str, str]:
+) -> None:
     await product_handler.delete_product(product_id=product_id)
-    return {"message": "Успешно удален."}

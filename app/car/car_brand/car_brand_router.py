@@ -3,11 +3,10 @@ from uuid import UUID
 from fastapi import (
     APIRouter,
     Depends,
-    status,
     Query,
     Path,
     Body,
-    Form,
+    status,
 )
 from app.core import settings
 from .car_brand_schema import (
@@ -69,7 +68,7 @@ async def get_car_brand(
 )
 async def get_all_car_brands(
     search: str = Query(""),
-    cursor: int | None = Query(None, gt=0),
+    cursor: int | None = Query(None, gt=-1),
     take: int | None = Query(None, gt=0),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> dict[str, int | None | list[CarBrandResponse]]:
@@ -109,12 +108,11 @@ async def update_car_brand(
     "/{car_brand_id}",
     summary="Delete car brand",
     description="Remove a car brand from the system",
-    response_model=dict[str, str],
-    status_code=status.HTTP_200_OK,
+    response_model=None,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_car_brand(
     car_brand_id: UUID = Path(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-) -> dict[str, str]:
+) -> None:
     await car_brand_handler.delete_car_brand(car_brand_id=car_brand_id)
-    return {"message": "Успешно удаленно."}
