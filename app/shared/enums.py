@@ -2,7 +2,6 @@ from enum import Enum
 
 
 class Diametr(str, Enum):
-    NotSpecified = "Не указан"
     R12 = "R12"
     R13 = "R13"
     R13C = "R13C"

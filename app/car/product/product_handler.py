@@ -65,7 +65,7 @@ class ProductHandler(BaseHandler):
         if not product:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail=f"Продукт {product_id} не найдена.",
+                detail=f"Продукт {product_id} не найден.",
             )
         result: bool = await self.repository.delete_by_id(id=product_id)
         return result
@@ -75,7 +75,7 @@ class ProductHandler(BaseHandler):
         if not product:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="Product not found.",
+                detail=f"Продукт {product_id} не найден.",
             )
         return product
 
@@ -98,7 +98,8 @@ class ProductHandler(BaseHandler):
         result: bool = await self.repository.check_availability(product_id=product_id)
         if not result:
             ExceptionRaiser.raise_exception(
-                status_code=400, detail="Продукт недоступен для продажи."
+                status_code=400,
+                detail="Продукт недоступен для продажи.",
             )
         return result
 
@@ -113,7 +114,8 @@ class ProductHandler(BaseHandler):
         )
         if not product:
             ExceptionRaiser.raise_exception(
-                status_code=500, detail="Product update failed."
+                status_code=500,
+                detail="Неудалось обновить продукт.",
             )
         return product
 
@@ -124,6 +126,7 @@ class ProductHandler(BaseHandler):
         )
         if not result:
             ExceptionRaiser.raise_exception(
-                status_code=503, detail="Лок транзакции. Повторите попытку позже."
+                status_code=503,
+                detail="Лок транзакции. Повторите попытку позже.",
             )
         return True
