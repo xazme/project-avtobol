@@ -111,4 +111,4 @@ async def delete_car_series(
     car_series_id: UUID = Path(...),
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
 ) -> None:
-    await car_series_handler.delete_series(series_id=car_series_id)
+    await car_series_handler.delete_series(car_series_id=car_series_id)
