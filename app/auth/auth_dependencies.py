@@ -40,9 +40,15 @@ async def get_user_from_refresh_token(
 def requied_roles(allowed_roles: list[UserRoles]) -> "User":
     async def get_user(user: "User" = Depends(get_user_from_access_token)):
         if user.status != UserStatuses.ACTIVE:
-            ExceptionRaiser.raise_exception(status_code=303)
+            ExceptionRaiser.raise_exception(
+                status_code=403,
+                detail="Аккаунт забанен.",
+            )
         if user.role not in allowed_roles:
-            ExceptionRaiser.raise_exception(status_code=303)
+            ExceptionRaiser.raise_exception(
+                status_code=403,
+                detail="Недостаточно прав.",
+            )
         return user
 
     return get_user

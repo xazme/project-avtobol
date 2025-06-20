@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Body, Depends, Response, status
 from app.user import UserCreate
 from app.token import TokenResponse, create_token_response, TokenMode
+from app.core import settings
 from .auth_schema import AuthCredentials
 from .auth_dependencies import (
     AuthHandler,
@@ -13,8 +14,8 @@ if TYPE_CHECKING:
     from app.user import User
 
 router = APIRouter(
+    prefix=settings.api.auth_prefix,
     tags=["Authentication"],
-    prefix="/auth",
 )
 
 
@@ -27,7 +28,7 @@ router = APIRouter(
 )
 async def sign_in(
     response: Response,
-    credentials: AuthCredentials,
+    credentials: AuthCredentials = Body(...),
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
     user = await auth_handler.sign_in(
@@ -52,7 +53,7 @@ async def sign_in(
 )
 async def register(
     response: Response,
-    user_data: UserCreate,
+    user_data: UserCreate = Body(...),
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
     user = await auth_handler.register(user_data=user_data)

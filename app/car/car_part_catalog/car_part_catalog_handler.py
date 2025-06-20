@@ -1,22 +1,22 @@
 from typing import Optional
 from uuid import UUID
 from app.shared import BaseHandler, ExceptionRaiser
-from .car_part_catalog_repository import CarPartCatalogRepository
-from .car_part_catalog_model import CarPartCatalog
-from .car_part_catalog_schema import CarPartCatalogCreate, CarPartCatalogUpdate
+from .car_part_catalog_repository import CarPartRepository
+from .car_part_catalog_model import CarPart
+from .car_part_catalog_schema import CarPartCreate, CarPartUpdate
 
 
-class CarPartCatalogHandler(BaseHandler):
+class CarPartHandler(BaseHandler):
 
-    def __init__(self, repository: CarPartCatalogRepository):
+    def __init__(self, repository: CarPartRepository):
         super().__init__(repository)
-        self.repository: CarPartCatalogRepository = repository
+        self.repository: CarPartRepository = repository
 
     async def create_part(
         self,
-        data: CarPartCatalogCreate,
-    ) -> Optional[CarPartCatalog]:
-        part: CarPartCatalog | None = await self.create_obj(data)
+        data: CarPartCreate,
+    ) -> Optional[CarPart]:
+        part: CarPart | None = await self.create_obj(data)
         if not part:
             ExceptionRaiser.raise_exception(
                 status_code=400, detail="Failed to create car part."
@@ -26,9 +26,9 @@ class CarPartCatalogHandler(BaseHandler):
     async def update_part(
         self,
         car_part_id: UUID,
-        data: CarPartCatalogUpdate,
-    ) -> CarPartCatalog:
-        part: CarPartCatalog | None = await self.update_obj(id=car_part_id, data=data)
+        data: CarPartUpdate,
+    ) -> Optional[CarPart]:
+        part: CarPart | None = await self.update_obj(id=car_part_id, data=data)
         if not part:
             ExceptionRaiser.raise_exception(
                 status_code=404,
@@ -51,8 +51,8 @@ class CarPartCatalogHandler(BaseHandler):
     async def get_part_by_id(
         self,
         car_part_id: UUID,
-    ) -> CarPartCatalog:
-        part: CarPartCatalog | None = await self.get_obj_by_id(id=car_part_id)
+    ) -> Optional[CarPart]:
+        part: CarPart | None = await self.get_obj_by_id(id=car_part_id)
         if not part:
             ExceptionRaiser.raise_exception(
                 status_code=404,
@@ -62,5 +62,12 @@ class CarPartCatalogHandler(BaseHandler):
 
     async def get_all_parts(
         self,
-    ) -> list[CarPartCatalog]:
-        return await self.get_all_obj()
+        query: str,
+        cursor: int,
+        take: int,
+    ) -> tuple[int | None, list]:
+        return await self.get_all_obj_by_scroll(
+            query=query,
+            cursor=cursor,
+            take=take,
+        )

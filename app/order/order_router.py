@@ -1,9 +1,10 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Query, Path, Body, Depends, status
 from app.auth import requied_roles
 from app.user import UserRoles
 from app.cart import get_cart_handler
+from app.core import settings
 from .order_schema import OrderCreate, OrderResponse
 from .order_dependencies import get_order_handler
 from .order_enums import OrderStatuses
@@ -14,7 +15,10 @@ if TYPE_CHECKING:
     from app.cart import CartHandler
     from .order_handler import OrderHandler
 
-router = APIRouter(prefix="/orders", tags=["Orders"])
+router = APIRouter(
+    prefix=settings.api.order_prefix,
+    tags=["Orders"],
+)
 
 
 @router.post(
@@ -25,7 +29,7 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
     status_code=status.HTTP_201_CREATED,
 )
 async def create_order(
-    order_data: OrderCreate,
+    order_data: OrderCreate = Body(...),
     user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     cart_handler: "CartHandler" = Depends(get_cart_handler),
     order_handler: "OrderHandler" = Depends(get_order_handler),
@@ -48,7 +52,7 @@ async def create_order(
     status_code=status.HTTP_200_OK,
 )
 async def get_user_orders(
-    status: OrderStatuses,
+    status: OrderStatuses = Query(...),
     user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     order_handler: "OrderHandler" = Depends(get_order_handler),
 ) -> list[OrderResponse]:
@@ -68,8 +72,8 @@ async def get_user_orders(
     dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
 )
 async def get_specific_user_orders(
-    user_id: UUID,
-    status: OrderStatuses,
+    user_id: UUID = Path(...),
+    status: OrderStatuses = Query(...),
     order_handler: "OrderHandler" = Depends(get_order_handler),
 ) -> list[OrderResponse]:
     orders = await order_handler.get_all_orders_by_user_id(
@@ -109,8 +113,8 @@ async def get_all_orders(
     status_code=status.HTTP_200_OK,
 )
 async def change_order_status(
-    order_id: UUID,
-    status: OrderStatuses,
+    order_id: UUID = Path(...),
+    status: OrderStatuses = Query(...),
     order_handler: "OrderHandler" = Depends(get_order_handler),
 ) -> OrderResponse:
     order = await order_handler.change_order_status(
