@@ -21,9 +21,6 @@ class ProductFilters(BaseModel):
     car_part_id: UUID | None = None
     price_from: float | None = None
     price_to: float | None = None
-    discount_from: float | None = None
-    discount_to: float | None = None
-    currency: Currency | None = None
     year_from: int | None = None
     year_to: int | None = None
     volume: float | None = None
@@ -54,10 +51,14 @@ class ProductFilters(BaseModel):
     tires_season: Season | None = None
     tires_residue_from: float | None = None
     tires_residue_to: float | None = None
+
+
+class ProductFiltersExtended(ProductFilters):
     is_printed: bool | None = None
-    is_available: bool | None = True
+    is_available: bool | None = None
     created_from: datetime | None = None
     created_to: datetime | None = None
+    post_by: UUID | None = None
 
 
 class ProductCreate(BaseModel):
@@ -103,6 +104,7 @@ class ProductCreate(BaseModel):
     availability: Availability = Availability.IN_STOCK
     note: str | None = None
     count: int = 1
+    post_by: UUID
 
 
 class ProductUpdate(ProductCreate):
@@ -204,12 +206,13 @@ class ProductResponseExtend(BaseModel):
     price: float
     discount: float | None
     currency: Currency
-    note: str | None
+    note: str | None = None
     count: int
     availability: Availability
-    is_printed: bool
-    is_available: bool
-    created_at: datetime
+    is_printed: bool | None = None
+    is_available: bool | None = None
+    created_at: datetime | None = None
+    post_by: UUID | None = None
 
     class Config:
         from_attributes = True

@@ -11,7 +11,7 @@ from fastapi import (
 from app.core import settings
 from .disc_schema import DiscBrandCreate, DiscBrandUpdate, DiscBrandResponse
 from .disc_dependencies import get_disc_handler
-from .disc_model import Disc
+from .disc_model import DiscBrand
 
 if TYPE_CHECKING:
     from .disc_handler import DiscHandler

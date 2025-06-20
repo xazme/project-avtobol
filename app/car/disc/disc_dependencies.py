@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import DBService
-from .disc_model import Disc
+from .disc_model import DiscBrand
 from .disc_repository import DiscRepository
 from .disc_handler import DiscHandler
 
@@ -11,7 +11,7 @@ def get_disc_handler(
 ) -> DiscHandler:
     repository = DiscRepository(
         session=session,
-        model=Disc,
+        model=DiscBrand,
     )
     return DiscHandler(
         repository=repository,

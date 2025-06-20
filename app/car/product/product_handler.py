@@ -18,10 +18,11 @@ class ProductHandler(BaseHandler):
 
     async def create_product(
         self,
+        user_id: UUID,
         product_data: ProductCreate,
     ) -> Optional[Product]:
         data = product_data.model_dump(exclude_unset=True)
-
+        data.update({"post_by": user_id})
         new_product: Product | None = await self.repository.create(data=data)
 
         if not new_product:
@@ -81,6 +82,7 @@ class ProductHandler(BaseHandler):
 
     async def get_all_products(
         self,
+        is_private: bool,
         page: int,
         page_size: int,
         filters: ProductFilters,
@@ -89,6 +91,7 @@ class ProductHandler(BaseHandler):
             page=page,
             page_size=page_size,
             filters=filters,
+            is_private=is_private,
         )
 
     async def check_availability(

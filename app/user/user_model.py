@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from app.token import Token
     from app.cart import Cart
     from app.order import Order
+    from app.car.product import Product
 
 
 class User(Base):
@@ -64,4 +65,7 @@ class User(Base):
     order: Mapped[list["Order"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    product: Mapped[list["Product"]] = relationship(
+        back_populates="user",
     )

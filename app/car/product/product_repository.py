@@ -21,23 +21,32 @@ class ProductRepository(BaseCRUD):
         page: int,
         page_size: int,
         filters: ProductFilters,
+        is_private: bool = False,
     ) -> tuple[list[Product], int]:
-        product_filters: list = await self.prepare_filters(filters=filters)
+        product_filters: list = await self.prepare_filters(
+            filters=filters,
+            is_private=is_private,
+        )
+        print(product_filters)
+        print("SSSSSSSSSSSSSSSSSSS")
+
         stmt: Select = (
             Select(self.model)
             .options(
                 selectinload(self.model.car_brand),
                 selectinload(self.model.car_series),
                 selectinload(self.model.car_part),
-                selectinload(self.model.disc),
-                selectinload(self.model.tire),
+                selectinload(self.model.disc_brand),
+                selectinload(self.model.tire_brand),
             )
             .order_by(self.model.created_at)
             .limit(limit=page_size)
             .offset((page - 1) * page_size)
             .where(and_(*product_filters))
         )
-        count_stmt: Select = Select(func.count()).where(and_(*product_filters))
+        count_stmt: Select = (
+            Select(func.count()).select_from(self.model).where(and_(*product_filters))
+        )
         product_result: Result = await self.session.execute(stmt)
         count_result: Result = await self.session.execute(count_stmt)
 
@@ -45,6 +54,7 @@ class ProductRepository(BaseCRUD):
 
     async def prepare_filters(
         self,
+        is_private: bool,
         filters: ProductFilters,
     ) -> list:
         filters_list: list = []
@@ -60,12 +70,6 @@ class ProductRepository(BaseCRUD):
             filters_list.append(self.model.price >= filters.price_from)
         if filters.price_to:
             filters_list.append(self.model.price <= filters.price_to)
-        if filters.discount_from:
-            filters_list.append(self.model.discount >= filters.discount_from)
-        if filters.discount_to:
-            filters_list.append(self.model.discount <= filters.discount_to)
-        if filters.currency:
-            filters_list.append(self.model.currency == filters.currency)
         if filters.year_from:
             filters_list.append(self.model.year >= filters.year_from)
         if filters.year_to:
@@ -82,10 +86,6 @@ class ProductRepository(BaseCRUD):
             filters_list.append(self.model.condition == filters.condition)
         if filters.availability:
             filters_list.append(self.model.availability == filters.availability)
-        if filters.is_available is not None:
-            filters_list.append(self.model.is_available == filters.is_available)
-        if filters.is_printed is not None:
-            filters_list.append(self.model.is_printed == filters.is_printed)
 
         # Диски
         if filters.disc_diametr:
@@ -129,11 +129,19 @@ class ProductRepository(BaseCRUD):
         if filters.tires_residue_to:
             filters_list.append(self.model.tires_residue <= filters.tires_residue_to)
 
-        if filters.created_from:
-            filters_list.append(self.model.created_at >= filters.created_from)
-
-        if filters.created_to:
-            filters_list.append(self.model.created_at <= filters.created_to)
+        if is_private:
+            if filters.created_from:
+                filters_list.append(self.model.created_at >= filters.created_from)
+            if filters.created_to:
+                filters_list.append(self.model.created_at <= filters.created_to)
+            if filters.post_by:
+                filters_list.append(self.model.post_by == filters.post_by)
+            if filters.is_printed is not None:
+                filters_list.append(self.model.is_printed == filters.is_printed)
+            if filters.is_available is not None:
+                filters_list.append(self.model.is_available == filters.is_available)
+        else:
+            filters_list.append(self.model.is_available == True)
 
         return filters_list
 

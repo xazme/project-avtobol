@@ -10,7 +10,7 @@ from fastapi import (
 from app.core import settings
 from .tire_schema import TiresBrandCreate, TiresBrandUpdate, TiresBrandResponse
 from .tire_dependencies import get_tires_handler
-from .tire_model import Tire
+from .tire_model import TireBrand
 from .tire_handler import TiresHandler
 
 router = APIRouter(
@@ -31,7 +31,7 @@ async def create_tires_brand(
     tire_brand_handler: "TiresHandler" = Depends(get_tires_handler),
 ) -> TiresBrandResponse:
 
-    tire_brand: "Tire" = await tire_brand_handler.create_tire_brand(
+    tire_brand: "TireBrand" = await tire_brand_handler.create_tire_brand(
         tire_brand_data=tire_brand_data,
     )
     return TiresBrandResponse.model_validate(tire_brand)

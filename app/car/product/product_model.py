@@ -26,13 +26,14 @@ from .product_enums import (
 )
 
 if TYPE_CHECKING:
-    from app.car.tire import Tire
-    from app.car.disc import Disc
+    from app.car.tire import TireBrand
+    from app.car.disc import DiscBrand
     from app.car.car_brand import CarBrand
     from app.car.car_series import CarSeries
     from app.car.car_part_catalog import CarPart
     from app.cart import Cart
     from app.order import Order
+    from app.user import User
 
 
 class Product(Base):
@@ -72,7 +73,7 @@ class Product(Base):
     tire_brand_id: Mapped[UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(
-            "tire.id",
+            "tirebrand.id",
             ondelete="CASCADE",
             onupdate="CASCADE",
         ),
@@ -82,7 +83,7 @@ class Product(Base):
     disc_brand_id: Mapped[UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(
-            "disc.id",
+            "discbrand.id",
             ondelete="CASCADE",
             onupdate="CASCADE",
         ),
@@ -250,13 +251,27 @@ class Product(Base):
         default=1,
     )
 
-    # idriver_id: Mapped[int] = mapped_column(
-    #     Integer,
-    #     index=True,
-    #     nullable=True,
-    # )
+    idriver_id: Mapped[int] = mapped_column(
+        Integer,
+        index=True,
+        nullable=True,
+    )
 
-    # allegro_id:Mapped[int] = mapped_colu
+    allegro_id: Mapped[int] = mapped_column(
+        Integer,
+        index=True,
+        nullable=True,
+    )
+
+    post_by: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "user.id",
+            onupdate="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
 
     # relationships
     car_brand: Mapped["CarBrand"] = relationship(
@@ -268,10 +283,10 @@ class Product(Base):
     car_part: Mapped["CarPart"] = relationship(
         back_populates="product",
     )
-    tire: Mapped["Tire"] = relationship(
+    tire_brand: Mapped["TireBrand"] = relationship(
         back_populates="product",
     )
-    disc: Mapped["Disc"] = relationship(
+    disc_brand: Mapped["DiscBrand"] = relationship(
         back_populates="product",
     )
     cart: Mapped[list["Cart"]] = relationship(
@@ -282,3 +297,4 @@ class Product(Base):
         back_populates="product",
         cascade="all, delete-orphan",
     )
+    user: Mapped["User"] = relationship(back_populates="")

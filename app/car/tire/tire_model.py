@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from app.car.product import Product
 
 
-class Tire(Base):
+class TireBrand(Base):
     name: Mapped[str] = mapped_column(
         String,
         nullable=False,
@@ -15,6 +15,6 @@ class Tire(Base):
         index=True,
     )
     product: Mapped["Product"] = relationship(
-        back_populates="tire",
+        back_populates="tire_brand",
         cascade="all,delete-orphan",
     )

@@ -2,12 +2,12 @@ from enum import Enum
 
 
 class Season(str, Enum):
-    WINTER = "зима"
-    SUMMER = "лето"
-    ALL_SEASON = "всесезонный"
+    WINTER = "winter"
+    SUMMER = "summer"
+    ALL_SEASON = "any"
 
 
 class CarType(str, Enum):
-    PASSENGER = "легковой"
-    TRUCK = "грузовой"
-    SUV = "внедорожник"
+    PASSENGER = "passenger"
+    TRUCK = "truck"
+    SUV = "suv"
