@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, File, Body, Query, status, UploadFile
 from app.core.config import settings
 from .storage_handler import StorageHandler
 from .storage_service_dependencies import get_storage_handler
-from .storage_schema import StorageResponse, StorageResponsePreview
+from .storage_schema import StorageResponse, StorageResponsePreview, StorageToDelete
 
 router = APIRouter(prefix=settings.api.storage_prefix, tags=["Minio"])
 
@@ -52,8 +52,10 @@ async def create_files(
     status_code=status.HTTP_200_OK,
 )
 async def delete_files(
-    filenames: list[str] = Body(...),
+    filenames: StorageToDelete = Body(...),
     storage_handler: StorageHandler = Depends(get_storage_handler),
 ) -> dict[str, str]:
-    filenames: list[str] = await storage_handler.delete_files(list_of_files=filenames)
+    filenames: list[str] = await storage_handler.delete_files(
+        list_of_files=filenames.list_of_files
+    )
     return {"msg": "успешно удалено"}

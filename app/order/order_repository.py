@@ -82,14 +82,14 @@ class OrderRepository(BaseCRUD):
     async def create_orders(
         self,
         list_of_products: list[dict],
-    ) -> bool:
+    ) -> Order | None:
         list_of_orders: list[Order] = [
-            Order(**order_data) for order_data in list_of_products
+            self.model(**order_data) for order_data in list_of_products
         ]
         try:
             self.session.add_all(list_of_orders)
             await self.session.commit()
-            return True
+            return list_of_orders
         except IntegrityError:
             await self.session.rollback()
-            return False
+            return None

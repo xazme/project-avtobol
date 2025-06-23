@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
-from fastapi import APIRouter, Path, Depends, status
+from fastapi import APIRouter, Path, Body, Depends, status
 from app.user import UserRoles
 from app.auth import requied_roles
 from app.car.product import get_product_handler
@@ -23,14 +23,14 @@ if TYPE_CHECKING:
 
 
 @router.post(
-    "/items/{product_id}",
+    "/items",
     summary="Add item to cart",
     description="Add a product to the user's shopping cart",
     status_code=status.HTTP_201_CREATED,
     response_model=CartResponse,
 )
 async def add_cart_item(
-    product_id: UUID,
+    product_id: UUID = Body(...),
     user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     cart_handler: "CartHandler" = Depends(get_cart_handler),
     product_handler: "ProductHandler" = Depends(get_product_handler),
@@ -39,7 +39,7 @@ async def add_cart_item(
     position = await cart_handler.create_position(
         user_id=user.id, product_id=product_id
     )
-    CartResponse.model_validate(position)
+    return CartResponse.model_validate(position)
 
 
 @router.get(

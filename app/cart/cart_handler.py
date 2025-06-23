@@ -28,7 +28,7 @@ class CartHandler(BaseHandler):
         if not obj:
             ExceptionRaiser.raise_exception(
                 status_code=400,
-                detail="Product does not exist or is already in your cart.",
+                detail="Такого продукта больше не существует, либо он в вашей корзине.",
             )
         return obj
 
@@ -44,7 +44,7 @@ class CartHandler(BaseHandler):
         if not result:
             ExceptionRaiser.raise_exception(
                 status_code=409,
-                detail=f"Failed to delete product {product_id}.",
+                detail=f"Неудалось удалить позицию {product_id}.",
             )
         return result
 
@@ -55,6 +55,6 @@ class CartHandler(BaseHandler):
         result: bool = await self.repository.delete_all_positions(user_id=user_id)
         if not result:
             ExceptionRaiser.raise_exception(
-                status_code=404, detail="Cart is empty, nothing to delete."
+                status_code=404, detail="Корзина пуста, нечего удалять."
             )
         return result

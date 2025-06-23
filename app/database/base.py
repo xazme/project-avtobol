@@ -7,17 +7,12 @@ from sqlalchemy.orm import (
     Mapped,
     mapped_column,
 )
-from app.core.config import settings
 
 
 class Base(DeclarativeBase):
     """Base class for SQLAlchemy models"""
 
     __abstract__ = True
-
-    # metadata = MetaData(
-    #     naming_convention=settings.db.naming_convention,
-    # )
 
     @declared_attr.directive
     def __tablename__(cls):

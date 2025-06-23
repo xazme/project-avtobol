@@ -1,10 +1,11 @@
 from .order_model import Order
-from .order_schema import OrderResponse
+from .order_schema import OrderResponseExtended
 
 
 def convert_data_for_order(list_of_orders: list[Order]):
     return [
-        OrderResponse(
+        OrderResponseExtended(
+            id=order.id,
             user_id=order.user_id,
             user_name=order.user.name,
             user_phone=order.user.phone_number,

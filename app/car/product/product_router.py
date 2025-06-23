@@ -26,7 +26,7 @@ router = APIRouter(
 
 
 @router.get(
-    "/pub",
+    "/private",
     summary="Get filtered products. Private mode",
     description="Retrieve paginated list of products with filtering options",
     response_model=dict[str, Any],
@@ -55,7 +55,7 @@ async def get_all_products_private(
 
 
 @router.get(
-    "/priv",
+    "/public",
     summary="Get filtered products. Public mode",
     description="Retrieve paginated list of products with filtering options",
     response_model=dict[str, Any],
