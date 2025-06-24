@@ -114,6 +114,21 @@ class StorageHandler:
                 detail=f"Ошибка множественного удаления: {e}",
             )
 
+    async def get_file(self, filename: str):
+        try:
+            async with self.get_client() as client:
+                response = await client.get_object(
+                    Bucket=self.bucket_name,
+                    Key=filename,
+                )
+                WHAT = response["Body"]
+                print(type(await WHAT.read()))
+        except Exception as e:
+            ExceptionRaiser.raise_exception(
+                status_code=500,
+                detail=f"Ошибка множественного удаления: {e}",
+            )
+
     async def _convert_to_webp(self, file: bytes) -> bytes:
         try:
             with Image.open(io.BytesIO(file)) as img:

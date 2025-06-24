@@ -15,7 +15,7 @@ from .tire_handler import TiresHandler
 
 router = APIRouter(
     prefix=settings.api.tires_prefix,
-    tags=["Tire"],
+    tags=["Tire Brand"],
 )
 
 

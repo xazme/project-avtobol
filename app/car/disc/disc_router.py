@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 router = APIRouter(
     prefix=settings.api.disc_prefix,
-    tags=["Disc"],
+    tags=["Disc Brand"],
 )
 
 
