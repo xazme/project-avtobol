@@ -74,6 +74,20 @@ class CarSeriesHandler(BaseHandler):
             car_brand_id=car_brand_id
         )
 
+    async def get_all_series_by_scroll(
+        self,
+        query: str,
+        cursor: int | None,
+        take: int | None,
+        car_brand_id: UUID,
+    ):
+        return await self.repository.get_all_series_by_scroll_and_brand_id(
+            query=query,
+            cursor=cursor,
+            take=take,
+            car_brand_id=car_brand_id,
+        )
+
     async def check_relation(
         self,
         car_brand_id: UUID,

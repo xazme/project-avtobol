@@ -67,18 +67,29 @@ async def get_all_car_series(
     "/brand/{car_brand_id}",
     summary="Get car series by brand",
     description="Retrieve all car series associated with a specific car brand",
-    response_model=List[CarSeriesResponse],
+    response_model=dict[str, int | None | list[CarSeriesResponse]],
     status_code=status.HTTP_200_OK,
 )
 async def get_car_series_by_brand(
     car_brand_id: UUID = Path(...),
+    search: str = Query(""),
+    cursor: int | None = Query(None, gt=-1),
+    take: int | None = Query(None, gt=0),
     car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-) -> List[CarSeriesResponse]:
+) -> dict[str, int | None | list[CarSeriesResponse]]:
 
-    car_series = await car_series_handler.get_series_by_car_brand_id(
+    next_cursor, car_series = await car_series_handler.get_all_series_by_scroll(
+        query=search,
+        cursor=cursor,
+        take=take,
         car_brand_id=car_brand_id,
     )
-    return [CarSeriesResponse.model_validate(series) for series in car_series]
+    return {
+        "next_cursor": next_cursor if car_series else None,
+        "items": (
+            [CarSeriesResponse.model_validate(car_serie) for car_serie in car_series]
+        ),
+    }
 
 
 @router.put(

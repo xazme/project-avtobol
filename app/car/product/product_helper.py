@@ -40,17 +40,17 @@ def convert_data(
             ),
             "disc_model": car_part.disc_model,
             # Шины
-            "tires_diametr": car_part.tires_diametr,
-            "tires_width": car_part.tires_width,
-            "tires_height": car_part.tires_height,
-            "tires_index": car_part.tires_index,
-            "tires_car_type": car_part.tires_car_type,
-            "tires_brand_name": (
+            "tire_diametr": car_part.tire_diametr,
+            "tire_width": car_part.tire_width,
+            "tire_height": car_part.tire_height,
+            "tire_index": car_part.tire_index,
+            "tire_car_type": car_part.tire_car_type,
+            "tire_brand_name": (
                 car_part.tire_brand.name if car_part.tire_brand else None
             ),
-            "tires_model": car_part.tires_model,
-            "tires_season": car_part.tires_season,
-            "tires_residue": car_part.tires_residue,
+            "tire_model": car_part.tire_model,
+            "tire_season": car_part.tire_season,
+            "tire_residue": car_part.tire_residue,
         }
 
         if is_private:

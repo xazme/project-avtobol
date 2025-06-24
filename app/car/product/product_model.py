@@ -180,35 +180,35 @@ class Product(Base):
     )
 
     # Шины
-    tires_diametr: Mapped[Diametr | None] = mapped_column(
+    tire_diametr: Mapped[Diametr | None] = mapped_column(
         SqlEnum(Diametr),
         nullable=True,
     )
-    tires_width: Mapped[float | None] = mapped_column(
+    tire_width: Mapped[float | None] = mapped_column(
         Float,
         nullable=True,
     )
-    tires_height: Mapped[float | None] = mapped_column(
+    tire_height: Mapped[float | None] = mapped_column(
         Float,
         nullable=True,
     )
-    tires_index: Mapped[str | None] = mapped_column(
+    tire_index: Mapped[str | None] = mapped_column(
         String,
         nullable=True,
     )
-    tires_car_type: Mapped[CarType | None] = mapped_column(
+    tire_car_type: Mapped[CarType | None] = mapped_column(
         SqlEnum(CarType),
         nullable=True,
     )
-    tires_model: Mapped[str | None] = mapped_column(
+    tire_model: Mapped[str | None] = mapped_column(
         String,
         nullable=True,
     )
-    tires_season: Mapped[Season | None] = mapped_column(
+    tire_season: Mapped[Season | None] = mapped_column(
         SqlEnum(Season),
         nullable=True,
     )
-    tires_residue: Mapped[float | None] = mapped_column(
+    tire_residue: Mapped[float | None] = mapped_column(
         Float,
         nullable=True,
     )

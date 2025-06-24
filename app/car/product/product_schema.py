@@ -191,15 +191,15 @@ class ProductResponseExtend(BaseModel):
     disc_model: str | None
 
     # Шины
-    tires_diametr: Diametr | None
-    tires_width: float | None
-    tires_height: float | None
-    tires_index: str | None
-    tires_car_type: CarType | None
-    tires_brand_name: str | None
-    tires_model: str | None
-    tires_season: Season | None
-    tires_residue: float | None
+    tire_diametr: Diametr | None
+    tire_width: float | None
+    tire_height: float | None
+    tire_index: str | None
+    tire_car_type: CarType | None
+    tire_brand_name: str | None
+    tire_model: str | None
+    tire_season: Season | None
+    tire_residue: float | None
 
     # Прочее
     description: str
