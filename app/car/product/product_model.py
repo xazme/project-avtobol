@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.shared import Diametr
+from app.shared import Diametr, generate_article
 from app.car.tire import Season, CarType
 from .product_enums import (
     ProductCondition,
@@ -37,7 +37,12 @@ if TYPE_CHECKING:
 
 
 class Product(Base):
-    # Обязательные связи
+    article: Mapped[String] = mapped_column(
+        String,
+        nullable=False,
+        index=True,
+        default=generate_article,
+    )
     car_brand_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(
@@ -251,14 +256,14 @@ class Product(Base):
         default=1,
     )
 
-    idriver_id: Mapped[int] = mapped_column(
-        Integer,
+    idriver_id: Mapped[str] = mapped_column(
+        String,
         index=True,
         nullable=True,
     )
 
-    allegro_id: Mapped[int] = mapped_column(
-        Integer,
+    allegro_id: Mapped[str] = mapped_column(
+        String,
         index=True,
         nullable=True,
     )

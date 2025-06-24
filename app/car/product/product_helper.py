@@ -9,6 +9,7 @@ def convert_data(
 
     def _convert(car_part: Product) -> ProductResponseExtend:
         data = {
+            "article": car_part.article,
             "id": car_part.id,
             "OEM": car_part.OEM,
             "VIN": car_part.VIN,

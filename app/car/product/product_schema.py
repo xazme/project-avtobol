@@ -1,6 +1,5 @@
 from datetime import datetime
 from uuid import UUID
-from fastapi import Form, Body
 from pydantic import BaseModel
 from app.shared import Diametr
 from app.car.tire import Season, CarType
@@ -16,6 +15,7 @@ from .product_enums import (
 
 class ProductFilters(BaseModel):
     # Основные
+    article: str | None = None
     car_brand_id: UUID | None = None
     car_series_id: UUID | None = None
     car_part_id: UUID | None = None
@@ -86,15 +86,15 @@ class ProductCreate(BaseModel):
     disc_model: str | None = None
 
     # tires
-    tires_diametr: Diametr | None = None
-    tires_width: float | None = None
-    tires_height: float | None = None
-    tires_index: str | None = None
-    tires_car_type: CarType | None = None
+    tire_diametr: Diametr | None = None
+    tire_width: float | None = None
+    tire_height: float | None = None
+    tire_index: str | None = None
+    tire_car_type: CarType | None = None
     tire_brand_id: UUID | None = None
-    tires_model: str | None = None
-    tires_season: Season | None = None
-    tires_residue: float | None = None
+    tire_model: str | None = None
+    tire_season: Season | None = None
+    tire_residue: float | None = None
 
     description: str
     price: float
@@ -112,6 +112,8 @@ class ProductUpdate(ProductCreate):
 
 
 class ProductResponse(BaseModel):
+    id: UUID
+    article: str
     OEM: str | None
     car_brand_id: UUID
     car_series_id: UUID
@@ -136,15 +138,15 @@ class ProductResponse(BaseModel):
     disc_model: str | None
 
     # tires
-    tires_diametr: Diametr | None
-    tires_width: float | None
-    tires_height: float | None
-    tires_index: str | None
-    tires_car_type: CarType | None
+    tire_diametr: Diametr | None
+    tire_width: float | None
+    tire_height: float | None
+    tire_index: str | None
+    tire_car_type: CarType | None
     tire_brand_id: UUID | None
-    tires_model: str | None
-    tires_season: Season | None
-    tires_residue: float | None
+    tire_model: str | None
+    tire_season: Season | None
+    tire_residue: float | None
 
     description: str
     price: float
@@ -165,6 +167,7 @@ class ProductResponse(BaseModel):
 
 class ProductResponseExtend(BaseModel):
     id: UUID
+    article: str
     OEM: str | None
     VIN: str | None
     pictures: list[str]

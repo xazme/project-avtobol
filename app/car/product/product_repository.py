@@ -27,8 +27,6 @@ class ProductRepository(BaseCRUD):
             filters=filters,
             is_private=is_private,
         )
-        print(product_filters)
-        print("SSSSSSSSSSSSSSSSSSS")
 
         stmt: Select = (
             Select(self.model)
@@ -60,6 +58,8 @@ class ProductRepository(BaseCRUD):
         filters_list: list = []
 
         # Основные
+        if filters.article:
+            filters_list.append(self.model.article == filters.article)
         if filters.car_brand_id:
             filters_list.append(self.model.car_brand_id == filters.car_brand_id)
         if filters.car_series_id:

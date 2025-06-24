@@ -26,6 +26,7 @@ class OrderResponseExtended(BaseModel):
     user_name: str
     user_phone: str
     product_id: UUID
+    product_article: str
     product_brand: str
     product_series: str
     product_part: str
