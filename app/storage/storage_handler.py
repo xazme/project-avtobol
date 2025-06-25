@@ -122,7 +122,6 @@ class StorageHandler:
                     Key=filename,
                 )
                 WHAT = response["Body"]
-                print(type(await WHAT.read()))
         except Exception as e:
             ExceptionRaiser.raise_exception(
                 status_code=500,

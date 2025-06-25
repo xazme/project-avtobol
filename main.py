@@ -1,6 +1,6 @@
 import uvicorn
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from faststream import FastStream
 from app.user import user_router
 from app.auth import auth_router
@@ -10,12 +10,13 @@ from app.cart import cart_router
 from app.order import order_router
 from app.core.config import settings
 from app.storage import s3_router
+from app.middlewares import clear_cookies
 from app.database.db_service import DBService
 
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
-    await DBService.create_tables()
+    # await DBService.create_tables()
     # await broker.connect()
 
     yield
@@ -26,10 +27,21 @@ async def lifespan(fastapi_app: FastAPI):
 
 
 fastapi_app = FastAPI(lifespan=lifespan)
-# faststream_app = FastStream(broker=broker)
 
-# broker.include_router(router=product_router)
-# broker.include_router(router=brand_router)
+
+@fastapi_app.middleware("cookie")
+async def clear_cookies_middleware(
+    request: Request,
+    call_next,
+):
+    response = await clear_cookies(
+        request=request,
+        call_next=call_next,
+    )
+    return response
+
+
+# faststream_app = FastStream(broker=broker)
 fastapi_app.include_router(auth_router)
 fastapi_app.include_router(car_router)
 fastapi_app.include_router(user_router)

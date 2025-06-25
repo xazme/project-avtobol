@@ -14,7 +14,6 @@ class DiscHandler(BaseHandler):
         self,
         disc_brand_data: DiscBrandCreate,
     ):
-        print(disc_brand_data)
         return await super().create_obj(data=disc_brand_data)
 
     async def update_disc_brand(

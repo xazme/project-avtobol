@@ -32,7 +32,7 @@ async def sign_in(
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
     user = await auth_handler.sign_in(
-        email=credentials.email,
+        phone_number=credentials.phone_number,
         password=credentials.password,
     )
     token = await create_token_response(
@@ -41,7 +41,7 @@ async def sign_in(
         token_handler=auth_handler.token_handler,
         response=response,
     )
-    return TokenResponse.model_validate(token)
+    return token
 
 
 @router.post(
@@ -57,13 +57,14 @@ async def register(
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
     user = await auth_handler.register(user_data=user_data)
+
     token = await create_token_response(
         mode=TokenMode.REGISTER,
         user=user,
         token_handler=auth_handler.token_handler,
         response=response,
     )
-    return TokenResponse.model_validate(token)
+    return token
 
 
 @router.post(
@@ -85,5 +86,4 @@ async def refresh_access_token(
         token_handler=auth_handler.token_handler,
         response=response,
     )
-    token.refresh_token = None
-    return TokenResponse.model_validate(token)
+    return token

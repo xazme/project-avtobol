@@ -20,12 +20,6 @@ class User(Base):
         unique=False,
         index=True,
     )
-    email: Mapped[str] = mapped_column(
-        String,
-        nullable=False,
-        unique=True,
-        index=True,
-    )
     phone_number: Mapped[str] = mapped_column(
         String,
         nullable=False,

@@ -24,7 +24,6 @@ class BaseCRUD:
             return obj
         except IntegrityError as e:
             await self.session.rollback()
-            print(e)
             return None
 
     async def update_by_id(

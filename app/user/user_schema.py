@@ -4,7 +4,6 @@ from pydantic import BaseModel, EmailStr
 
 class UserBase(BaseModel):
     name: str
-    email: EmailStr
     phone_number: str
 
 
