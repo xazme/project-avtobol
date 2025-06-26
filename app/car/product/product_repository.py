@@ -160,6 +160,21 @@ class ProductRepository(BaseCRUD):
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
+    async def get_product_by_article(
+        self,
+        article: str,
+    ) -> Product | None:
+        stmt: Select = (
+            Select(self.model)
+            .where(self.model.article == article)
+            .options(
+                selectinload(self.model.car_brand).joinedload(CarBrand.car_series),
+                selectinload(self.model.car_part),
+            )
+        )
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalar_one_or_none()
+
     async def bulk_change_availibility(
         self,
         products_id: list[UUID],
@@ -202,25 +217,3 @@ class ProductRepository(BaseCRUD):
     ) -> bool:
         product: Product | None = await self.get_by_id(id=product_id)
         return product.is_available if product else False
-
-
-{
-    "OEM": "string",
-    "car_brand_id": "afd8e210-03ab-493f-804b-f8e187330e62",
-    "car_series_id": "3d00025f-7943-49bf-b4b3-9f14c7e3bf1e",
-    "car_part_id": "0bf56339-5ecb-4ddf-8dac-92b7f15f929b",
-    "year": 2000,
-    "type_of_body": "sedan",
-    "volume": 1.6,
-    "gearbox": "manual",
-    "fuel": "gasoline",
-    "engine_type": "TDI",
-    "VIN": "string",
-    "pictures": ["photo1.png"],
-    "note": "string",
-    "description": "string",
-    "real_price": 0,
-    "fake_price": 0,
-    "condition": "used",
-    "count": 1,
-}

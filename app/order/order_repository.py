@@ -1,5 +1,5 @@
 from uuid import UUID
-from sqlalchemy import Select, Result, and_
+from sqlalchemy import Select, Result, and_, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -61,6 +61,56 @@ class OrderRepository(BaseCRUD):
         )
         result: Result = await self.session.execute(statement=stmt)
         return result.scalars().all()
+
+    async def get_all_orders_by_scroll(
+        self,
+        query: str,
+        cursor: int | None,
+        take: int | None,
+        status: OrderStatuses,
+    ) -> tuple[int | None, list]:
+        cursor = cursor if cursor is not None else 0
+        subq = (
+            Select(Product.id).where(Product.article.ilike(f"%{query}%"))
+        ).subquery()
+
+        stmt_count: Select = Select(func.count(self.model.id)).where(
+            and_(
+                self.model.product_id.in_(Select(subq.c.id)),
+                self.model.status == status,
+            )
+        )
+        stmt: Select = (
+            Select(self.model)
+            .options(
+                selectinload(self.model.user),
+                selectinload(self.model.product),
+                selectinload(self.model.product).joinedload(Product.car_brand),
+                selectinload(self.model.product).joinedload(Product.car_series),
+                selectinload(self.model.product).joinedload(Product.car_part),
+            )
+            .order_by(self.model.created_at)
+            .offset(cursor)
+            .where(
+                and_(
+                    self.model.product_id.in_(Select(subq.c.id)),
+                    self.model.status == status,
+                )
+            )
+        )
+
+        if take is not None:
+            stmt = stmt.limit(take)
+
+        result: Result = await self.session.execute(statement=stmt)
+        result_count: Result = await self.session.execute(statement=stmt_count)
+        count = result_count.scalar()
+
+        next_cursor = (
+            cursor + take if take is not None and (cursor + take) <= count else None
+        )
+
+        return next_cursor, result.scalars().all()
 
     async def change_order_status(
         self,

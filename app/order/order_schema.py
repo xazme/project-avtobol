@@ -5,6 +5,7 @@ from .order_enums import OrderStatuses
 
 
 class OrderCreate(BaseModel):
+    product_article: str
     description: str
     # COUNTRY CITY POSTCODE
 

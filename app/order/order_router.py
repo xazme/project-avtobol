@@ -87,22 +87,27 @@ async def get_specific_user_orders(
     "/",
     summary="Get all orders (Worker access)",
     description="Retrieve paginated list of all orders (requires Worker role)",
-    response_model=list[OrderResponseExtended],
+    response_model=dict[str, int | None | list[OrderResponseExtended]],
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
 )
 async def get_all_orders(
-    status: OrderStatuses,
-    page: int = 1,
-    page_size: int = 10,
+    search: str = Query(""),
+    cursor: int | None = Query(None, gt=-1),
+    take: int | None = Query(None, gt=0),
+    status: OrderStatuses = Query(...),
     order_handler: "OrderHandler" = Depends(get_order_handler),
-) -> list[OrderResponseExtended]:
-    orders = await order_handler.get_all_orders(
-        page=page,
-        page_size=page_size,
+) -> dict[str, int | None | list[OrderResponseExtended]]:
+    next_cursor, orders = await order_handler.get_all_orders_by_scroll(
+        query=search,
+        cursor=cursor,
+        take=take,
         status=status,
     )
-    return convert_data_for_order(list_of_orders=orders)
+    return {
+        "next_cursor": next_cursor if orders else None,
+        "items": (convert_data_for_order(list_of_orders=orders)),
+    }
 
 
 @router.patch(

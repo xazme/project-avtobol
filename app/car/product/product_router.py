@@ -188,3 +188,18 @@ async def get_product(
 ) -> ProductResponseExtend:
     product = await product_handler.get_product_by_id(product_id=product_id)
     return convert_data(product_data=product)
+
+
+@router.get(
+    "/article/{article}",
+    summary="Get product by article",
+    description="Retrieve detailed information about a specific product",
+    response_model=ProductResponseExtend,
+    status_code=status.HTTP_200_OK,
+)
+async def get_product_by_article(
+    article: str = Path(...),
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+) -> ProductResponseExtend:
+    product = await product_handler.get_product_by_article(article=article)
+    return convert_data(product_data=product)

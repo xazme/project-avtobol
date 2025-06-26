@@ -43,15 +43,17 @@ class OrderHandler(BaseHandler):
 
         return upd_order
 
-    async def get_all_orders(
+    async def get_all_orders_by_scroll(
         self,
-        page: int,
-        page_size: int,
+        query: str,
+        cursor: int | None,
+        take: int | None,
         status: OrderStatuses,
     ) -> list[Order]:
-        return await self.repository.get_all_orders(
-            page=page,
-            page_size=page_size,
+        return await self.repository.get_all_orders_by_scroll(
+            query=query,
+            cursor=cursor,
+            take=take,
             status=status,
         )
 

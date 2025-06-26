@@ -80,6 +80,20 @@ class ProductHandler(BaseHandler):
             )
         return product
 
+    async def get_product_by_article(
+        self,
+        article: str,
+    ) -> Optional[Product]:
+        product: Product | None = await self.repository.get_product_by_article(
+            article=article,
+        )
+        if not product:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail=f"Продукт {article} не найден.",
+            )
+        return product
+
     async def get_all_products(
         self,
         is_private: bool,
