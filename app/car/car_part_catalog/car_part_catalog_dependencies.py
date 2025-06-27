@@ -1,16 +1,16 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import DBService
-from .car_part_catalog_repository import CarPartCatalogRepository
-from .car_part_catalog_handler import CarPartCatalogHandler
-from .car_part_catalog_model import CarPartCatalog
+from .car_part_catalog_repository import CarPartRepository
+from .car_part_catalog_handler import CarPartHandler
+from .car_part_catalog_model import CarPart
 
 
-def get_car_part_catalog_handler(
+def get_car_part_handler(
     session: AsyncSession = Depends(DBService.get_session),
-) -> CarPartCatalogHandler:
-    car_part_repository = CarPartCatalogRepository(
+) -> CarPartHandler:
+    car_part_repository = CarPartRepository(
         session=session,
-        model=CarPartCatalog,
+        model=CarPart,
     )
-    return CarPartCatalogHandler(repository=car_part_repository)
+    return CarPartHandler(repository=car_part_repository)

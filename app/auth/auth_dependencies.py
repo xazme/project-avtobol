@@ -24,25 +24,31 @@ def get_auth_handler(
 
 
 async def get_user_from_access_token(
-    token: HTTPAuthorizationCredentials = Depends(get_access_token),
+    auth_credentials: HTTPAuthorizationCredentials = Depends(get_access_token),
     auth_handler: "AuthHandler" = Depends(get_auth_handler),
 ) -> "User":
-    return await auth_handler.user_from_access_token(token)
+    return await auth_handler.user_from_access_token(auth_credentials=auth_credentials)
 
 
 async def get_user_from_refresh_token(
-    token: HTTPAuthorizationCredentials = Depends(get_refresh_token),
+    auth_credentials: str = Depends(get_refresh_token),
     auth_handler: "AuthHandler" = Depends(get_auth_handler),
 ) -> "User":
-    return await auth_handler.user_from_refresh_token(token)
+    return await auth_handler.user_from_refresh_token(refresh_token=auth_credentials)
 
 
 def requied_roles(allowed_roles: list[UserRoles]) -> "User":
     async def get_user(user: "User" = Depends(get_user_from_access_token)):
         if user.status != UserStatuses.ACTIVE:
-            ExceptionRaiser.raise_exception(status_code=303)
+            ExceptionRaiser.raise_exception(
+                status_code=403,
+                detail="Аккаунт забанен.",
+            )
         if user.role not in allowed_roles:
-            ExceptionRaiser.raise_exception(status_code=303)
+            ExceptionRaiser.raise_exception(
+                status_code=403,
+                detail="Недостаточно прав.",
+            )
         return user
 
     return get_user

@@ -20,12 +20,6 @@ class Token(Base):
         nullable=False,
         index=True,
     )
-    access_token: Mapped[str] = mapped_column(
-        Text,
-        unique=True,
-        nullable=False,
-        index=True,
-    )
     refresh_token: Mapped[str] = mapped_column(
         Text,
         unique=True,

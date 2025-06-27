@@ -30,11 +30,11 @@ class UserRepository(BaseCRUD):
             await self.session.rollback()
             return None
 
-    async def get_user_by_email(
+    async def get_user_by_phone_number(
         self,
-        email: str,
+        phone_number: str,
     ) -> User | None:
-        stmt: Select = Select(self.model).where(self.model.email == email)
+        stmt: Select = Select(self.model).where(self.model.phone_number == phone_number)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 

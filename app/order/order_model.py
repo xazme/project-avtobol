@@ -19,7 +19,7 @@ class Order(Base):
             ondelete="CASCADE",
             onupdate="CASCADE",
         ),
-        nullable=False,
+        nullable=True,
         index=True,
     )
     product_id: Mapped[UUID] = mapped_column(
@@ -32,9 +32,15 @@ class Order(Base):
         nullable=False,
         index=True,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        server_default=func.now(),
+    user_name: Mapped[str] = mapped_column(
+        String,
+        nullable=True,
+        unique=False,
+    )
+    user_phone: Mapped[str] = mapped_column(
+        String,
+        nullable=True,
+        unique=False,
     )
     description: Mapped[str] = mapped_column(
         String,
@@ -44,6 +50,10 @@ class Order(Base):
         SqlEnum(OrderStatuses),
         nullable=False,
         default=OrderStatuses.OPEN,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
     )
 
     # relationships

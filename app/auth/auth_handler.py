@@ -1,10 +1,11 @@
 from uuid import UUID
 from typing import TYPE_CHECKING, Optional
-from fastapi import Depends
+from fastapi import Depends, Response
 from fastapi.security.http import HTTPAuthorizationCredentials
 from app.user import UserCreate
 from app.token import TokenType, TokenHandler, get_access_token, get_refresh_token
 from app.shared import HashHelper, ExceptionRaiser
+from app.core import settings
 
 if TYPE_CHECKING:
     from app.user import User, UserHandler
@@ -19,13 +20,16 @@ class AuthHandler:
 
     async def sign_in(
         self,
-        email: str,
+        phone_number: str,
         password: str,
     ) -> Optional["User"]:
-        user: "User" | None = await self.user_handler.get_user_by_email(email=email)
+        user: "User" | None = await self.user_handler.get_user_by_phone_number(
+            phone_number=phone_number,
+        )
         if not user:
             ExceptionRaiser.raise_exception(
-                status_code=401, detail="Invalid credentials"
+                status_code=404,
+                detail="Такого пользователя не существует.",
             )
 
         result: bool = HashHelper.check_password(
@@ -33,10 +37,33 @@ class AuthHandler:
         )
         if not result:
             ExceptionRaiser.raise_exception(
-                status_code=401, detail="Invalid credentials"
+                status_code=400,
+                detail="Неверный логин или пароль.",
             )
 
         return user
+
+    async def sign_out(
+        self,
+        user_id: UUID,
+        response: Response,
+    ) -> None:
+        refresh_token_key = settings.auth.refresh_token_key
+        result = await self.token_handler.delete_refresh_token_by_user_id(
+            user_id=user_id
+        )
+        if not result:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail="Неудалось выйти из системы. Пользователя либо не существует, либо не существует токена",
+            )
+        response.delete_cookie(
+            key=refresh_token_key,
+            path="/",
+            domain=None,
+            samesite="lax",
+            secure=True,
+        )
 
     async def register(
         self,
@@ -47,28 +74,11 @@ class AuthHandler:
 
     async def user_from_access_token(
         self,
-        token: HTTPAuthorizationCredentials = Depends(get_access_token),
+        auth_credentials: HTTPAuthorizationCredentials = Depends(get_access_token),
     ) -> Optional["User"]:
-        if not isinstance(
-            token,
-            HTTPAuthorizationCredentials,
-        ):
-            ExceptionRaiser.raise_exception(
-                status_code=401,
-                detail="Not authenticated",
-            )
-
-        access_token: "Token" | None = await self.token_handler.get_access_token(
-            token=token.credentials
-        )
-        if not access_token:
-            ExceptionRaiser.raise_exception(
-                status_code=401,
-                detail="Invalid access token",
-            )
-
+        token = self.__ensure_valid_token(auth_credentials=auth_credentials)
         payload: dict = self.token_handler.manager.decode(
-            token=access_token.access_token,
+            token=token,
             type=TokenType.ACCESS,
         )
         user_id: Optional[UUID] = payload.get("id")
@@ -76,35 +86,35 @@ class AuthHandler:
         if not user_id:
             ExceptionRaiser.raise_exception(
                 status_code=401,
-                detail="User ID missing in token",
+                detail="В токене отсутствует id пользователя.",
             )
 
         user: "User" | None = await self.user_handler.get_user_by_id(user_id=user_id)
         if not user:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="User not found",
+                detail="Пользоватеь не найден.",
             )
 
         return user
 
     async def user_from_refresh_token(
         self,
-        token: HTTPAuthorizationCredentials = Depends(get_refresh_token),
+        refresh_token: str = Depends(get_refresh_token),
     ) -> Optional["User"]:
-        if not isinstance(token, HTTPAuthorizationCredentials):
+        if refresh_token is None:
             ExceptionRaiser.raise_exception(
                 status_code=401,
-                detail="Not authenticated",
+                detail="Невалидный refresh токен.",
             )
 
         refresh_token: "Token" | None = await self.token_handler.get_refresh_token(
-            token=token.credentials,
+            token=refresh_token,
         )
         if not refresh_token:
             ExceptionRaiser.raise_exception(
                 status_code=401,
-                detail="Invalid refresh token",
+                detail="Невалидный refresh токен.",
             )
 
         payload: dict = self.token_handler.manager.decode(
@@ -116,14 +126,27 @@ class AuthHandler:
         if not user_id:
             ExceptionRaiser.raise_exception(
                 status_code=401,
-                detail="User ID missing in token",
+                detail="В токене отсутствует id пользователя.",
             )
 
         user: "User" | None = await self.user_handler.get_user_by_id(user_id=user_id)
         if not user:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="User not found",
+                detail="Пользователь не найден.",
             )
 
         return user
+
+    def __ensure_valid_token(
+        self,
+        auth_credentials: HTTPAuthorizationCredentials | None,
+    ) -> str:
+        if not auth_credentials or not isinstance(
+            auth_credentials, HTTPAuthorizationCredentials
+        ):
+            ExceptionRaiser.raise_exception(
+                status_code=401,
+                detail="Токен потерян либо невалиден.",
+            )
+        return auth_credentials.credentials

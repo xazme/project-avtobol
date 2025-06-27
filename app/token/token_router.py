@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Query, Depends, status
 from app.core import settings
 from .token_dependencies import get_token_handler
 from .token_schema import TokenResponse
@@ -29,11 +29,11 @@ async def get_all_tokens(
     "/",
     summary="Delete user tokens",
     description="Delete all authentication tokens for a specific user",
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
     response_model=None,
 )
 async def delete_tokens(
-    user_id: UUID,
+    user_id: UUID = Query(...),
     token_handler: "TokenHandler" = Depends(get_token_handler),
 ) -> dict[str, str]:
     await token_handler.delete_tokens_by_user_id(id=user_id)

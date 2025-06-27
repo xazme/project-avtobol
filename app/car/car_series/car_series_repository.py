@@ -1,5 +1,5 @@
 from uuid import UUID
-from sqlalchemy import Select, exists, Result
+from sqlalchemy import Select, exists, Result, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.shared import BaseCRUD
 from .car_series_model import CarSeries
@@ -33,3 +33,33 @@ class CarSeriesRepository(BaseCRUD):
         stmt: Select = Select(self.model).where(self.model.car_brand_id == car_brand_id)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalars().all()
+
+    async def get_all_series_by_scroll_and_brand_id(
+        self,
+        query: str,
+        cursor: int | None,
+        take: int | None,
+        car_brand_id: UUID,
+    ) -> tuple[int | None, list]:
+        cursor = cursor if cursor is not None else 0
+        stmt_count: Select = Select(func.count(self.model.id))
+        stmt: Select = (
+            Select(self.model)
+            .offset(cursor)
+            .where(
+                self.model.car_brand_id == car_brand_id,
+                self.model.name.ilike(f"%{query}%"),
+            )
+        )
+        if take is not None:
+            stmt = stmt.limit(take)
+
+        result: Result = await self.session.execute(statement=stmt)
+        result_count: Result = await self.session.execute(statement=stmt_count)
+        count = result_count.scalar()
+
+        next_cursor = (
+            cursor + take if take is not None and (cursor + take) <= count else None
+        )
+
+        return next_cursor, result.scalars().all()
