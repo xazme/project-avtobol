@@ -32,7 +32,6 @@ class BaseCRUD:
         data: dict,
     ) -> DeclarativeBase | None:
         obj: DeclarativeBase | None = await self.get_by_id(id=id)
-
         if obj is None:
             return None
         try:
@@ -42,7 +41,7 @@ class BaseCRUD:
             await self.session.commit()
             await self.session.refresh(obj)
             return obj
-        except IntegrityError:
+        except IntegrityError as e:
             await self.session.rollback()
             return None
 

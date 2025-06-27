@@ -63,14 +63,13 @@ async def create_files(
 @router.delete(
     "/",
     summary="Delete files from MinIO storage.",
-    response_model=dict[str, str],
-    status_code=status.HTTP_200_OK,
+    response_model=None,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_files(
     filenames: StorageToDelete = Body(...),
     storage_handler: StorageHandler = Depends(get_storage_handler),
-) -> dict[str, str]:
+) -> None:
     filenames: list[str] = await storage_handler.delete_files(
         list_of_files=filenames.list_of_files
     )
-    return {"msg": "успешно удалено"}

@@ -7,6 +7,9 @@ from fastapi import (
     Path,
     Body,
     status,
+    File,
+    UploadFile,
+    Form,
 )
 from app.core import settings
 from .car_brand_schema import (
@@ -34,11 +37,13 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_car_brand(
+    file: UploadFile = File(...),
     car_brand_data: CarBrandCreate = Body(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> CarBrandResponse:
 
     car_brand: "CarBrand" = await car_brand_handler.create_car_brand(
+        file=file,
         car_brand_data=car_brand_data,
     )
     return CarBrandResponse.model_validate(car_brand)
@@ -94,12 +99,12 @@ async def get_all_car_brands(
 )
 async def update_car_brand(
     car_brand_id: UUID = Path(...),
+    file: UploadFile | None = File(None),
     updated_data: CarBrandUpdate = Body(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> CarBrandResponse:
     car_brand = await car_brand_handler.update_car_brand(
-        car_brand_id=car_brand_id,
-        car_brand_data=updated_data,
+        car_brand_id=car_brand_id, car_brand_data=updated_data, file=file
     )
     return CarBrandResponse.model_validate(car_brand)
 

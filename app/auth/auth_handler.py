@@ -1,10 +1,11 @@
 from uuid import UUID
 from typing import TYPE_CHECKING, Optional
-from fastapi import Depends
+from fastapi import Depends, Response
 from fastapi.security.http import HTTPAuthorizationCredentials
 from app.user import UserCreate
 from app.token import TokenType, TokenHandler, get_access_token, get_refresh_token
 from app.shared import HashHelper, ExceptionRaiser
+from app.core import settings
 
 if TYPE_CHECKING:
     from app.user import User, UserHandler
@@ -41,6 +42,28 @@ class AuthHandler:
             )
 
         return user
+
+    async def sign_out(
+        self,
+        user_id: UUID,
+        response: Response,
+    ) -> None:
+        refresh_token_key = settings.auth.refresh_token_key
+        result = await self.token_handler.delete_refresh_token_by_user_id(
+            user_id=user_id
+        )
+        if not result:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail="Неудалось выйти из системы. Пользователя либо не существует, либо не существует токена",
+            )
+        response.delete_cookie(
+            key=refresh_token_key,
+            path="/",
+            domain=None,
+            samesite="lax",
+            secure=True,
+        )
 
     async def register(
         self,

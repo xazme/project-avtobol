@@ -6,7 +6,7 @@ from app.auth import requied_roles
 from app.car.product import get_product_handler
 from app.core import settings
 from .cart_dependencies import get_cart_handler
-from .cart_schema import CartResponse, CartResponseExtended
+from .cart_schema import CartResponse, CartResponseExtended, CartAddPosition
 from .cart_helper import (
     convert_data_for_many_positions_in_cart,
 )
@@ -30,14 +30,15 @@ if TYPE_CHECKING:
     response_model=CartResponse,
 )
 async def add_cart_item(
-    product_id: UUID = Body(...),
+    position: CartAddPosition = Body(...),
     user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
     cart_handler: "CartHandler" = Depends(get_cart_handler),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ):
-    await product_handler.check_availability(product_id=product_id)
+    await product_handler.check_availability(product_id=position.product_id)
     position = await cart_handler.create_position(
-        user_id=user.id, product_id=product_id
+        user_id=user.id,
+        product_id=position.product_id,
     )
     return CartResponse.model_validate(position)
 

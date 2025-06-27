@@ -1,6 +1,7 @@
+import json
 from datetime import datetime
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from app.shared import Diametr
 from app.car.tire import Season, CarType
 from .product_enums import (
@@ -73,7 +74,6 @@ class ProductCreate(BaseModel):
     fuel: FuelType | None = None
     engine_type: str | None = None
     VIN: str | None = None
-    pictures: list[str]
 
     # disc
     disc_diametr: Diametr | None = None
@@ -104,7 +104,13 @@ class ProductCreate(BaseModel):
     availability: Availability = Availability.IN_STOCK
     note: str | None = None
     count: int = 1
-    post_by: UUID
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value
 
 
 class ProductUpdate(ProductCreate):

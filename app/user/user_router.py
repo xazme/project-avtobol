@@ -100,7 +100,7 @@ async def delete_current_user(
     description="Change a user's role (Admin or Owner access required)",
     status_code=status.HTTP_200_OK,
     response_model=UserResponse,
-    dependencies=[Depends(requied_roles([UserRoles.ADMIN, UserRoles.OWNER]))],
+    dependencies=[Depends(requied_roles([UserRoles.ADMIN]))],
 )
 async def change_user_role(
     role: UserRoles,
@@ -119,6 +119,8 @@ async def change_user_role(
     response_model=UserResponse,
 )
 async def get_current_user_info(
-    user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
+    user: "User" = Depends(
+        requied_roles([UserRoles.CLIENT, UserRoles.WORKER, UserRoles.ADMIN])
+    ),
 ) -> UserResponse:
     return UserResponse.model_validate(user)

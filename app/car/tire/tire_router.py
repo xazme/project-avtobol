@@ -105,7 +105,7 @@ async def update_tires_brand(
     summary="Delete tires brand",
     description="Remove a tires brand from the system",
     response_model=None,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_tires_brand(
     tire_brand_id: UUID = Path(...),

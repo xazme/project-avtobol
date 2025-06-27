@@ -107,27 +107,25 @@ class ProductRepository(BaseCRUD):
 
         # Шины
         if filters.tires_diametr:
-            filters_list.append(self.model.tires_diametr == filters.tires_diametr)
+            filters_list.append(self.model.tire_diametr == filters.tires_diametr)
         if filters.tires_width:
-            filters_list.append(self.model.tires_width == filters.tires_width)
+            filters_list.append(self.model.tire_width == filters.tires_width)
         if filters.tires_height:
-            filters_list.append(self.model.tires_height == filters.tires_height)
+            filters_list.append(self.model.tire_height == filters.tires_height)
         if filters.tires_index:
-            filters_list.append(self.model.tires_index == filters.tires_index)
+            filters_list.append(self.model.tire_index == filters.tires_index)
         if filters.tires_car_type:
-            filters_list.append(self.model.tires_car_type == filters.tires_car_type)
+            filters_list.append(self.model.tire_car_type == filters.tires_car_type)
         if filters.tires_brand_id:
             filters_list.append(self.model.tire_brand_id == filters.tires_brand_id)
         if filters.tires_model:
-            filters_list.append(
-                self.model.tires_model.ilike(f"%{filters.tires_model}%")
-            )
+            filters_list.append(self.model.tire_model.ilike(f"%{filters.tires_model}%"))
         if filters.tires_season:
-            filters_list.append(self.model.tires_season == filters.tires_season)
+            filters_list.append(self.model.tire_season == filters.tires_season)
         if filters.tires_residue_from:
-            filters_list.append(self.model.tires_residue >= filters.tires_residue_from)
+            filters_list.append(self.model.tire_residue >= filters.tires_residue_from)
         if filters.tires_residue_to:
-            filters_list.append(self.model.tires_residue <= filters.tires_residue_to)
+            filters_list.append(self.model.tire_residue <= filters.tires_residue_to)
 
         if is_private:
             if filters.created_from:

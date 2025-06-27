@@ -43,7 +43,6 @@ class StorageHandler:
                 status_code=400,
                 detail=f"Тип файла должен быть bytes, а не {type(file)}",
             )
-
         try:
             file_bytes = await self._convert_to_webp(file=file)
             filename = self._generate_name() + ".webp"
@@ -121,7 +120,6 @@ class StorageHandler:
                     Bucket=self.bucket_name,
                     Key=filename,
                 )
-                WHAT = response["Body"]
         except Exception as e:
             ExceptionRaiser.raise_exception(
                 status_code=500,

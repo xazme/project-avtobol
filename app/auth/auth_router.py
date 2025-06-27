@@ -3,9 +3,11 @@ from fastapi import APIRouter, Body, Depends, Response, status
 from app.user import UserCreate
 from app.token import TokenResponse, create_token_response, TokenMode
 from app.core import settings
+from app.user.user_enums import UserRoles
 from .auth_schema import AuthCredentials
 from .auth_dependencies import (
     AuthHandler,
+    requied_roles,
     get_auth_handler,
     get_user_from_refresh_token,
 )
@@ -73,7 +75,6 @@ async def register(
     description="Generate new access token using refresh token",
     response_model=TokenResponse,
     status_code=status.HTTP_200_OK,
-    response_model_exclude_none=True,
 )
 async def refresh_access_token(
     response: Response,
@@ -87,3 +88,22 @@ async def refresh_access_token(
         response=response,
     )
     return token
+
+
+@router.delete(
+    "/sign-out",
+    summary="Sigh out",
+    description="Delete user tokens from database,cookies",
+    response_model=None,
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def sign_out(
+    response: Response,
+    user: "User" = Depends(
+        requied_roles(
+            allowed_roles=[UserRoles.ADMIN, UserRoles.CLIENT, UserRoles.WORKER]
+        )
+    ),
+    auth_handler: AuthHandler = Depends(get_auth_handler),
+):
+    await auth_handler.sign_out(user_id=user.id, response=response)

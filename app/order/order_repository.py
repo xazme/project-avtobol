@@ -1,5 +1,5 @@
 from uuid import UUID
-from sqlalchemy import Select, Result, and_, func
+from sqlalchemy import Select, Insert, Result, and_, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -132,14 +132,29 @@ class OrderRepository(BaseCRUD):
     async def create_orders(
         self,
         list_of_products: list[dict],
-    ) -> Order | None:
-        list_of_orders: list[Order] = [
-            self.model(**order_data) for order_data in list_of_products
-        ]
+    ) -> list["Order"] | None:
         try:
-            self.session.add_all(list_of_orders)
+            stmt = Insert(self.model).returning(self.model.id)
+
+            result = await self.session.execute(stmt, list_of_products)
+            inserted_ids = [row.id for row in result.fetchall()]
+
             await self.session.commit()
-            return list_of_orders
+
+            query = (
+                Select(self.model)
+                .where(self.model.id.in_(inserted_ids))
+                .options(
+                    selectinload(self.model.user),
+                    selectinload(self.model.product).selectinload(Product.car_brand),
+                    selectinload(self.model.product).selectinload(Product.car_series),
+                    selectinload(self.model.product).selectinload(Product.car_part),
+                )
+            )
+
+            refetched = await self.session.execute(query)
+            return refetched.scalars().all()
+
         except IntegrityError:
             await self.session.rollback()
             return None

@@ -6,8 +6,8 @@ class CartBase(BaseModel):
     product_id: UUID
 
 
-class CartCreate(CartBase):
-    user_id: UUID
+class CartAddPosition(CartBase):
+    pass
 
 
 class CartResponse(CartBase):

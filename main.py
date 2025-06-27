@@ -10,13 +10,12 @@ from app.cart import cart_router
 from app.order import order_router
 from app.core.config import settings
 from app.storage import s3_router
-from app.middlewares import clear_cookies
 from app.database.db_service import DBService
 
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
-    # await DBService.create_tables()
+    await DBService.create_tables()
     # await broker.connect()
 
     yield
@@ -27,18 +26,6 @@ async def lifespan(fastapi_app: FastAPI):
 
 
 fastapi_app = FastAPI(lifespan=lifespan)
-
-
-@fastapi_app.middleware("cookie")
-async def clear_cookies_middleware(
-    request: Request,
-    call_next,
-):
-    response = await clear_cookies(
-        request=request,
-        call_next=call_next,
-    )
-    return response
 
 
 # faststream_app = FastStream(broker=broker)

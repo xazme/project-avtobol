@@ -6,7 +6,8 @@ from app.user import UserRoles
 from app.cart import get_cart_handler
 from app.core import settings
 from .order_schema import OrderCreate, OrderResponseExtended, OrderResponse
-from .order_dependencies import get_order_handler
+from .order_dependencies import get_order_handler, get_order_orchestrator
+from .order_orchestrator import OrderOrchestrator
 from .order_enums import OrderStatuses
 from .order_helper import convert_data_for_order
 
@@ -30,17 +31,10 @@ router = APIRouter(
 )
 async def create_order(
     order_data: OrderCreate = Body(...),
-    user: "User" = Depends(requied_roles([UserRoles.CLIENT])),
-    cart_handler: "CartHandler" = Depends(get_cart_handler),
-    order_handler: "OrderHandler" = Depends(get_order_handler),
-) -> OrderResponse:
-    user_id = user.id
-    user_positions = await cart_handler.get_all_user_positions(user_id=user_id)
-    orders = await order_handler.create_order(
-        user_positions=user_positions,
-        data=order_data,
-    )
-    await cart_handler.delete_all_positions(user_id=user_id)
+    order_orchestrator: OrderOrchestrator = Depends(get_order_orchestrator),
+) -> list[OrderResponse]:
+    orders = await order_orchestrator.create_order(data=order_data)
+    print(orders)
     return [OrderResponse.model_validate(order) for order in orders]
 
 

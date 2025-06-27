@@ -5,15 +5,18 @@ from .order_enums import OrderStatuses
 
 
 class OrderCreate(BaseModel):
-    product_article: str
+    article: str
+    user_phone: str
+    user_name: str
     description: str
-    # COUNTRY CITY POSTCODE
 
 
 class OrderResponse(BaseModel):
-    user_id: UUID
+    user_id: UUID | None
     product_id: UUID
-    description: str | None = None
+    user_name: str | None
+    user_phone: str | None
+    description: str
     status: OrderStatuses
 
     class Config:
@@ -23,7 +26,7 @@ class OrderResponse(BaseModel):
 
 class OrderResponseExtended(BaseModel):
     id: UUID
-    user_id: UUID
+    user_id: UUID | None
     user_name: str
     user_phone: str
     product_id: UUID

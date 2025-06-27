@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any, Annotated
 from uuid import UUID
-from fastapi import APIRouter, Body, Depends, status, Query, Path, Form
+from fastapi import APIRouter, Body, Depends, status, Query, Path, UploadFile, File
 from app.auth import requied_roles
 from app.user import UserRoles
 from app.core import settings
@@ -126,7 +126,7 @@ async def update_product_printed_status(
     summary="Delete product",
     description="Remove product from catalog",
     response_model=None,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_product(
     product_id: UUID = Path(...),
@@ -143,6 +143,7 @@ async def delete_product(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_product(
+    product_pictures: list[UploadFile] = File(...),
     product_data: ProductCreate = Body(...),
     user: "User" = Depends(requied_roles(allowed_roles=[UserRoles.WORKER])),
     product_handler: "ProductHandler" = Depends(get_product_handler),
@@ -150,6 +151,7 @@ async def create_product(
     product = await product_handler.create_product(
         user_id=user.id,
         product_data=product_data,
+        files=product_pictures,
     )
     return ProductResponse.model_validate(product)
 
@@ -164,12 +166,16 @@ async def create_product(
 async def update_product(
     product_id: UUID = Path(...),
     new_product_data: ProductUpdate = Body(...),
+    new_product_pictures: list[UploadFile] | None = File(None),
+    user: "User" = Depends(requied_roles(allowed_roles=[UserRoles.WORKER])),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> ProductResponse:
 
     product = await product_handler.update_product(
+        user_id=user.id,
         product_id=product_id,
         product_data=new_product_data,
+        files=new_product_pictures,
     )
 
     return ProductResponse.model_validate(product)
