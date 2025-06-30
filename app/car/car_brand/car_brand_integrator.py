@@ -1,10 +1,8 @@
-import asyncio
 import json
-from bs4 import BeautifulSoup
-from httpx import AsyncClient
+from uuid import UUID
 
-
-idriver_brands = {
+# from app.apis.idriver.JSON import idriver_car_brands
+idriver_car_brands = {
     "Не важно": "0",
     "Acura": "1",
     "Alfa Romeo": "3",
@@ -194,112 +192,22 @@ idriver_brands = {
     "УАЗ": "176",
 }
 
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://example.com",
-    "Upgrade-Insecure-Requests": "1",
-    "Connection": "keep-alive",
-}
 
+def set_integrity_idriver(
+    car_brand_name: str,
+    car_brand_id: str,
+):
+    idriver_id = idriver_car_brands.get(car_brand_name)
 
-class IDriverClient:
-    def __init__(
-        self,
-        user_phone: str,
-        user_password: str,
-        club_id: str,
-    ):
-        self.base_url = "https://idriver.by/"
-        self.headers = headers
-        self.user_phone = user_phone
-        self.user_password = user_password
-        self.club_id = club_id
-        self.cookies = {}
+    with open("xy.json", "r", encoding="utf-8") as file:
+        data: dict = json.load(file)
 
-    async def get_url(self, data: dict):
-        async with AsyncClient(
-            headers=headers,
-            cookies=await self.__get_cookies(),
-        ) as client:
-
-            wha = {
-                "type": "b",
-                "txt": "",
-                "brandID": "",
-                "clubID": "0",
-            }
-
-            await client.get(url=f"{self.base_url}mylist/addpart?postID=94519373")
-            await client.post(url="https://idriver.by/ajax/asi.php", data=wha)
-            response = await client.post(
-                url="https://idriver.by/ajax/asi.php", data=data
-            )
-            return response.text
-
-    async def __get_cookies(self):
-        if self.cookies:
-            return self.cookies
-        async with AsyncClient(headers=self.headers) as client:
-            await client.get(url=self.base_url)
-            await client.get(url=f"{self.base_url}login")
-            login_data: dict[str, str] = {
-                "login": self.user_phone,
-                "pswrd1": self.user_password,
-                "ajaxDiv": "#formLogin+formResult",
-            }
-            response = await client.post(
-                url=f"{self.base_url}ajax/forms/formLogin.php",
-                follow_redirects=True,
-                data=login_data,
-            )
-            cookies = dict(response.cookies)
-            self.cookies = cookies
-            return cookies
-
-
-async def main():
-    what = IDriverClient(
-        user_phone="375293703729",
-        user_password="freetouse",
-        club_id="4346",
+    data.update(
+        {car_brand_id: {"idriver_brand_id": idriver_id, "car_brand_series": {}}}
     )
 
-    brands_data = {}
-
-    for key, value in idriver_brands.items():
-        idriver_brand_id = str(value)
-        data = {
-            "type": "m",
-            "txt": "",
-            "brandID": idriver_brand_id,
-            "clubID": "0",
-        }
-        html_doc = await what.get_url(data=data)
-
-        soup = BeautifulSoup(markup=html_doc, features="lxml")
-        all_serieses = soup.find_all(name="li")
-
-        series = []
-
-        for item in all_serieses:
-            series_name = item.text
-            series_id = item.get("data-id")
-
-            series_data = {
-                "idriver_series_id": series_id,
-                "series_name": series_name,
-            }
-            series.append(series_data)
-
-        brands_data[idriver_brand_id] = {
-            "idriver_brand_id": idriver_brand_id,
-            "series": series,
-        }
-
-    with open("idk.json", mode="w", encoding="utf-8") as file:
-        json.dump(brands_data, file, ensure_ascii=False, indent=4)
+    with open("xy.json", "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
 
 
-asyncio.run(main())
+set_integrity_idriver(car_brand_id="ID", car_brand_name="Минск")

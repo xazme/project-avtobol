@@ -67,7 +67,7 @@ class ProductCreate(BaseModel):
     car_brand_id: UUID
     car_series_id: UUID
     car_part_id: UUID
-    year: int = 1885
+    year: int = 1980
     type_of_body: BodyType | None = None
     volume: float
     gearbox: GearboxType | None = None

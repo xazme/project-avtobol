@@ -94,7 +94,7 @@ class BaseHandler:
         cursor: int | None,
         take: int | None,
     ) -> tuple[int | None, list]:
-        return await self.repository.get_all_by_scrol(
+        return await self.repository.get_all_by_scroll(
             query=query,
             cursor=cursor,
             take=take,

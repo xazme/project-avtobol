@@ -99,7 +99,7 @@ async def get_all_orders(
         status=status,
     )
     return {
-        "next_cursor": next_cursor if orders else None,
+        "next_cursor": next_cursor,
         "items": (convert_data_for_order(list_of_orders=orders)),
     }
 

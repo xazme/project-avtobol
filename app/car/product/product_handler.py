@@ -8,6 +8,7 @@ from .product_schema import (
     ProductCreate,
     ProductUpdate,
     ProductFilters,
+    ProductFiltersExtended,
 )
 from .product_model import Product
 
@@ -145,6 +146,20 @@ class ProductHandler(BaseHandler):
             page_size=page_size,
             filters=filters,
             is_private=is_private,
+        )
+
+    async def get_all_products_by_scroll(
+        self,
+        cursor: int | None,
+        take: int | None,
+        is_private: bool,
+        filters: ProductFiltersExtended,
+    ):
+        return await self.repository.get_all_products_by_scroll(
+            cursor=cursor,
+            take=take,
+            is_private=is_private,
+            filters=filters,
         )
 
     async def check_availability(

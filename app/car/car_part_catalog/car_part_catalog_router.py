@@ -52,7 +52,7 @@ async def get_all_car_parts(
         take=take,
     )
     return {
-        "next_cursor": next_cursor if parts else None,
+        "next_cursor": next_cursor,
         "items": ([CarPartResponse.model_validate(part) for part in parts]),
     }
 

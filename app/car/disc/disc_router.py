@@ -74,7 +74,7 @@ async def get_all_disc_brands(
         take=take,
     )
     return {
-        "next_cursor": next_cursor if disc_brands else None,
+        "next_cursor": next_cursor,
         "items": (
             [DiscBrandResponse.model_validate(disc_brand) for disc_brand in disc_brands]
         ),

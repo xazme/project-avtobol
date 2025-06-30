@@ -96,7 +96,7 @@ class BaseCRUD:
         result: Result = await self.session.execute(statement=stmt)
         return result.scalars().all()
 
-    async def get_all_by_scrol(
+    async def get_all_by_scroll(
         self,
         query: str,
         cursor: int | None,

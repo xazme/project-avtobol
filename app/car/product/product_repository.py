@@ -16,6 +16,50 @@ class ProductRepository(BaseCRUD):
         self.session: AsyncSession = session
         self.model: Product = model
 
+    async def get_all_products_by_scroll(
+        self,
+        filters: ProductFilters,
+        cursor: int | None,
+        take: int | None,
+        is_private: bool = False,
+    ) -> tuple[list[Product], int]:
+        product_filters: list = await self.prepare_filters(
+            filters=filters,
+            is_private=is_private,
+        )
+        cursor = cursor if cursor is not None else 0
+        stmt_count: Select = Select(func.count(self.model.id))
+        stmt_count_using_filters = Select(func.count(self.model.id)).where(
+            *product_filters,
+        )
+        stmt: Select = (
+            Select(self.model)
+            .options(
+                selectinload(self.model.car_brand),
+                selectinload(self.model.car_series),
+                selectinload(self.model.car_part),
+                selectinload(self.model.disc_brand),
+                selectinload(self.model.tire_brand),
+            )
+            .order_by(self.model.created_at)
+            .offset(cursor)
+            .where(and_(*product_filters))
+        )
+        if take is not None:
+            stmt = stmt.limit(take)
+
+        result: Result = await self.session.execute(statement=stmt)
+        result_count: Result = await self.session.execute(statement=stmt_count)
+        result_count_with_filters: Result = await self.session.execute(
+            statement=stmt_count_using_filters
+        )
+        count = result_count.scalar()
+        count_with_filters = result_count_with_filters.scalar()
+        next_cursor = (
+            cursor + take if take is not None and (cursor + take) <= count else None
+        )
+        return next_cursor, count_with_filters, result.scalars().all()
+
     async def get_all_products(
         self,
         page: int,

@@ -1,5 +1,7 @@
+from datetime import datetime
 from uuid import UUID
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+from .user_enums import UserRoles, UserStatuses
 
 
 class UserBase(BaseModel):
@@ -15,8 +17,19 @@ class UserUpdate(UserBase):
     password: str
 
 
+class UserFilters(BaseModel):
+    name: str | None = None
+    phone_number: str | None = None
+    status: UserStatuses | None = None
+    role: UserRoles | None = None
+    created_from: datetime | None = None
+    created_to: datetime | None = None
+
+
 class UserResponse(UserBase):
     id: UUID
+    status: UserStatuses
+    role: UserRoles
 
     class Config:
         from_attributes = True

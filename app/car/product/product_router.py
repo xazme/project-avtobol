@@ -27,30 +27,31 @@ router = APIRouter(
 
 @router.get(
     "/private",
-    summary="Get filtered products. Private mode",
-    description="Retrieve paginated list of products with filtering options",
-    response_model=dict[str, Any],
+    summary="Get filtered products (private)",
+    description="Retrieve paginated list of products with filtering options in private mode",
+    response_model=dict[str, int | None | list[ProductResponseExtend]],
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
 )
 async def get_all_products_private(
-    page: int = Query(1, gt=0),
-    page_size: int = Query(10, gt=0, le=10000),
+    cursor: int | None = Query(None, gt=-1),
+    take: int | None = Query(None, gt=0),
     filters: ProductFiltersExtended = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> dict[str, Any]:
-    total_count, products = await product_handler.get_all_products(
-        is_private=True,
-        page=page,
-        page_size=page_size,
-        filters=filters,
-    )
-    return {
-        "total_count": total_count,
-        "items": convert_data(
-            product_data=products,
+) -> dict[str, int | None | list[ProductResponseExtend]]:
+    next_cursor, total_count, products = (
+        await product_handler.get_all_products_by_scroll(
             is_private=True,
-        ),
+            cursor=cursor,
+            take=take,
+            filters=filters,
+        )
+    )
+
+    return {
+        "next_cursor": next_cursor,
+        "total_count": total_count,
+        "items": convert_data(product_data=products, is_private=True),
     }
 
 

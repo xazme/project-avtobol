@@ -71,7 +71,7 @@ async def get_all_tires_brands(
         take=take,
     )
     return {
-        "next_cursor": next_cursor if tires_brands else None,
+        "next_cursor": next_cursor,
         "items": (
             [
                 TiresBrandResponse.model_validate(tires_brand)

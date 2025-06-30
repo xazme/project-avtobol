@@ -85,7 +85,7 @@ async def get_car_series_by_brand(
         car_brand_id=car_brand_id,
     )
     return {
-        "next_cursor": next_cursor if car_series else None,
+        "next_cursor": next_cursor,
         "items": (
             [CarSeriesResponse.model_validate(car_serie) for car_serie in car_series]
         ),

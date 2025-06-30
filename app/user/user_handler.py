@@ -3,7 +3,7 @@ from uuid import UUID
 from pydantic import EmailStr
 from app.shared import BaseHandler, ExceptionRaiser, HashHelper
 from .user_repository import UserRepository
-from .user_schema import UserCreate, UserUpdate
+from .user_schema import UserCreate, UserUpdate, UserFilters
 from .user_model import User
 from .user_enums import UserRoles, UserStatuses
 
@@ -80,6 +80,18 @@ class UserHandler(BaseHandler):
             )
 
         return user
+
+    async def get_all_users_scroll(
+        self,
+        user_filters: UserFilters,
+        cursor: int | None,
+        take: int | None,
+    ) -> tuple[int | None, list]:
+        return await self.repository.get_all_users_by_scroll(
+            user_filters=user_filters,
+            cursor=cursor,
+            take=take,
+        )
 
     async def get_all_users(
         self,

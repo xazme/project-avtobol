@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
-from fastapi import APIRouter, Path, Body, Depends, status
+from fastapi import APIRouter, Path, Body, Depends, Query, status
 from app.auth import requied_roles
 from app.core.config import settings
-from app.user.user_schema import UserResponse, UserUpdate
+from .user_schema import UserResponse, UserUpdate, UserFilters
 from .user_dependencies import get_user_handler
 from .user_model import User
 from .user_enums import UserRoles
@@ -12,7 +12,10 @@ if TYPE_CHECKING:
     from .user_handler import UserHandler
 
 
-router = APIRouter(prefix=settings.api.user_prefix, tags=["Users"])
+router = APIRouter(
+    prefix=settings.api.user_prefix,
+    tags=["Users"],
+)
 
 
 @router.get(
@@ -51,14 +54,24 @@ async def delete_user_by_id(
     summary="Get all users",
     description="Retrieve a list of all users in the system",
     status_code=status.HTTP_200_OK,
-    response_model=list[UserResponse],
+    response_model=dict[str, int | None | list[UserResponse]],
     dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
 )
 async def get_all_users(
+    cursor: int | None = Query(None, gt=-1),
+    take: int | None = Query(None, gt=0),
+    user_filters: UserFilters = Depends(),
     user_handler: "UserHandler" = Depends(get_user_handler),
-) -> list[UserResponse]:
-    users = await user_handler.get_all_users()
-    return [UserResponse.model_validate(user) for user in users]
+) -> dict[str, int | None | list[UserResponse]]:
+    next_cursor, users = await user_handler.get_all_users_scroll(
+        user_filters=user_filters,
+        take=take,
+        cursor=cursor,
+    )
+    return {
+        "next_cursor": next_cursor,
+        "items": ([UserResponse.model_validate(user) for user in users]),
+    }
 
 
 @router.put(

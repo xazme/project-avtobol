@@ -83,7 +83,7 @@ async def get_all_car_brands(
         take=take,
     )
     return {
-        "next_cursor": next_cursor if car_brands else None,
+        "next_cursor": next_cursor,
         "items": (
             [CarBrandResponse.model_validate(car_brand) for car_brand in car_brands]
         ),
