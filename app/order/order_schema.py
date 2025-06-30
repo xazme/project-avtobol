@@ -11,9 +11,18 @@ class OrderCreate(BaseModel):
     description: str
 
 
+class OrderCreatePrivate(BaseModel):
+    articles: list[str]
+    user_phone: str
+    user_name: str
+    description: str
+
+
 class OrderResponse(BaseModel):
+    id: UUID
     user_id: UUID | None
     product_id: UUID
+    order_group_id: UUID
     user_name: str | None
     user_phone: str | None
     description: str

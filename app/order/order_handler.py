@@ -3,6 +3,7 @@ from uuid import UUID
 from app.shared import BaseHandler, ExceptionRaiser
 from .order_repository import OrderRepository
 from .order_model import Order
+from .order_schema import OrderCreatePrivate
 from .order_enums import OrderStatuses
 
 
@@ -20,6 +21,14 @@ class OrderHandler(BaseHandler):
         return await self.repository.get_all_orders_by_user_id(
             user_id=user_id,
             status=status,
+        )
+
+    async def get_all_orders_by_phone_number(
+        self,
+        phone_number: str,
+    ) -> list[Order]:
+        return await self.repository.get_all_orders_by_phone_number(
+            phone_number=phone_number,
         )
 
     async def change_order_status(

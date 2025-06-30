@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING
 from datetime import datetime
 from sqlalchemy import String, DateTime, ForeignKey, func, Enum as SqlEnum
@@ -31,6 +32,13 @@ class Order(Base):
         ),
         nullable=False,
         index=True,
+    )
+    order_group_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=False,
+        unique=False,
+        index=True,
+        default=uuid.uuid4,
     )
     user_name: Mapped[str] = mapped_column(
         String,

@@ -3,17 +3,21 @@ from uuid import UUID
 from fastapi import APIRouter, Query, Path, Body, Depends, status
 from app.auth import requied_roles
 from app.user import UserRoles
-from app.cart import get_cart_handler
 from app.core import settings
-from .order_schema import OrderCreate, OrderResponseExtended, OrderResponse
+from .order_schema import (
+    OrderCreate,
+    OrderResponseExtended,
+    OrderResponse,
+    OrderCreatePrivate,
+)
 from .order_dependencies import get_order_handler, get_order_orchestrator
 from .order_orchestrator import OrderOrchestrator
+from .order_handler import OrderHandler
 from .order_enums import OrderStatuses
 from .order_helper import convert_data_for_order
 
 if TYPE_CHECKING:
     from app.user import User
-    from app.cart import CartHandler
     from .order_handler import OrderHandler
 
 router = APIRouter(
@@ -30,11 +34,30 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_order(
+    from_cart: bool = Body(False),
     order_data: OrderCreate = Body(...),
     order_orchestrator: OrderOrchestrator = Depends(get_order_orchestrator),
 ) -> list[OrderResponse]:
-    orders = await order_orchestrator.create_order(data=order_data)
-    print(orders)
+    orders = await order_orchestrator.create_order(
+        from_cart=from_cart,
+        data=order_data,
+    )
+    return [OrderResponse.model_validate(order) for order in orders]
+
+
+@router.post(
+    "/private",
+    summary="Create new order worker access.",
+    description="Create a new order from current user's cart items",
+    response_model=list[OrderResponse],
+    dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_order_private(
+    order_data: OrderCreatePrivate = Body(...),
+    order_orchestrator: OrderOrchestrator = Depends(get_order_orchestrator),
+) -> list[OrderResponse]:
+    orders = await order_orchestrator.create_order_manually(data=order_data)
     return [OrderResponse.model_validate(order) for order in orders]
 
 

@@ -40,6 +40,28 @@ class OrderRepository(BaseCRUD):
         result: Result = await self.session.execute(statement=stmt)
         return result.scalars().all()
 
+    async def get_all_orders_by_phone_number(
+        self,
+        phone_number: str,
+    ) -> list[Order]:
+        stmt: Select = (
+            Select(self.model)
+            .where(
+                and_(
+                    self.model.user_phone == phone_number,
+                )
+            )
+            .options(
+                selectinload(self.model.user),
+                selectinload(self.model.product).joinedload(Product.car_brand),
+                selectinload(self.model.product).joinedload(Product.car_series),
+                selectinload(self.model.product).joinedload(Product.car_part),
+            )
+            .order_by(self.model.created_at)
+        )
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalars().all()
+
     async def get_all_orders(
         self,
         page: int,

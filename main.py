@@ -15,7 +15,7 @@ from app.database.db_service import DBService
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
-    await DBService.create_tables()
+    # await DBService.create_tables()
     # await broker.connect()
 
     yield
