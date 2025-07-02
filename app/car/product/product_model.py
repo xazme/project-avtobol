@@ -274,7 +274,7 @@ class Product(Base):
             "user.id",
             onupdate="CASCADE",
         ),
-        nullable=False,
+        nullable=True,
         index=True,
     )
 
@@ -302,4 +302,6 @@ class Product(Base):
         back_populates="product",
         cascade="all, delete-orphan",
     )
-    user: Mapped["User"] = relationship(back_populates="")
+    user: Mapped["User"] = relationship(
+        back_populates="product",
+    )

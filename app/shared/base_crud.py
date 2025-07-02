@@ -89,7 +89,7 @@ class BaseCRUD:
     ) -> list[DeclarativeBase]:
         stmt: Select = (
             Select(self.model)
-            .where(self.model.name.ilike(f"%{query}%"))
+            .where(self.model.name.like(f"{query}%"))
             .limit(limit=page_size)
             .offset((page - 1) * page_size)
         )
@@ -105,7 +105,7 @@ class BaseCRUD:
         cursor = cursor if cursor is not None else 0
         stmt_count: Select = Select(func.count(self.model.id))
         stmt: Select = (
-            Select(self.model).offset(cursor).where(self.model.name.ilike(f"%{query}%"))
+            Select(self.model).offset(cursor).where(self.model.name.like(f"{query}%"))
         )
         if take is not None:
             stmt = stmt.limit(take)

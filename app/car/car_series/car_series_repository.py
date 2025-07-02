@@ -48,7 +48,7 @@ class CarSeriesRepository(BaseCRUD):
             .offset(cursor)
             .where(
                 self.model.car_brand_id == car_brand_id,
-                self.model.name.ilike(f"%{query}%"),
+                self.model.name.like(f"{query}%"),
             )
         )
         if take is not None:

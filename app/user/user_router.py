@@ -116,8 +116,8 @@ async def delete_current_user(
     dependencies=[Depends(requied_roles([UserRoles.ADMIN]))],
 )
 async def change_user_role(
-    role: UserRoles,
-    user_id: UUID,
+    role: UserRoles = Body(...),
+    user_id: UUID = Path(...),
     user_handler: "UserHandler" = Depends(get_user_handler),
 ) -> UserResponse:
     updated_user = await user_handler.change_user_role(user_id=user_id, new_role=role)

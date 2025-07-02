@@ -179,8 +179,11 @@ class ProductResponseExtend(BaseModel):
     pictures: list[str]
 
     car_brand_name: str
+    car_brand_id: UUID | None = None
     car_series_name: str
+    car_series_id: UUID | None = None
     car_part_name: str
+    car_part_id: UUID | None = None
 
     year: int | None
     volume: float | None
@@ -190,6 +193,7 @@ class ProductResponseExtend(BaseModel):
     condition: ProductCondition
 
     # Диск
+    disc_brand_id: UUID | None = None
     disc_diametr: Diametr | None
     disc_width: float | None
     disc_ejection: float | None
@@ -200,6 +204,7 @@ class ProductResponseExtend(BaseModel):
     disc_model: str | None
 
     # Шины
+    tire_brand_id: UUID | None = None
     tire_diametr: Diametr | None
     tire_width: float | None
     tire_height: float | None

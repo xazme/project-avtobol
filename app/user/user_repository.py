@@ -25,6 +25,7 @@ class UserRepository(BaseCRUD):
             return None
         try:
             user.role = new_role
+            await self.session.commit()
             await self.session.refresh(user)
             return user
         except IntegrityError:
@@ -66,11 +67,11 @@ class UserRepository(BaseCRUD):
         filters_list = []
 
         if filters.name:
-            filters_list.append(self.model.name.ilike(f"%{filters.name}%"))
+            filters_list.append(self.model.name.like(f"{filters.name}%"))
 
         if filters.phone_number:
             filters_list.append(
-                self.model.phone_number.ilike(f"%{filters.phone_number}%")
+                self.model.phone_number.like(f"{filters.phone_number}%")
             )
 
         if filters.status:
@@ -84,6 +85,9 @@ class UserRepository(BaseCRUD):
 
         if filters.created_to:
             filters_list.append(self.model.created_at <= filters.created_to)
+
+        if filters.is_verified:
+            filters_list.append(self.model.is_verified == filters.is_verified)
 
         return filters_list
 

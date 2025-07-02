@@ -193,9 +193,9 @@ idriver_car_brands = {
 }
 
 
-def set_integrity_idriver(
+def create_interation_with_brand_idriver(
     car_brand_name: str,
-    car_brand_id: str,
+    avtobol_car_brand_id: str,
 ):
     idriver_id = idriver_car_brands.get(car_brand_name)
 
@@ -203,11 +203,66 @@ def set_integrity_idriver(
         data: dict = json.load(file)
 
     data.update(
-        {car_brand_id: {"idriver_brand_id": idriver_id, "car_brand_series": {}}}
+        {avtobol_car_brand_id: {"idriver_brand_id": idriver_id, "car_brand_series": {}}}
     )
 
     with open("xy.json", "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
 
+    return idriver_id
 
-set_integrity_idriver(car_brand_id="ID", car_brand_name="Минск")
+
+def create_integration_with_series(
+    avtobol_car_brand_id: str,
+    payload: dict,
+):
+    with open("xy.json", "r", encoding="utf-8") as file:
+        data: dict = json.load(file)
+
+    temp: dict = data.get(avtobol_car_brand_id)
+    series: dict = temp.get("car_brand_series")
+    series.update(payload)
+
+    with open("xy.json", "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+
+def get_series_integration_payload(
+    series_name: str | None = None,
+    avtobol_series_id: str | None = None,
+    idriver_brand_id: str | None = None,
+):
+    with open("idk.json", "r", encoding="utf-8") as file:
+        data: dict = json.load(file)
+
+    payload = {}
+    list_of_series = data.get(idriver_brand_id)
+    series_list = list_of_series.get("series")
+
+    payload.update({avtobol_series_id: series_list.get(series_name)})
+
+    return payload
+
+
+# idriver_id_brand = create_interation_with_brand_idriver(
+#     avtobol_car_brand_id="1234",
+#     car_brand_name="Acura",
+# )
+
+# idriver_id_brand_2 = create_interation_with_brand_idriver(
+#     avtobol_car_brand_id="9876",
+#     car_brand_name="Alfa Romeo",
+# )
+
+# data = get_series_integration_payload(
+#     idriver_brand_id=idriver_id_brand,
+#     avtobol_series_id="123456789",
+#     series_name="EL  (1997 - 2000)",
+# )
+
+# create_integration_with_series(
+#     avtobol_car_brand_id="1234",
+#     payload=data,
+# )
+
+string = "bebebe  bebebeb bbbeebebe"

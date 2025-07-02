@@ -57,6 +57,11 @@ def convert_data(
         if is_private:
             data.update(
                 {
+                    "car_brand_id": car_part.car_brand_id,
+                    "car_series_id": car_part.car_series,
+                    "car_part_id": car_part.car_part_id,
+                    "disc_brand_id": car_part.disc_brand_id,
+                    "tire_brand_id": car_part.tire_brand_id,
                     "note": car_part.note,
                     "is_available": car_part.is_available,
                     "is_printed": car_part.is_printed,

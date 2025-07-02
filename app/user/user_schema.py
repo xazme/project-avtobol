@@ -24,12 +24,14 @@ class UserFilters(BaseModel):
     role: UserRoles | None = None
     created_from: datetime | None = None
     created_to: datetime | None = None
+    is_verified: bool | None = None
 
 
 class UserResponse(UserBase):
     id: UUID
     status: UserStatuses
     role: UserRoles
+    is_verified: bool
 
     class Config:
         from_attributes = True

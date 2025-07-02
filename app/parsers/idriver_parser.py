@@ -281,20 +281,18 @@ async def main():
         soup = BeautifulSoup(markup=html_doc, features="lxml")
         all_serieses = soup.find_all(name="li")
 
-        series = []
+        series = {}
 
         for item in all_serieses:
             series_name = item.text
             series_id = item.get("data-id")
 
             series_data = {
-                "idriver_series_id": series_id,
-                "series_name": series_name,
+                series_name: series_id,
             }
-            series.append(series_data)
+            series.update(series_data)
 
         brands_data[idriver_brand_id] = {
-            "idriver_brand_id": idriver_brand_id,
             "series": series,
         }
 

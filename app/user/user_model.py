@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from datetime import datetime
 from sqlalchemy import func
-from sqlalchemy import String, DateTime, Enum as SqlEnum
+from sqlalchemy import String, Boolean, DateTime, Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 from .user_enums import UserRoles, UserStatuses
@@ -28,7 +28,7 @@ class User(Base):
     )
     password: Mapped[str] = mapped_column(
         String,
-        nullable=False,
+        nullable=True,
         unique=False,
     )
     created_at: Mapped[datetime] = mapped_column(
@@ -45,6 +45,10 @@ class User(Base):
         SqlEnum(UserRoles),
         nullable=False,
         default=UserRoles.CLIENT,
+    )
+    is_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
     )
 
     # relationships

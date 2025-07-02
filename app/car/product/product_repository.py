@@ -103,7 +103,7 @@ class ProductRepository(BaseCRUD):
 
         # Основные
         if filters.article:
-            filters_list.append(self.model.article == filters.article)
+            filters_list.append(self.model.article.like(f"{filters.article}%"))
         if filters.car_brand_id:
             filters_list.append(self.model.car_brand_id == filters.car_brand_id)
         if filters.car_series_id:
@@ -147,7 +147,7 @@ class ProductRepository(BaseCRUD):
         if filters.disc_brand_id:
             filters_list.append(self.model.disc_brand_id == filters.disc_brand_id)
         if filters.disc_model:
-            filters_list.append(self.model.disc_model.ilike(f"%{filters.disc_model}%"))
+            filters_list.append(self.model.disc_model.like(f"{filters.disc_model}%"))
 
         # Шины
         if filters.tires_diametr:
@@ -163,7 +163,7 @@ class ProductRepository(BaseCRUD):
         if filters.tires_brand_id:
             filters_list.append(self.model.tire_brand_id == filters.tires_brand_id)
         if filters.tires_model:
-            filters_list.append(self.model.tire_model.ilike(f"%{filters.tires_model}%"))
+            filters_list.append(self.model.tire_model.like(f"{filters.tires_model}%"))
         if filters.tires_season:
             filters_list.append(self.model.tire_season == filters.tires_season)
         if filters.tires_residue_from:
