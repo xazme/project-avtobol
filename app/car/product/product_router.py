@@ -1,19 +1,22 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Annotated
 from uuid import UUID
-from fastapi import APIRouter, Depends, status, File, UploadFile, Query
+from fastapi import APIRouter, Body, Depends, status, Query, Path, UploadFile, File
+from app.auth import requied_roles
+from app.user import UserRoles
 from app.core import settings
-from app.car.car_series import get_car_series_handler
 from .product_schema import (
     ProductCreate,
-    ProductResponse,
     ProductUpdate,
     ProductFilters,
+    ProductFiltersExtended,
+    ProductResponse,
+    ProductResponseExtend,
 )
 from .product_dependencies import get_product_handler
-from .product_helper import convert_data_for_product, convert_data_for_list_of_products
+from .product_helper import convert_data
 
 if TYPE_CHECKING:
-    from app.car.car_series import CarSeriesHandler
+    from app.user import User
     from .product_handler import ProductHandler
 
 router = APIRouter(
@@ -22,114 +25,101 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/",
-    summary="Create new product",
-    description="Add a new product to the catalog with images",
-    response_model=ProductResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_product(
-    product_data: ProductCreate = Depends(),
-    product_pictures: list[UploadFile] = File(
-        ...,
-        description="Brand logo image file",
-        media_type="image/jpeg,image/png",
-    ),
-    series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-    product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
-    await series_handler.check_relation(
-        car_brand_id=product_data.car_brand_id,
-        car_series_id=product_data.car_series_id,
-    )
-    product = await product_handler.create_product(
-        data=product_data,
-        files=product_pictures,
-    )
-    return convert_data_for_product(car_part=product)
-
-
 @router.get(
-    "/{product_id}",
-    summary="Get product by ID",
-    description="Retrieve detailed information about a specific product",
-    response_model=ProductResponse,
+    "/private",
+    summary="Get filtered products (private)",
+    description="Retrieve paginated list of products with filtering options in private mode",
+    response_model=dict[str, int | None | list[ProductResponseExtend]],
     status_code=status.HTTP_200_OK,
+    dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
 )
-async def get_product(
-    product_id: UUID,
+async def get_all_products_private(
+    cursor: int | None = Query(None, gt=-1),
+    take: int | None = Query(None, gt=0),
+    filters: ProductFiltersExtended = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
-    product = await product_handler.get_product_by_id(product_id=product_id)
-    return convert_data_for_product(car_part=product)
+) -> dict[str, int | None | list[ProductResponseExtend]]:
+    next_cursor, total_count, products = (
+        await product_handler.get_all_products_by_scroll(
+            is_private=True,
+            cursor=cursor,
+            take=take,
+            filters=filters,
+        )
+    )
+
+    return {
+        "next_cursor": next_cursor,
+        "total_count": total_count,
+        "items": convert_data(product_data=products, is_private=True),
+    }
 
 
 @router.get(
-    "/",
-    summary="Get filtered products",
+    "/public",
+    summary="Get filtered products. Public mode",
     description="Retrieve paginated list of products with filtering options",
-    response_model=list[ProductResponse],
+    response_model=dict[str, Any],
     status_code=status.HTTP_200_OK,
 )
-async def get_all_products(
-    page: int = Query(1, gt=0, description="Page number starting from 1"),
-    page_size: int = Query(10, gt=0, le=100, description="Items per page (max 100)"),
+async def get_all_products_public(
+    page: int = Query(1, gt=0),
+    page_size: int = Query(10, gt=0, le=10000),
     filters: ProductFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> list[ProductResponse]:
-    products = await product_handler.get_all_products(
+) -> dict[str, Any]:
+    total_count, products = await product_handler.get_all_products(
+        is_private=False,
         page=page,
         page_size=page_size,
         filters=filters,
     )
-    return convert_data_for_list_of_products(list_of_car_parts=products)
-
-
-@router.put(
-    "/{product_id}",
-    summary="Update product",
-    description="Modify existing product information and images",
-    response_model=ProductResponse,
-    status_code=status.HTTP_200_OK,
-)
-async def update_product(
-    product_id: UUID,
-    new_product_data: ProductUpdate = Depends(),
-    new_product_pictures: list[UploadFile] | None = File(
-        None, description="New product images (optional)"
-    ),
-    series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
-    product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
-    await series_handler.check_relation(
-        car_brand_id=new_product_data.car_brand_id,
-        car_series_id=new_product_data.car_series_id,
-    )
-    updated_product = await product_handler.update_product(
-        id=product_id,
-        data=new_product_data,
-        files=new_product_pictures,
-    )
-    return convert_data_for_product(car_part=update_product)
+    return {
+        "total_count": total_count,
+        "items": convert_data(product_data=products),
+    }
 
 
 @router.patch(
-    "/{product_id}/availability",
+    "/toggle_availible_status",
     summary="Update product availability",
     description="Mark product as available or sold out",
-    response_model=ProductResponse,
+    response_model=dict[str, str],
     status_code=status.HTTP_200_OK,
 )
-async def update_product_availability(
-    product_id: UUID,
-    is_available: bool = False,
+async def update_products_availability(
+    products_id: list[UUID] = Body(...),
+    is_available: bool = Body(False),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponse:
-    updated_product = await product_handler.change_availability(
-        product_id=product_id, new_status=is_available
+) -> dict[str, str]:
+    await product_handler.bulk_change_availability(
+        products_id=products_id,
+        new_status=is_available,
     )
-    return convert_data_for_product(car_part=updated_product)
+    return {
+        "message": f"Успешно обновленны статусы для {products_id} на значение {is_available}."
+    }
+
+
+@router.patch(
+    "/toggle_printed_status",
+    summary="Update product printed status",
+    description="Mark product as printed or not",
+    response_model=dict[str, str],
+    status_code=status.HTTP_200_OK,
+)
+async def update_product_printed_status(
+    products_id: list[UUID] = Body(...),
+    is_printed: bool = Body(True),
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+) -> dict[str, str]:
+    await product_handler.bulk_change_printed_status(
+        products_id=products_id,
+        status=is_printed,
+    )
+    return {
+        "message": f"Успешно обновленны статусы для {products_id} на значение {is_printed}."
+    }
 
 
 @router.delete(
@@ -137,10 +127,86 @@ async def update_product_availability(
     summary="Delete product",
     description="Remove product from catalog",
     response_model=None,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_product(
-    product_id: UUID,
+    product_id: UUID = Path(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> dict[str, str]:
+) -> None:
     await product_handler.delete_product(product_id=product_id)
+
+
+@router.post(
+    "/",
+    summary="Create new product",
+    description="Add a new product to the catalog",
+    response_model=ProductResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_product(
+    product_pictures: list[UploadFile] = File(...),
+    product_data: ProductCreate = Body(...),
+    user: "User" = Depends(requied_roles(allowed_roles=[UserRoles.WORKER])),
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+) -> ProductResponse:
+    product = await product_handler.create_product(
+        user_id=user.id,
+        product_data=product_data,
+        files=product_pictures,
+    )
+    return ProductResponse.model_validate(product)
+
+
+@router.put(
+    "/{product_id}",
+    summary="Update product",
+    description="Modify existing product information",
+    response_model=ProductResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def update_product(
+    product_id: UUID = Path(...),
+    new_product_data: ProductUpdate = Body(...),
+    new_product_pictures: list[UploadFile] | None = File(None),
+    user: "User" = Depends(requied_roles(allowed_roles=[UserRoles.WORKER])),
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+) -> ProductResponse:
+
+    product = await product_handler.update_product(
+        user_id=user.id,
+        product_id=product_id,
+        product_data=new_product_data,
+        files=new_product_pictures,
+    )
+
+    return ProductResponse.model_validate(product)
+
+
+@router.get(
+    "/{product_id}",
+    summary="Get product by ID",
+    description="Retrieve detailed information about a specific product",
+    response_model=ProductResponseExtend,
+    status_code=status.HTTP_200_OK,
+)
+async def get_product(
+    product_id: UUID = Path(...),
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+) -> ProductResponseExtend:
+    product = await product_handler.get_product_by_id(product_id=product_id)
+    return convert_data(product_data=product)
+
+
+@router.get(
+    "/article/{article}",
+    summary="Get product by article",
+    description="Retrieve detailed information about a specific product",
+    response_model=ProductResponseExtend,
+    status_code=status.HTTP_200_OK,
+)
+async def get_product_by_article(
+    article: str = Path(...),
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+) -> ProductResponseExtend:
+    product = await product_handler.get_product_by_article(article=article)
+    return convert_data(product_data=product)

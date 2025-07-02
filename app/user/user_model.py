@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from datetime import datetime
 from sqlalchemy import func
-from sqlalchemy import String, DateTime, Enum as SqlEnum
+from sqlalchemy import String, Boolean, DateTime, Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 from .user_enums import UserRoles, UserStatuses
@@ -10,19 +10,14 @@ if TYPE_CHECKING:
     from app.token import Token
     from app.cart import Cart
     from app.order import Order
+    from app.car.product import Product
 
 
 class User(Base):
     name: Mapped[str] = mapped_column(
         String,
         nullable=False,
-        unique=True,
-        index=True,
-    )
-    email: Mapped[str] = mapped_column(
-        String,
-        nullable=False,
-        unique=True,
+        unique=False,
         index=True,
     )
     phone_number: Mapped[str] = mapped_column(
@@ -33,7 +28,7 @@ class User(Base):
     )
     password: Mapped[str] = mapped_column(
         String,
-        nullable=False,
+        nullable=True,
         unique=False,
     )
     created_at: Mapped[datetime] = mapped_column(
@@ -51,6 +46,10 @@ class User(Base):
         nullable=False,
         default=UserRoles.CLIENT,
     )
+    is_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+    )
 
     # relationships
     token: Mapped["Token"] = relationship(
@@ -64,4 +63,7 @@ class User(Base):
     order: Mapped[list["Order"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    product: Mapped[list["Product"]] = relationship(
+        back_populates="user",
     )

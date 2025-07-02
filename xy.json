@@ -1,0 +1,12 @@
+{
+    "1234": {
+        "idriver_brand_id": "1",
+        "car_brand_series": {
+            "123456789": "416331"
+        }
+    },
+    "9876": {
+        "idriver_brand_id": "3",
+        "car_brand_series": {}
+    }
+}

@@ -14,17 +14,34 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from .product_enums import ProductCondition, FuelType, BodyType, GearboxType
+from app.shared import Diametr, generate_article
+from app.car.tire import Season, CarType
+from .product_enums import (
+    ProductCondition,
+    FuelType,
+    BodyType,
+    GearboxType,
+    Availability,
+    Currency,
+)
 
 if TYPE_CHECKING:
+    from app.car.tire import TireBrand
+    from app.car.disc import DiscBrand
     from app.car.car_brand import CarBrand
     from app.car.car_series import CarSeries
-    from app.car.car_part_catalog import CarPartCatalog
+    from app.car.car_part_catalog import CarPart
     from app.cart import Cart
-    from app.order import Order
+    from app.user import User
 
 
 class Product(Base):
+    article: Mapped[String] = mapped_column(
+        String,
+        nullable=False,
+        index=True,
+        default=generate_article,
+    )
     car_brand_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(
@@ -48,78 +65,188 @@ class Product(Base):
     car_part_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(
-            "carpartcatalog.id",
+            "carpart.id",
             ondelete="CASCADE",
             onupdate="CASCADE",
         ),
         nullable=False,
         index=True,
     )
-    pictures: Mapped[list] = mapped_column(
+
+    # Шины и диски (бренды)
+    tire_brand_id: Mapped[UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "tirebrand.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        nullable=True,
+        index=True,
+    )
+    disc_brand_id: Mapped[UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "discbrand.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        nullable=True,
+        index=True,
+    )
+
+    # Фото
+    pictures: Mapped[list[str]] = mapped_column(
         ARRAY(String),
         nullable=False,
-        unique=False,
     )
+
+    # Статусы
     is_available: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
         default=True,
     )
+    is_printed: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    # Общие характеристики
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
         server_default=func.now(),
     )
-    year: Mapped[int] = mapped_column(
-        Integer,
+    OEM: Mapped[str | None] = mapped_column(
+        String,
         nullable=True,
     )
-    type_of_body: Mapped[SqlEnum] = mapped_column(
+    year: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=1885,
+    )
+    type_of_body: Mapped[BodyType | None] = mapped_column(
         SqlEnum(BodyType),
         nullable=True,
-        default=None,
     )
     volume: Mapped[float] = mapped_column(
         Float,
-        nullable=True,
-    )
-    gearbox: Mapped[SqlEnum] = mapped_column(
-        SqlEnum(GearboxType),
-        nullable=True,
-        default=None,
-    )
-    fuel: Mapped[SqlEnum] = mapped_column(
-        SqlEnum(FuelType),
-        nullable=True,
-        default=None,
-    )
-    # TODO убрать
-    type_of_engine: Mapped[str] = mapped_column(
-        String,
-        nullable=True,
-    )
-    VIN: Mapped[int] = mapped_column(
-        Integer,
-        nullable=True,
-    )
-    oem: Mapped[int] = mapped_column(
-        Integer,
-        nullable=True,
-    )
-    note: Mapped[str] = mapped_column(
-        String,
-        nullable=True,
-    )
-    description: Mapped[str] = mapped_column(
-        String,
-        nullable=True,
-    )
-    real_price: Mapped[float] = mapped_column(
-        Float,
         nullable=False,
     )
-    fake_price: Mapped[float] = mapped_column(
+    gearbox: Mapped[GearboxType | None] = mapped_column(
+        SqlEnum(GearboxType),
+        nullable=True,
+    )
+    fuel: Mapped[FuelType | None] = mapped_column(
+        SqlEnum(FuelType),
+        nullable=True,
+    )
+    engine_type: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+    )
+    VIN: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+    )
+
+    # Диск
+    disc_diametr: Mapped[Diametr | None] = mapped_column(
+        SqlEnum(Diametr),
+        nullable=True,
+    )
+    disc_width: Mapped[float | None] = mapped_column(
         Float,
+        nullable=True,
+    )
+    disc_ejection: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+    disc_dia: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+    disc_holes: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    disc_pcd: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+    disc_model: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+    )
+
+    # Шины
+    tire_diametr: Mapped[Diametr | None] = mapped_column(
+        SqlEnum(Diametr),
+        nullable=True,
+    )
+    tire_width: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+    tire_height: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+    tire_index: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+    )
+    tire_car_type: Mapped[CarType | None] = mapped_column(
+        SqlEnum(CarType),
+        nullable=True,
+    )
+    tire_model: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+    )
+    tire_season: Mapped[Season | None] = mapped_column(
+        SqlEnum(Season),
+        nullable=True,
+    )
+    tire_residue: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+
+    # Основное
+    description: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+    )
+    price: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+    discount: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+    currency: Mapped[Currency] = mapped_column(
+        SqlEnum(Currency),
+        nullable=False,
+        default=Currency.USD,
+    )
+    condition: Mapped[ProductCondition] = mapped_column(
+        SqlEnum(ProductCondition),
+        nullable=False,
+        default=ProductCondition.USED,
+    )
+    availability: Mapped[Availability] = mapped_column(
+        SqlEnum(Availability),
+        nullable=False,
+        default=Availability.IN_STOCK,
+    )
+    note: Mapped[str | None] = mapped_column(
+        String,
         nullable=True,
     )
     count: Mapped[int] = mapped_column(
@@ -127,9 +254,27 @@ class Product(Base):
         nullable=False,
         default=1,
     )
-    condition: Mapped[SqlEnum] = mapped_column(
-        SqlEnum(ProductCondition),
-        nullable=False,
+
+    idriver_id: Mapped[str] = mapped_column(
+        String,
+        index=True,
+        nullable=True,
+    )
+
+    allegro_id: Mapped[str] = mapped_column(
+        String,
+        index=True,
+        nullable=True,
+    )
+
+    post_by: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "user.id",
+            onupdate="CASCADE",
+        ),
+        nullable=True,
+        index=True,
     )
 
     # relationships
@@ -139,14 +284,19 @@ class Product(Base):
     car_series: Mapped["CarSeries"] = relationship(
         back_populates="product",
     )
-    car_part: Mapped["CarPartCatalog"] = relationship(
+    car_part: Mapped["CarPart"] = relationship(
+        back_populates="product",
+    )
+    tire_brand: Mapped["TireBrand"] = relationship(
+        back_populates="product",
+    )
+    disc_brand: Mapped["DiscBrand"] = relationship(
         back_populates="product",
     )
     cart: Mapped[list["Cart"]] = relationship(
         back_populates="product",
         cascade="all, delete-orphan",
     )
-    order: Mapped[list["Order"]] = relationship(
+    user: Mapped["User"] = relationship(
         back_populates="product",
-        cascade="all, delete-orphan",
     )
