@@ -32,7 +32,6 @@ if TYPE_CHECKING:
     from app.car.car_series import CarSeries
     from app.car.car_part_catalog import CarPart
     from app.cart import Cart
-    from app.order import Order
     from app.user import User
 
 
@@ -295,10 +294,6 @@ class Product(Base):
         back_populates="product",
     )
     cart: Mapped[list["Cart"]] = relationship(
-        back_populates="product",
-        cascade="all, delete-orphan",
-    )
-    order: Mapped[list["Order"]] = relationship(
         back_populates="product",
         cascade="all, delete-orphan",
     )

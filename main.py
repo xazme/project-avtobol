@@ -6,7 +6,6 @@ from app.auth import auth_router
 from app.token import token_router
 from app.car import car_router
 from app.cart import cart_router
-from app.order import order_router
 from app.core.config import settings
 from app.storage import s3_router
 from app.database.db_service import DBService
@@ -32,7 +31,6 @@ fastapi_app.include_router(auth_router)
 fastapi_app.include_router(car_router)
 fastapi_app.include_router(user_router)
 fastapi_app.include_router(cart_router)
-fastapi_app.include_router(order_router)
 fastapi_app.include_router(token_router)
 fastapi_app.include_router(s3_router)
 
