@@ -1,6 +1,5 @@
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.schema import MetaData
 from sqlalchemy.orm import (
     DeclarativeBase,
     declared_attr,

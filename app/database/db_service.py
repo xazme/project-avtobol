@@ -44,6 +44,9 @@ class DBService:
         """Create Tables"""
 
         async with cls.engine.begin() as con:
+
+            print(Base.metadata.tables.keys())
+
             await con.run_sync(Base.metadata.create_all)
 
     @classmethod

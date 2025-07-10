@@ -1,77 +1,58 @@
 from .product_model import Product
 from .product_schema import ProductResponseExtend
+from ..tire.tire import TireResponse
+from ..disc.disc import DiscResponse
+from ..engine import EngineResponse
 
 
 def convert_data(
     product_data: Product | list[Product],
     is_private: bool = False,
 ) -> ProductResponseExtend | list[ProductResponseExtend]:
-
-    def _convert(car_part: Product) -> ProductResponseExtend:
+    def _convert(product: Product) -> ProductResponseExtend:
         data = {
-            "article": car_part.article,
-            "id": car_part.id,
-            "OEM": car_part.OEM,
-            "VIN": car_part.VIN,
-            "pictures": car_part.pictures,
-            "car_brand_name": car_part.car_brand.name,
-            "car_series_name": car_part.car_series.name,
-            "car_part_name": car_part.car_part.name,
-            "year": car_part.year,
-            "volume": car_part.volume,
-            "gearbox": car_part.gearbox,
-            "fuel": car_part.fuel,
-            "type_of_body": car_part.type_of_body,
-            "condition": car_part.condition,
-            "description": car_part.description,
-            "price": car_part.price,
-            "discount": car_part.discount,
-            "currency": car_part.currency,
-            "availability": car_part.availability,
-            "count": car_part.count,
-            # Диски
-            "disc_diametr": car_part.disc_diametr,
-            "disc_width": car_part.disc_width,
-            "disc_ejection": car_part.disc_ejection,
-            "disc_dia": car_part.disc_dia,
-            "disc_holes": car_part.disc_holes,
-            "disc_pcd": car_part.disc_pcd,
-            "disc_brand_name": (
-                car_part.disc_brand.name if car_part.disc_brand else None
+            "id": product.id,
+            "article": product.article,
+            "OEM": product.OEM,
+            "VIN": product.VIN,
+            "pictures": product.pictures,
+            "car_brand_id": product.car_brand_id if is_private else None,
+            "car_brand_name": product.car_brand.name,
+            "car_series_id": product.car_series_id if is_private else None,
+            "car_series_name": product.car_series.name,
+            "car_part_id": product.car_part_id if is_private else None,
+            "car_part_name": product.car_part.name,
+            "year": product.year,
+            "type_of_body": product.type_of_body,
+            "condition": product.condition,
+            "description": product.description,
+            "price": product.price,
+            "discount": product.discount,
+            "currency": product.currency,
+            "availability": product.availability,
+            "count": product.count,
+            "engine": (
+                EngineResponse.model_validate(product.engine)
+                if product.engine
+                else None
             ),
-            "disc_model": car_part.disc_model,
-            # Шины
-            "tire_diametr": car_part.tire_diametr,
-            "tire_width": car_part.tire_width,
-            "tire_height": car_part.tire_height,
-            "tire_index": car_part.tire_index,
-            "tire_car_type": car_part.tire_car_type,
-            "tire_brand_name": (
-                car_part.tire_brand.name if car_part.tire_brand else None
-            ),
-            "tire_model": car_part.tire_model,
-            "tire_season": car_part.tire_season,
-            "tire_residue": car_part.tire_residue,
+            "disc": DiscResponse.model_validate(product.disc) if product.disc else None,
+            "tire": TireResponse.model_validate(product.tire) if product.tire else None,
         }
 
         if is_private:
             data.update(
                 {
-                    "car_brand_id": car_part.car_brand_id,
-                    "car_series_id": car_part.car_series,
-                    "car_part_id": car_part.car_part_id,
-                    "disc_brand_id": car_part.disc_brand_id,
-                    "tire_brand_id": car_part.tire_brand_id,
-                    "note": car_part.note,
-                    "is_available": car_part.is_available,
-                    "is_printed": car_part.is_printed,
-                    "created_at": car_part.created_at,
-                    "post_by": car_part.post_by,
+                    "note": product.note,
+                    "is_available": product.is_available,
+                    "is_printed": product.is_printed,
+                    "created_at": product.created_at,
+                    "post_by": product.post_by,
                 }
             )
 
         return ProductResponseExtend(**data)
 
     if isinstance(product_data, list):
-        return [_convert(car_part) for car_part in product_data]
+        return [_convert(prod) for prod in product_data]
     return _convert(product_data)

@@ -36,29 +36,6 @@ class UserHandler(BaseHandler):
 
         return user
 
-    async def create_user_without_password(
-        self,
-        data: UserCreate,
-    ) -> Optional[User]:
-        new_data = data.model_copy(
-            update={
-                "password": None,
-                "role": UserRoles.CLIENT,
-                "status": UserStatuses.ACTIVE,
-                "is_verified": False,
-            }
-        )
-        data = new_data.model_dump(exclude_unset=True)
-
-        user = await self.repository.create(data=data)
-        if not user:
-            ExceptionRaiser.raise_exception(
-                status_code=400,
-                detail="Неудалось создать пользователя.",
-            )
-
-        return user
-
     async def delete_user(
         self,
         user_id: UUID,
@@ -148,7 +125,7 @@ class UserHandler(BaseHandler):
 
     async def get_user_by_phone_number(
         self,
-        phone_number: EmailStr,
+        phone_number: str,
     ) -> User:
         user = await self.repository.get_user_by_phone_number(phone_number=phone_number)
         if not user:

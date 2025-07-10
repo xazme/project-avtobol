@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Optional
 from fastapi import Depends, Response
 from fastapi.security.http import HTTPAuthorizationCredentials
 from app.user import UserCreate
-from app.token import TokenType, TokenHandler, get_access_token, get_refresh_token
+from app.token import TokenType, get_access_token, get_refresh_token
 from app.shared import HashHelper, ExceptionRaiser
 from app.core import settings
 
@@ -14,9 +14,13 @@ if TYPE_CHECKING:
 
 class AuthHandler:
 
-    def __init__(self, user_handler: "UserHandler", token_handler: "TokenHandler"):
-        self.user_handler: UserHandler = user_handler
-        self.token_handler: TokenHandler = token_handler
+    def __init__(
+        self,
+        user_handler: "UserHandler",
+        token_handler: "TokenHandler",
+    ):
+        self.user_handler: "UserHandler" = user_handler
+        self.token_handler: "TokenHandler" = token_handler
 
     async def sign_in(
         self,
@@ -26,11 +30,6 @@ class AuthHandler:
         user: "User" | None = await self.user_handler.get_user_by_phone_number(
             phone_number=phone_number,
         )
-        if not user:
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="Такого пользователя не существует.",
-            )
 
         result: bool = HashHelper.check_password(
             password=password, hashed_password=user.password
@@ -55,7 +54,7 @@ class AuthHandler:
         if not result:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="Неудалось выйти из системы. Пользователя либо не существует, либо не существует токена",
+                detail="Неудалось выйти из системы.",
             )
         response.delete_cookie(
             key=refresh_token_key,
@@ -90,11 +89,6 @@ class AuthHandler:
             )
 
         user: "User" | None = await self.user_handler.get_user_by_id(user_id=user_id)
-        if not user:
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="Пользоватеь не найден.",
-            )
 
         return user
 
@@ -130,11 +124,6 @@ class AuthHandler:
             )
 
         user: "User" | None = await self.user_handler.get_user_by_id(user_id=user_id)
-        if not user:
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="Пользователь не найден.",
-            )
 
         return user
 

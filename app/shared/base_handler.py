@@ -16,9 +16,10 @@ class BaseHandler:
 
     async def create_obj(
         self,
-        data: BaseModel,
+        data: BaseModel | dict,
     ) -> Optional[DeclarativeBase]:
-        data = data.model_dump(exclude_unset=True)
+        if isinstance(data, BaseModel):
+            data = data.model_dump(exclude_unset=True)
         obj = await self.repository.create(
             data=data,
         )
@@ -32,9 +33,10 @@ class BaseHandler:
     async def update_obj(
         self,
         id: UUID,
-        data: BaseModel,
+        data: BaseModel | dict,
     ) -> Optional[DeclarativeBase]:
-        data = data.model_dump(exclude_unset=True)
+        if isinstance(data, BaseModel):
+            data = data.model_dump(exclude_unset=True)
         updated_obj = await self.repository.update_by_id(
             id=id,
             data=data,

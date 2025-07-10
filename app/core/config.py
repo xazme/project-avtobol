@@ -34,11 +34,11 @@ class DataFromEnv:
 class DataBaseConnection:
     """DataBase data"""
 
-    # host: str = DataFromEnv.DB_HOST
-    # port: int = DataFromEnv.DB_PORT
-    # user: str = DataFromEnv.DB_USER
-    # password: str = DataFromEnv.DB_PASS
-    # name: str = DataFromEnv.DB_NAME
+    host: str = DataFromEnv.DB_HOST
+    port: int = DataFromEnv.DB_PORT
+    user: str = DataFromEnv.DB_USER
+    password: str = DataFromEnv.DB_PASS
+    name: str = DataFromEnv.DB_NAME
 
     db_url = DataFromEnv.DB_URL
 
@@ -52,8 +52,8 @@ class DataBaseConnection:
 
     @classmethod
     def get_db_url(cls):
-        # return f"postgresql+asyncpg://{cls.user}:{cls.password}@{cls.host}:{cls.port}/{cls.name}"
-        return cls.db_url
+        return f"postgresql+asyncpg://{cls.user}:{cls.password}@{cls.host}:{cls.port}/{cls.name}"
+        # return cls.db_url
 
 
 class MinIO(BaseModel):
@@ -125,8 +125,8 @@ class ApiPrefix(BaseModel):
     product: str = "/product"
     car_part_prefix: str = "/carpart"
     token_prefix: str = "/token"
-    disc_prefix: str = "/discbrand"
-    tires_prefix: str = "/tirebrand"
+    disc_brand_prefix: str = "/discbrand"
+    tire_brand_prefix: str = "/tirebrand"
     storage_prefix: str = "/storage"
     cart_prefix: str = "/cart"
     order_prefix: str = "/order"

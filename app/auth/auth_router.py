@@ -7,10 +7,10 @@ from app.user.user_enums import UserRoles
 from .auth_schema import AuthCredentials
 from .auth_dependencies import (
     AuthHandler,
-    requied_roles,
     get_auth_handler,
     get_user_from_refresh_token,
 )
+from .auth_guard import required_roles
 
 if TYPE_CHECKING:
     from app.user import User
@@ -100,7 +100,7 @@ async def refresh_access_token(
 async def sign_out(
     response: Response,
     user: "User" = Depends(
-        requied_roles(
+        required_roles(
             allowed_roles=[UserRoles.ADMIN, UserRoles.CLIENT, UserRoles.WORKER]
         )
     ),

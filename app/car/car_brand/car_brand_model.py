@@ -24,7 +24,6 @@ class CarBrand(Base):
         cascade="all, delete-orphan",
     )
 
-    product: Mapped[list["Product"]] = relationship(
+    products: Mapped[list["Product"]] = relationship(
         back_populates="car_brand",
-        cascade="all,delete-orphan",
     )

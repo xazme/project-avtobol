@@ -10,10 +10,10 @@ from .user_schema import UserFilters
 
 class UserRepository(BaseCRUD):
 
-    def __init__(self, session: AsyncSession, model: type[User]):
+    def __init__(self, session: AsyncSession, model: User):
         super().__init__(session=session, model=model)
         self.session: AsyncSession = session
-        self.model: type[User] = model
+        self.model: User = model
 
     async def change_user_role(
         self,

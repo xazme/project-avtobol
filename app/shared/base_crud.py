@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class BaseCRUD:
     """CRUD GENERATOR"""
 
-    def __init__(self, session: AsyncSession, model: type[DeclarativeBase]):
+    def __init__(self, session: AsyncSession, model: DeclarativeBase):
         self.session: AsyncSession = session
-        self.model: type[DeclarativeBase] = model
+        self.model: DeclarativeBase = model
 
     async def create(
         self,
@@ -23,6 +23,7 @@ class BaseCRUD:
             await self.session.refresh(obj)
             return obj
         except IntegrityError as e:
+            print(e)
             await self.session.rollback()
             return None
 

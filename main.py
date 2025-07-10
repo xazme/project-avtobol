@@ -1,8 +1,8 @@
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.user import user_router
 from app.auth import auth_router
+from app.user import user_router
 from app.token import token_router
 from app.car import car_router
 from app.cart import cart_router

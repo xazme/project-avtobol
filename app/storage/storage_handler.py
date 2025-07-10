@@ -46,7 +46,7 @@ class StorageHandler:
         try:
             file_bytes = await self._convert_to_webp(file=file)
             filename = self._generate_name() + ".webp"
-
+            print("123")
             async with self.get_client() as client:
                 await client.put_object(
                     Bucket=self.bucket_name,

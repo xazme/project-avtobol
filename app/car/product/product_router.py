@@ -1,9 +1,12 @@
 from typing import TYPE_CHECKING, Any, Annotated
 from uuid import UUID
 from fastapi import APIRouter, Body, Depends, status, Query, Path, UploadFile, File
-from app.auth import requied_roles
-from app.user import UserRoles
+from app.auth.auth_guard import required_roles
+from app.user.user_enums import UserRoles
 from app.core import settings
+from ..tire.tire import TireFilters
+from ..disc.disc import DiscFilters
+from ..engine import EngineFilters
 from .product_schema import (
     ProductCreate,
     ProductUpdate,
@@ -12,12 +15,14 @@ from .product_schema import (
     ProductResponse,
     ProductResponseExtend,
 )
-from .product_dependencies import get_product_handler
+from .product_handler import ProductHandler
+from .product_orchestrator import ProductOrchestrator
+from .product_dependencies import get_product_handler, get_product_orchestrator
 from .product_helper import convert_data
 
 if TYPE_CHECKING:
     from app.user import User
-    from .product_handler import ProductHandler
+
 
 router = APIRouter(
     prefix=settings.api.product,
@@ -31,7 +36,7 @@ router = APIRouter(
     description="Retrieve paginated list of products with filtering options in private mode",
     response_model=dict[str, int | None | list[ProductResponseExtend]],
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(requied_roles([UserRoles.WORKER]))],
+    dependencies=[Depends(required_roles([UserRoles.WORKER]))],
 )
 async def get_all_products_private(
     cursor: int | None = Query(None, gt=-1),
@@ -65,15 +70,22 @@ async def get_all_products_private(
 async def get_all_products_public(
     page: int = Query(1, gt=0),
     page_size: int = Query(10, gt=0, le=10000),
-    filters: ProductFilters = Depends(),
+    main_filters: ProductFilters = Depends(),
+    tire_filters: TireFilters = Depends(),
+    disc_filters: DiscFilters = Depends(),
+    engine_filters: EngineFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> dict[str, Any]:
     total_count, products = await product_handler.get_all_products(
-        is_private=False,
         page=page,
         page_size=page_size,
-        filters=filters,
+        main_filters=main_filters,
+        tire_filters=tire_filters,
+        disc_filters=disc_filters,
+        engine_filters=engine_filters,
+        is_private=False,
     )
+
     return {
         "total_count": total_count,
         "items": convert_data(product_data=products),
@@ -131,9 +143,9 @@ async def update_product_printed_status(
 )
 async def delete_product(
     product_id: UUID = Path(...),
-    product_handler: "ProductHandler" = Depends(get_product_handler),
+    product_orchestrator: ProductOrchestrator = Depends(get_product_orchestrator),
 ) -> None:
-    await product_handler.delete_product(product_id=product_id)
+    await product_orchestrator.delete_product(product_id=product_id)
 
 
 @router.post(
@@ -146,10 +158,10 @@ async def delete_product(
 async def create_product(
     product_pictures: list[UploadFile] = File(...),
     product_data: ProductCreate = Body(...),
-    user: "User" = Depends(requied_roles(allowed_roles=[UserRoles.WORKER])),
-    product_handler: "ProductHandler" = Depends(get_product_handler),
+    user: "User" = Depends(required_roles(allowed_roles=[UserRoles.WORKER])),
+    product_orchestrator: ProductOrchestrator = Depends(get_product_orchestrator),
 ) -> ProductResponse:
-    product = await product_handler.create_product(
+    product = await product_orchestrator.create_product(
         user_id=user.id,
         product_data=product_data,
         files=product_pictures,
@@ -168,11 +180,11 @@ async def update_product(
     product_id: UUID = Path(...),
     new_product_data: ProductUpdate = Body(...),
     new_product_pictures: list[UploadFile] | None = File(None),
-    user: "User" = Depends(requied_roles(allowed_roles=[UserRoles.WORKER])),
-    product_handler: "ProductHandler" = Depends(get_product_handler),
+    user: "User" = Depends(required_roles(allowed_roles=[UserRoles.WORKER])),
+    product_orchestrator: ProductOrchestrator = Depends(get_product_orchestrator),
 ) -> ProductResponse:
 
-    product = await product_handler.update_product(
+    product = await product_orchestrator.update_product(
         user_id=user.id,
         product_id=product_id,
         product_data=new_product_data,

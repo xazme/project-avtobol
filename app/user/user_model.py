@@ -55,12 +55,14 @@ class User(Base):
     token: Mapped["Token"] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
+        uselist=False,
     )
-    cart: Mapped[list["Cart"]] = relationship(
+    cart: Mapped["Cart"] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
+        uselist=False,
     )
-    order: Mapped[list["Order"]] = relationship(
+    orders: Mapped[list["Order"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
     )

@@ -1,2 +1,2 @@
-from .disc_model import DiscBrand
-from .disc_router import router as disc_router
+from .disc import Disc
+from .disc_brand import DiscBrand
