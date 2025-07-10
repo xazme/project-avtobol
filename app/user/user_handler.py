@@ -106,7 +106,8 @@ class UserHandler(BaseHandler):
         user = await self.repository.get_user_by_id(id=user_id)
         if not user:
             ExceptionRaiser.raise_exception(
-                404, f"Пользователь с id {user_id} не найден."
+                status_code=404,
+                detail=f"Пользователь с id {user_id} не найден.",
             )
 
         return user

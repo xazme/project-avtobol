@@ -3,9 +3,12 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials
 from app.token import get_access_token, get_refresh_token, get_token_handler
 from app.user.user_dependencies import get_user_handler
+
+# from app.cart.cart import get_cart_handler
 from .auth_handler import AuthHandler
 
 if TYPE_CHECKING:
+    # from app.cart.cart import CartHandler
     from app.token import TokenHandler
     from app.user import UserHandler, User
 
@@ -13,10 +16,12 @@ if TYPE_CHECKING:
 def get_auth_handler(
     user_handler: "UserHandler" = Depends(get_user_handler),
     token_handler: "TokenHandler" = Depends(get_token_handler),
+    # cart_handler: "CartHandler" = Depends(get_cart_handler),
 ) -> AuthHandler:
     return AuthHandler(
         user_handler=user_handler,
         token_handler=token_handler,
+        # cart_handler=cart_handler,
     )
 
 
