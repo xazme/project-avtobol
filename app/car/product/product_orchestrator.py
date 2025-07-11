@@ -53,8 +53,10 @@ class ProductOrchestrator:
         filenames = await self.storage_handler.create_files(list_of_files=file_bytes)
         main_product_data.update({"pictures": filenames})
 
-        product: "Product" | None = await self.product_handler.repository.create(
-            data=main_product_data,
+        product: "Product" | None = (
+            await self.product_handler.repository.create_product(
+                data=main_product_data,
+            )
         )
 
         if not product:

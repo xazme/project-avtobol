@@ -166,6 +166,18 @@ class Product(Base):
         index=True,
     )
 
+    allegro_id: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+        index=True,
+    )
+
+    idriver_id: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+        index=True,
+    )
+
     car_brand: Mapped["CarBrand"] = relationship(
         back_populates="products",
     )

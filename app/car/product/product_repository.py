@@ -2,7 +2,7 @@ from uuid import UUID
 from sqlalchemy import Select, Update, Result, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, IntegrityError
 from app.shared import BaseCRUD
 from app.car.car_brand import CarBrand
 from .product_model import Product
@@ -21,6 +21,21 @@ class ProductRepository(BaseCRUD):
         super().__init__(session=session, model=model)
         self.session: AsyncSession = session
         self.model: Product = model
+
+    async def create_product(
+        self,
+        data: dict,
+    ) -> Product | None:
+        product: Product = self.model(**data)
+        try:
+            self.session.add(product)
+            await self.session.commit()
+            await self.session.refresh(product)
+            await self.upload_data(id=product.id)
+            return product
+        except IntegrityError as e:
+            await self.session.rollback()
+            return None
 
     async def get_all_products_by_scroll(
         self,
@@ -247,7 +262,7 @@ class ProductRepository(BaseCRUD):
         self,
         list_of_articles: list[str],
     ) -> list[Product] | None:
-        stmt = Select(self.model.id).where(self.model.article.in_(list_of_articles))
+        stmt = Select(self.model).where(self.model.article.in_(list_of_articles))
         try:
             result: Result = await self.session.execute(statement=stmt)
             await self.session.commit()
@@ -299,3 +314,18 @@ class ProductRepository(BaseCRUD):
     ) -> bool:
         product: Product | None = await self.get_by_id(id=product_id)
         return product.is_available if product else False
+
+    async def upload_data(
+        self,
+        id: UUID,
+    ) -> None:
+        stmt = (
+            Select(self.model)
+            .where(self.model.id == id)
+            .options(
+                selectinload(self.model.tire),
+                selectinload(self.model.disc),
+                selectinload(self.model.engine),
+            )
+        )
+        await self.session.execute(statement=stmt)

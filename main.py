@@ -1,6 +1,7 @@
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # client
 from app.auth.auth_router import router as auth_router
@@ -58,6 +59,14 @@ fastapi_app.include_router(product_router)
 
 # storage router
 fastapi_app.include_router(s3_router)
+
+fastapi_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["Authorization", "Content-Type"],
+    allow_credentials=True,
+)
 
 
 def run_fastapi():

@@ -12,6 +12,7 @@ from .order_schema import (
     # OrderStatusUpdate,
 )
 from .order_dependencies import get_order_orchestrator
+from .order_helper import convert_order_data
 
 router = APIRouter(
     prefix=settings.api.order_prefix,
@@ -35,12 +36,15 @@ async def create_order(
     user: "User" = Depends(required_roles(allowed_roles=[UserRoles.CLIENT])),
     order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
 ):
-    order = await order_orchestrator.create_order(user_id=user.id, data=order_data)
+    order, denied = await order_orchestrator.create_order(
+        user_id=user.id,
+        data=order_data,
+    )
     return OrderResponse.model_validate(order)
 
 
 @router.post(
-    "/",
+    "/private",
     summary="Create order. Worker Access",
     description="Create a new order from user's cart",
     status_code=status.HTTP_201_CREATED,
@@ -49,14 +53,15 @@ async def create_order(
 )
 async def create_order_manually(
     order_data: OrderCreate = Body(...),
-    product_articles: list[UUID] = Body(...),
+    product_articles: list[str] = Body(...),
     order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
-):
-    order = await order_orchestrator.create_order_manually(
+) -> OrderResponse:
+    order, denied = await order_orchestrator.create_order_manually(
         data=order_data,
         product_articles=product_articles,
     )
     return OrderResponse.model_validate(order)
+    # return convert_order_data(order=order)
 
 
 # @router.get(

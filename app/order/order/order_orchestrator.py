@@ -1,3 +1,4 @@
+import copy
 from typing import TYPE_CHECKING
 from uuid import UUID
 from app.shared import ExceptionRaiser
@@ -33,7 +34,7 @@ class OrderOrchestrator:
         self,
         data: OrderCreate,
         product_articles: list[str],
-    ):
+    ) -> "Order":
         if not product_articles:
             ExceptionRaiser.raise_exception(
                 status_code=400,
@@ -42,31 +43,35 @@ class OrderOrchestrator:
 
         order: "Order" = await self.order_handler.create_obj(data=data)
         order_id = order.id
-        products_ids: list[UUID] = (
+
+        products: list["Product"] = (
             await self.product_handler.repository.get_products_by_articles(
-                list_of_articles=product_articles
+                list_of_articles=product_articles,
             )
         )
-        products_ids_set = set(products_ids)
+        denied = []
         order_items = []
 
-        for product_id in products_ids_set:
+        for product in products:
+            if product.is_available != True:
+                denied.append(product.article)
+
             order_item_data = {
                 "order_id": order_id,
-                "product_id": product_id,
+                "product_id": product.id,
             }
             order_items.append(order_item_data)
-
         await self.order_item_handler.repository.create_order_items(
             list_of_orders_items=order_items,
         )
-        return order
+        refreshed_order = await self.order_handler.get_obj_by_id(id=order_id)
+        return refreshed_order, denied
 
     async def create_order(
         self,
         user_id: UUID,
         data: OrderCreate,
-    ):
+    ) -> "Order":
         user_cart: "Cart" | None = await self.cart_handler.repository.get_user_cart(
             user_id=user_id,
         )
@@ -108,6 +113,8 @@ class OrderOrchestrator:
         await self.order_item_handler.repository.create_order_items(
             list_of_orders_items=order_items,
         )
+        refreshed_order = await self.order_handler.get_obj_by_id(id=order_id)
+        return refreshed_order
 
     async def get_user_cart(
         self,

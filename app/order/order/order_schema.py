@@ -13,7 +13,7 @@ class OrderCreate(BaseModel):
 
 class OrderResponse(OrderCreate):
     id: UUID
-    user_id: UUID
+    user_id: UUID | None
 
     class Config:
         from_attributes = True

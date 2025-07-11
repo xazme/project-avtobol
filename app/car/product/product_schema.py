@@ -68,6 +68,8 @@ class ProductResponse(BaseModel):
     is_printed: bool
     is_available: bool
     created_at: datetime
+    idriver_id: str | None
+    allegro_id: str | None
 
     class Config:
         from_attributes = True
@@ -107,6 +109,8 @@ class ProductResponseExtend(BaseModel):
     is_available: bool | None = None
     created_at: datetime | None = None
     post_by: UUID | None = None
+    idriver_id: str | None
+    allegro_id: str | None
 
     class Config:
         from_attributes = True

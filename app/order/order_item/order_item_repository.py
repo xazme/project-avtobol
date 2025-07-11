@@ -21,10 +21,11 @@ class OrderItemRepository(BaseCRUD):
     async def create_order_items(
         self,
         list_of_orders_items: list[dict],
-    ):
+    ) -> OrderItem | None:
         stmt = Insert(self.model)
         try:
             await self.session.execute(statement=stmt, params=list_of_orders_items)
+            await self.session.commit()
             return list_of_orders_items
         except IntegrityError:
             await self.session.rollback()

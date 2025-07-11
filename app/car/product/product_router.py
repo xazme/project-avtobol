@@ -18,7 +18,7 @@ from .product_schema import (
 from .product_handler import ProductHandler
 from .product_orchestrator import ProductOrchestrator
 from .product_dependencies import get_product_handler, get_product_orchestrator
-from .product_helper import convert_data
+from .product_helper import convert_product_data_extend, convert_product_data
 
 if TYPE_CHECKING:
     from app.user import User
@@ -62,7 +62,7 @@ async def get_all_products_private(
     return {
         "next_cursor": next_cursor,
         "total_count": total_count,
-        "items": convert_data(product_data=products, is_private=True),
+        "items": convert_product_data_extend(product_data=products, is_private=True),
     }
 
 
@@ -94,7 +94,7 @@ async def get_all_products_public(
 
     return {
         "total_count": total_count,
-        "items": convert_data(product_data=products),
+        "items": convert_product_data_extend(product_data=products),
     }
 
 
@@ -172,7 +172,7 @@ async def create_product(
         product_data=product_data,
         files=product_pictures,
     )
-    return ProductResponse.model_validate(product)
+    return convert_product_data(product=product)
 
 
 @router.put(
@@ -212,7 +212,7 @@ async def get_product(
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> ProductResponseExtend:
     product = await product_handler.get_product_by_id(product_id=product_id)
-    return convert_data(product_data=product)
+    return convert_product_data_extend(product_data=product)
 
 
 @router.get(
@@ -227,4 +227,4 @@ async def get_product_by_article(
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> ProductResponseExtend:
     product = await product_handler.get_product_by_article(article=article)
-    return convert_data(product_data=product)
+    return convert_product_data_extend(product_data=product)

@@ -23,7 +23,6 @@ class BaseCRUD:
             await self.session.refresh(obj)
             return obj
         except IntegrityError as e:
-            print(e)
             await self.session.rollback()
             return None
 
