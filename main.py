@@ -1,13 +1,25 @@
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.auth import auth_router
-from app.user import user_router
-from app.token import token_router
-from app.car import car_router
-from app.cart import cart_router
+
+# client
+from app.auth.auth_router import router as auth_router
+from app.token.token_router import router as token_router
+from app.user.user_router import router as user_router
+from app.cart.cart_items.cart_item_router import router as cart_router
+
+# product
+from app.car.car_brand.car_brand_router import router as car_brand_router
+from app.car.car_series.car_series_router import router as car_series_router
+from app.car.car_part.car_part_router import router as car_part_router
+from app.car.tire.tire_brand.tire_brand_router import router as tire_brand_router
+from app.car.disc.disc_brand.disc_brand_router import router as disc_brand_router
+from app.car.product.product_router import router as product_router
+
+# a
 from app.core.config import settings
-from app.storage import s3_router
+from app.storage.storage_router import router as s3_router
+
 from app.database.db_service import DBService
 
 
@@ -27,11 +39,22 @@ fastapi_app = FastAPI(lifespan=lifespan)
 
 
 # faststream_app = FastStream(broker=broker)
+
+# client routers
 fastapi_app.include_router(auth_router)
-fastapi_app.include_router(car_router)
+fastapi_app.include_router(token_router)
 fastapi_app.include_router(user_router)
 fastapi_app.include_router(cart_router)
-fastapi_app.include_router(token_router)
+
+# product routers
+fastapi_app.include_router(car_brand_router)
+fastapi_app.include_router(car_series_router)
+fastapi_app.include_router(car_part_router)
+fastapi_app.include_router(tire_brand_router)
+fastapi_app.include_router(disc_brand_router)
+fastapi_app.include_router(product_router)
+
+# storage router
 fastapi_app.include_router(s3_router)
 
 

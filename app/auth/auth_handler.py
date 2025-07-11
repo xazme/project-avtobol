@@ -4,7 +4,8 @@ from fastapi import Response
 from fastapi.security.http import HTTPAuthorizationCredentials
 from app.user import UserCreate
 
-# from app.cart import CartHandler
+from app.cart.cart import CartCreate
+from app.cart.cart import CartHandler
 from app.token import TokenType
 from app.shared import HashHelper, ExceptionRaiser
 from app.core import settings
@@ -19,11 +20,11 @@ class AuthHandler:
         self,
         user_handler: "UserHandler",
         token_handler: "TokenHandler",
-        # cart_handler: "CartHandler",
+        cart_handler: "CartHandler",
     ):
         self.user_handler = user_handler
         self.token_handler = token_handler
-        # self.cart_handler = cart_handler
+        self.cart_handler = cart_handler
 
     async def sign_in(
         self,
@@ -55,41 +56,76 @@ class AuthHandler:
         self,
         user_data: "UserCreate",
     ) -> Optional["User"]:
-        return await self.user_handler.create_user(data=user_data)
+        user = await self.user_handler.create_user(data=user_data)
+        user_id = user.id
+        await self.cart_handler.create_obj(CartCreate(user_id=user_id))
+        return user_id
 
     async def user_from_access_token(
         self,
-        token: str,
-    ) -> "User":
-        payload = self.token_handler.manager.decode(token, TokenType.ACCESS)
-        user_id = payload.get("id")
+        auth_credentials: HTTPAuthorizationCredentials,
+    ) -> Optional["User"]:
+        token = self.__ensure_valid_token(auth_credentials=auth_credentials)
+        payload: dict = self.token_handler.manager.decode(
+            token=token,
+            type=TokenType.ACCESS,
+        )
+        user_id: Optional[UUID] = payload.get("id")
+
         if not user_id:
             ExceptionRaiser.raise_exception(
                 status_code=401,
-                detail="Нет ID в токене.",
+                detail="В токене отсутствует id пользователя.",
             )
-        return await self.user_handler.get_user_by_id(user_id)
+
+        user: "User" | None = await self.user_handler.get_user_by_id(user_id=user_id)
+        if not user:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail="Пользоватеь не найден.",
+            )
+
+        return user
 
     async def user_from_refresh_token(
         self,
-        token: str,
-    ) -> "User":
-        refresh_token: "Token" = await self.token_handler.get_refresh_token(token)
+        refresh_token: str,
+    ) -> Optional["User"]:
+        if refresh_token is None:
+            ExceptionRaiser.raise_exception(
+                status_code=401,
+                detail="Невалидный refresh токен.",
+            )
+
+        refresh_token: "Token" | None = await self.token_handler.get_refresh_token(
+            token=refresh_token,
+        )
         if not refresh_token:
             ExceptionRaiser.raise_exception(
                 status_code=401,
-                detail="Не валидный refresh токен.",
+                detail="Невалидный refresh токен.",
             )
-        payload = self.token_handler.manager.decode(
-            refresh_token.refresh_token, TokenType.REFRESH
+
+        payload: dict = self.token_handler.manager.decode(
+            token=refresh_token.refresh_token,
+            type=TokenType.REFRESH,
         )
-        user_id = payload.get("id")
+        user_id: Optional[UUID] = payload.get("id")
+
         if not user_id:
             ExceptionRaiser.raise_exception(
                 status_code=401,
-                detail="Нет ID в токене.",
+                detail="В токене отсутствует id пользователя.",
             )
-        return await self.user_handler.get_user_by_id(user_id)
+
+        user: "User" | None = await self.user_handler.get_user_by_id(user_id=user_id)
+        if not user:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail="Пользователь не найден.",
+            )
+
+        return user
 
     def __ensure_valid_token(
         self,

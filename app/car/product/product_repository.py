@@ -243,11 +243,25 @@ class ProductRepository(BaseCRUD):
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()
 
+    async def get_products_by_articles(
+        self,
+        list_of_articles: list[str],
+    ) -> list[Product] | None:
+        stmt = Select(self.model.id).where(self.model.article.in_(list_of_articles))
+        try:
+            result: Result = await self.session.execute(statement=stmt)
+            await self.session.commit()
+            return result.scalars().all()
+
+        except OperationalError:
+            await self.session.rollback()
+            return None
+
     async def bulk_change_availibility(
         self,
         products_id: list[UUID],
         new_availables_status: bool,
-    ) -> Product | None:
+    ) -> list[Product] | None:
         stmt = (
             Update(self.model)
             .where(self.model.id.in_(products_id))

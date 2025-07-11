@@ -58,11 +58,11 @@ async def register(
     user_data: UserCreate = Body(...),
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
-    user = await auth_handler.register(user_data=user_data)
+    registered_user_id = await auth_handler.register(user_data=user_data)
 
     token = await create_token_response(
         mode=TokenMode.REGISTER,
-        user=user,
+        user_id=registered_user_id,
         token_handler=auth_handler.token_handler,
         response=response,
     )

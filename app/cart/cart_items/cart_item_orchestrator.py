@@ -22,6 +22,13 @@ class CartItemOrchestrator:
 
     async def add_item(self, user_id: UUID, data: CartAddItem) -> CartItem | None:
         user_cart_id = await self.get_user_cart_id(user_id=user_id)
+        product = await self.product_handler.get_product_by_id(data.product_id)
+
+        if product.is_available != True:
+            ExceptionRaiser.raise_exception(
+                status_code=409,
+                detail="Продукт недоступен.",
+            )
 
         product_in_the_cart: CartItem = (
             await self.cart_item_handler.repository.get_cart_item_position(

@@ -1,5 +1,5 @@
 from .cart_item_model import CartItem
-from .cart_item_schema import CartItemResponse
+from .cart_item_schema import CartItemResponseExtended
 
 
 def convert_cart_items(cart_items: list[CartItem]):
@@ -15,7 +15,7 @@ def convert_cart_items(cart_items: list[CartItem]):
         price = item.product.price
         discount = item.product.discount
 
-        cart_item = CartItemResponse(
+        cart_item = CartItemResponseExtended(
             id=item.id,
             product_id=product_id,
             article=product_article,

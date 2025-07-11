@@ -1,2 +1,3 @@
 from .cart_item_model import CartItem
-from .cart_item_router import router as cart_router
+from .cart_item_handler import CartItemHandler
+from .cart_item_dependencies import get_cart_items_handler

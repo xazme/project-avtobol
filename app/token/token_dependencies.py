@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from uuid import UUID
 from fastapi import Depends, Response, Request
 from fastapi.security import (
     OAuth2PasswordBearer,
@@ -16,8 +16,6 @@ from .token_model import Token
 from .token_enums import TokenMode
 from .token_schema import TokenCreate, TokenResponse
 
-if TYPE_CHECKING:
-    from app.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.auth.access_token_url)
 http_bearer = HTTPBearer(auto_error=False)
@@ -57,15 +55,12 @@ def get_refresh_token(request: Request) -> str:
 
 async def create_token_response(
     mode: TokenMode,
-    user: "User",
+    user_id: UUID,
     token_handler: "TokenHandler",
     response: Response,
 ):
-    user_id = str(user.id)
-
     user_data = {
-        "id": user_id,
-        "username": user.name,
+        "id": str(user_id),
     }
     access_token = token_handler.manager.generate_access_token(data=user_data)
     refresh_token = token_handler.manager.generate_refresh_token(data=user_data)

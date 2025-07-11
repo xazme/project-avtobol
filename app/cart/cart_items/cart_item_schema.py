@@ -10,7 +10,7 @@ class CartDeleteItem(CartAddItem):
     product_id: UUID
 
 
-class CartItemResponse(BaseModel):
+class CartItemResponseExtended(BaseModel):
     id: UUID
     product_id: UUID
     article: str
@@ -19,6 +19,15 @@ class CartItemResponse(BaseModel):
     car_part_type: str
     price: float
     discount: float
+
+    class Config:
+        from_attributes = True
+        validate_by_name = True
+
+
+class CartItemResponse(BaseModel):
+    cart_id: UUID
+    product_id: UUID
 
     class Config:
         from_attributes = True

@@ -27,6 +27,8 @@ class ProductHandler(BaseHandler):
             )
         return product
 
+
+
     async def get_product_by_article(
         self,
         article: str,

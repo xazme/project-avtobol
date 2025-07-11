@@ -25,21 +25,6 @@ async def generate_presigned_url(
     return StorageResponse(url=url)
 
 
-@router.get(
-    "/asd",
-    summary=".",
-    response_model=None,
-    status_code=status.HTTP_200_OK,
-)
-async def xyu(
-    filename: str = Query(...),
-    storage_service: StorageHandler = Depends(get_storage_handler),
-) -> None:
-    url: str = await storage_service.get_file(
-        filename=filename,
-    )
-
-
 @router.post(
     "/",
     summary="Send files to MinIO storage.",
