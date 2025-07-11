@@ -16,10 +16,10 @@ from app.car.tire.tire_brand.tire_brand_router import router as tire_brand_route
 from app.car.disc.disc_brand.disc_brand_router import router as disc_brand_router
 from app.car.product.product_router import router as product_router
 
-# a
-from app.core.config import settings
+# storage
 from app.storage.storage_router import router as s3_router
 
+from app.core.config import settings
 from app.database.db_service import DBService
 
 

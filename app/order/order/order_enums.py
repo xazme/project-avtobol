@@ -2,16 +2,16 @@ from enum import Enum
 
 
 class OrderStatuses(str, Enum):
-    OPEN = "открыт"
-    CLOSE = "закрыт"
-    DENIED = "отклонен"
-    CANCELLED = "отменён"
-    WAITING_FOR_SHIP = "ожидает отправки"
-    PROCESSING = "в обработке"
-    SHIPPED = "отправлен"
-    DELIVERED = "доставлен"
-    RETURNED = "возврат"
-    ON_HOLD = "в ожидании"
+    OPEN = "open"
+    CLOSE = "closed"
+    DENIED = "denied"
+    CANCELLED = "cancelled"
+    WAITING_FOR_SHIP = "waiting-for-shipment"
+    PROCESSING = "processing"
+    SHIPPED = "shipped"
+    DELIVERED = "delivered"
+    RETURNED = "returned"
+    ON_HOLD = "on-hold"
 
 
 # | Статус               | Описание                                                                 |

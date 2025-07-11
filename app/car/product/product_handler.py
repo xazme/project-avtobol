@@ -27,8 +27,6 @@ class ProductHandler(BaseHandler):
             )
         return product
 
-
-
     async def get_product_by_article(
         self,
         article: str,
@@ -68,13 +66,19 @@ class ProductHandler(BaseHandler):
         cursor: int | None,
         take: int | None,
         is_private: bool,
-        filters: ProductFiltersExtended,
+        main_filters: ProductFilters | ProductFiltersExtended | None,
+        tire_filters: TireFilters | None,
+        disc_filters: DiscFilters | None,
+        engine_filters: EngineFilters | None,
     ):
         return await self.repository.get_all_products_by_scroll(
             cursor=cursor,
             take=take,
             is_private=is_private,
-            filters=filters,
+            main_filters=main_filters,
+            tire_filters=tire_filters,
+            disc_filters=disc_filters,
+            engine_filters=engine_filters,
         )
 
     async def check_availability(

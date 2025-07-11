@@ -46,7 +46,6 @@ class StorageHandler:
         try:
             file_bytes = await self._convert_to_webp(file=file)
             filename = self._generate_name() + ".webp"
-            print("123")
             async with self.get_client() as client:
                 await client.put_object(
                     Bucket=self.bucket_name,
@@ -113,18 +112,12 @@ class StorageHandler:
                 detail=f"Ошибка множественного удаления: {e}",
             )
 
-    async def get_file(self, filename: str):
-        try:
-            async with self.get_client() as client:
-                response = await client.get_object(
-                    Bucket=self.bucket_name,
-                    Key=filename,
-                )
-        except Exception as e:
-            ExceptionRaiser.raise_exception(
-                status_code=500,
-                detail=f"Ошибка множественного удаления: {e}",
-            )
+    # async def get_file(self, filename: str):
+    #     async with self.get_client() as client:
+    #         response = await client.get_object(
+    #             Bucket=self.bucket_name,
+    #             Key=filename,
+    #         )
 
     async def _convert_to_webp(self, file: bytes) -> bytes:
         try:

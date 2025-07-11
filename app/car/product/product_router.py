@@ -41,7 +41,10 @@ router = APIRouter(
 async def get_all_products_private(
     cursor: int | None = Query(None, gt=-1),
     take: int | None = Query(None, gt=0),
-    filters: ProductFiltersExtended = Depends(),
+    main_filters: ProductFiltersExtended = Depends(),
+    tire_filters: TireFilters = Depends(),
+    disc_filters: DiscFilters = Depends(),
+    engine_filters: EngineFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> dict[str, int | None | list[ProductResponseExtend]]:
     next_cursor, total_count, products = (
@@ -49,7 +52,10 @@ async def get_all_products_private(
             is_private=True,
             cursor=cursor,
             take=take,
-            filters=filters,
+            main_filters=main_filters,
+            tire_filters=tire_filters,
+            disc_filters=disc_filters,
+            engine_filters=engine_filters,
         )
     )
 

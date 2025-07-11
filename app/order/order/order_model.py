@@ -8,7 +8,7 @@ from .order_enums import OrderStatuses
 
 if TYPE_CHECKING:
     from app.user import User
-    from ..order_items import OrderItem
+    from ..order_item import OrderItem
 
 
 class Order(Base):
@@ -34,6 +34,18 @@ class Order(Base):
     description: Mapped[str] = mapped_column(
         String,
         nullable=True,
+    )
+    city_to_ship: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+    )
+    adress_to_ship: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+    )
+    postal_code: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
     )
     status: Mapped[SqlEnum] = mapped_column(
         SqlEnum(OrderStatuses),
