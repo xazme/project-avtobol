@@ -30,14 +30,21 @@ class AuthHandler:
         self,
         phone_number: str,
         password: str,
-    ) -> Optional["User"]:
-        user = await self.user_handler.get_user_by_phone_number(phone_number)
-        if not user or not HashHelper.check_password(password, user.password):
+    ) -> Optional[UUID]:
+        user: "User" = await self.user_handler.get_user_by_phone_number(
+            phone_number=phone_number,
+        )
+
+        result: bool = HashHelper.check_password(
+            password=password, hashed_password=user.password
+        )
+        if not result:
             ExceptionRaiser.raise_exception(
                 status_code=400,
                 detail="Неверный логин или пароль.",
             )
-        return user
+
+        return user.id
 
     async def sign_out(
         self,

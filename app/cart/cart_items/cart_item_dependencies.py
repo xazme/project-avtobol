@@ -9,7 +9,7 @@ from .cart_item_repository import CartItemRepository
 from ..cart import CartHandler, get_cart_handler
 
 
-def get_cart_items_handler(
+def get_cart_item_handler(
     session: AsyncSession = Depends(DBService.get_session),
 ) -> CartItemHandler:
     repository = CartItemRepository(
@@ -22,7 +22,7 @@ def get_cart_items_handler(
 def get_cart_item_orchestrator(
     product_handler: ProductHandler = Depends(get_product_handler),
     cart_handler: CartHandler = Depends(get_cart_handler),
-    cart_item_handler: CartItemHandler = Depends(get_cart_items_handler),
+    cart_item_handler: CartItemHandler = Depends(get_cart_item_handler),
 ):
     return CartItemOrchestrator(
         product_handler=product_handler,

@@ -33,13 +33,13 @@ async def sign_in(
     credentials: AuthCredentials = Body(...),
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
-    user = await auth_handler.sign_in(
+    user_id = await auth_handler.sign_in(
         phone_number=credentials.phone_number,
         password=credentials.password,
     )
     token = await create_token_response(
         mode=TokenMode.SIGNIN,
-        user=user,
+        user_id=user_id,
         token_handler=auth_handler.token_handler,
         response=response,
     )
@@ -81,9 +81,10 @@ async def refresh_access_token(
     user: "User" = Depends(get_user_from_refresh_token),
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
+    user_id = user.id
     token = await create_token_response(
         mode=TokenMode.REFRESH,
-        user=user,
+        user_id=user_id,
         token_handler=auth_handler.token_handler,
         response=response,
     )
