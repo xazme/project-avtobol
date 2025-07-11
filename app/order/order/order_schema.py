@@ -14,3 +14,7 @@ class OrderCreate(BaseModel):
 class OrderResponse(OrderCreate):
     id: UUID
     user_id: UUID
+
+    class Config:
+        from_attributes = True
+        validate_by_name = True

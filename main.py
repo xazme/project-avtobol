@@ -7,6 +7,7 @@ from app.auth.auth_router import router as auth_router
 from app.token.token_router import router as token_router
 from app.user.user_router import router as user_router
 from app.cart.cart_items.cart_item_router import router as cart_router
+from app.order.order.order_router import router as order_router
 
 # product
 from app.car.car_brand.car_brand_router import router as car_brand_router
@@ -45,6 +46,7 @@ fastapi_app.include_router(auth_router)
 fastapi_app.include_router(token_router)
 fastapi_app.include_router(user_router)
 fastapi_app.include_router(cart_router)
+fastapi_app.include_router(order_router)
 
 # product routers
 fastapi_app.include_router(car_brand_router)

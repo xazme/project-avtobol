@@ -60,6 +60,7 @@ class OrderOrchestrator:
         await self.order_item_handler.repository.create_order_items(
             list_of_orders_items=order_items,
         )
+        return order
 
     async def create_order(
         self,

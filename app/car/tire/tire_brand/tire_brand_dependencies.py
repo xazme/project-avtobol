@@ -9,10 +9,10 @@ from .tire_brand_handler import TireBrandHandler
 def get_tire_brand_handler(
     session: AsyncSession = Depends(DBService.get_session),
 ) -> TireBrandRepository:
-    repository = TireBrandHandler(
+    repository = TireBrandRepository(
         session=session,
         model=TireBrand,
     )
-    return TireBrandRepository(
+    return TireBrandHandler(
         repository=repository,
     )
