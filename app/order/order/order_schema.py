@@ -1,5 +1,6 @@
 from uuid import UUID
 from pydantic import BaseModel
+from app.car.product.product_schema import ProductResponseCompressed
 
 
 class OrderCreate(BaseModel):
@@ -18,3 +19,13 @@ class OrderResponse(OrderCreate):
     class Config:
         from_attributes = True
         validate_by_name = True
+
+
+class OrderResponseExtend(BaseModel):
+    products_count: int
+    products: list[ProductResponseCompressed]
+
+
+class OrderManualResponse(BaseModel):
+    denied: list[str]
+    order_data: OrderResponse

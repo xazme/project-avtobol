@@ -1,5 +1,5 @@
-from sqlalchemy import Insert
-from sqlalchemy.exc import IntegrityError
+from uuid import UUID
+from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.shared import BaseCRUD
 from .order_model import Order

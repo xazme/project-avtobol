@@ -1,3 +1,4 @@
+from uuid import UUID
 from app.shared import BaseHandler
 from .order_repository import OrderRepository
 

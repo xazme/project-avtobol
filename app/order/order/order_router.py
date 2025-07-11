@@ -1,18 +1,20 @@
-from typing import TYPE_CHECKING, Optional, List
+from typing import TYPE_CHECKING
 from uuid import UUID
-from fastapi import APIRouter, Body, Depends, status
+from fastapi import APIRouter, Body, Path, Depends, status
 from app.core import settings
 from app.user.user_enums import UserRoles
 from app.auth.auth_guard import required_roles
 from .order_schema import (
     OrderCreate,
     OrderResponse,
-    # OrderResponseExtended,
+    OrderManualResponse,
+    OrderResponseExtend,
     # OrderUpdate,
     # OrderStatusUpdate,
 )
-from .order_dependencies import get_order_orchestrator
-from .order_helper import convert_order_data
+from .order_handler import OrderHandler
+from .order_dependencies import get_order_orchestrator, get_order_handler
+from .order_helper import convert_order_data, convert_order_data_for_items
 
 router = APIRouter(
     prefix=settings.api.order_prefix,
@@ -48,20 +50,18 @@ async def create_order(
     summary="Create order. Worker Access",
     description="Create a new order from user's cart",
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(required_roles([UserRoles.WORKER]))],
-    response_model=OrderResponse,
+    response_model=OrderManualResponse,
 )
 async def create_order_manually(
     order_data: OrderCreate = Body(...),
     product_articles: list[str] = Body(...),
     order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
-) -> OrderResponse:
-    order, denied = await order_orchestrator.create_order_manually(
+) -> OrderManualResponse:
+    order, denied_articles = await order_orchestrator.create_order_manually(
         data=order_data,
         product_articles=product_articles,
     )
-    return OrderResponse.model_validate(order)
-    # return convert_order_data(order=order)
+    return OrderManualResponse(denied=denied_articles, order_data=order)
 
 
 # @router.get(
@@ -79,20 +79,23 @@ async def create_order_manually(
 #     return [OrderResponseExtended.model_validate(order) for order in orders]
 
 
-# @router.get(
-#     "/{order_id}",
-#     summary="Get order details",
-#     description="Retrieve detailed information about a specific order",
-#     status_code=status.HTTP_200_OK,
-#     response_model=OrderResponseExtended,
-# )
-# async def get_order(
-#     order_id: UUID,
-#     user: "User" = Depends(required_roles(allowed_roles=[UserRoles.CLIENT])),
-#     order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
-# ):
-#     order = await order_orchestrator.get_order(user_id=user.id, order_id=order_id)
-#     return OrderResponseExtended.model_validate(order)
+@router.get(
+    "/{order_id}",
+    summary="Get order details",
+    description="Retrieve detailed information about a specific order",
+    status_code=status.HTTP_200_OK,
+    response_model=OrderResponseExtend,
+    dependencies=[Depends(required_roles([UserRoles.WORKER]))],
+)
+async def get_order(
+    order_id: UUID = Path(...),
+    order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
+):
+    order_items = await order_orchestrator.get_order_items_by_order_id(
+        order_id=order_id
+    )
+    print(order_items)
+    return convert_order_data_for_items(list_of_order_items=order_items)
 
 
 # @router.patch(

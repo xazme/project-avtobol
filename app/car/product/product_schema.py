@@ -2,11 +2,10 @@ import json
 from datetime import datetime
 from uuid import UUID
 from pydantic import BaseModel, model_validator
-from app.car.tire.tire import TireCreate, TireResponse, TireFilters
-from app.car.disc.disc import DiscCreate, DiscResponse, DiscFilters
-from app.car.engine import EngineCreate, EngineResponse, EngineFilters
+from app.car.tire.tire import TireCreate, TireResponse
+from app.car.disc.disc import DiscCreate, DiscResponse
+from app.car.engine import EngineCreate, EngineResponse
 from .product_enums import BodyType, Currency, ProductCondition, Availability
-from ..engine.engine_enums import GearboxType, FuelType
 
 
 class ProductCreate(BaseModel):
@@ -70,6 +69,21 @@ class ProductResponse(BaseModel):
     created_at: datetime
     idriver_id: str | None
     allegro_id: str | None
+
+    class Config:
+        from_attributes = True
+        validate_by_name = True
+
+
+class ProductResponseCompressed(BaseModel):
+    id: UUID
+    article: str
+    car_brand_name: str
+    car_series_name: str
+    car_part_name: str
+    price: float
+    discount: float
+    picture: str
 
     class Config:
         from_attributes = True

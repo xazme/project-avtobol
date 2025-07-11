@@ -109,6 +109,12 @@ class ProductHandler(BaseHandler):
             )
         return product
 
+    async def change_availability(
+        self,
+        product_id: UUID,
+    ) -> None:
+        pass
+
     async def bulk_change_printed_status(self, products_id: list[UUID], status: bool):
         result = await self.repository.bulk_change_printed_status(
             products_id=products_id,

@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from app.cart.cart_items import CartItemHandler, CartItem
     from .order_model import Order
     from .order_handler import OrderHandler
-    from ..order_item import OrderItemHandler
+    from ..order_item import OrderItemHandler, OrderItem
 
 
 class OrderOrchestrator:
@@ -50,19 +50,26 @@ class OrderOrchestrator:
             )
         )
         denied = []
+        items_to_change_status = []
         order_items = []
 
         for product in products:
             if product.is_available != True:
                 denied.append(product.article)
+                continue
 
             order_item_data = {
                 "order_id": order_id,
                 "product_id": product.id,
             }
             order_items.append(order_item_data)
+            items_to_change_status.append(product.id)
+
         await self.order_item_handler.repository.create_order_items(
             list_of_orders_items=order_items,
+        )
+        await self.product_handler.bulk_change_availability(
+            products_id=items_to_change_status,
         )
         refreshed_order = await self.order_handler.get_obj_by_id(id=order_id)
         return refreshed_order, denied
@@ -127,6 +134,14 @@ class OrderOrchestrator:
             )
         )
         return user_cart
+
+    async def get_order_items_by_order_id(
+        self,
+        order_id: UUID,
+    ) -> list["OrderItem"]:
+        return await self.order_item_handler.repository.get_order_items_by_id(
+            id=order_id
+        )
 
     async def get_user_cart_id(
         self,

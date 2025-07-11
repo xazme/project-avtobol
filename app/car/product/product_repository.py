@@ -265,7 +265,6 @@ class ProductRepository(BaseCRUD):
         stmt = Select(self.model).where(self.model.article.in_(list_of_articles))
         try:
             result: Result = await self.session.execute(statement=stmt)
-            await self.session.commit()
             return result.scalars().all()
 
         except OperationalError:

@@ -1,8 +1,10 @@
 from uuid import UUID
-from sqlalchemy import Select, Insert
+from sqlalchemy import Select, Insert, Result
+from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.shared import BaseCRUD
+from app.car.product import Product
 from .order_item_model import OrderItem
 from ..order import Order
 
@@ -31,11 +33,30 @@ class OrderItemRepository(BaseCRUD):
             await self.session.rollback()
             return None
 
+    async def get_order_items_by_id(
+        self,
+        id: UUID,
+    ):
+        stmt = (
+            Select(self.model)
+            .where(self.model.order_id == id)
+            .options(
+                selectinload(self.model.product).options(
+                    selectinload(Product.car_brand),
+                    selectinload(Product.car_series),
+                    selectinload(Product.car_part),
+                )
+            )
+        )
+        result: Result = await self.session.execute(stmt)
+        orders = result.scalars().all()
+        return orders
+
     async def get_user_ordered_product_ids(
         self,
         user_id: UUID,
     ) -> list[UUID]:
         stmt = Select(self.model.product_id).join(Order).where(Order.user_id == user_id)
-        result = await self.session.execute(stmt)
+        result: Result = await self.session.execute(stmt)
         product_ids = result.scalars().all()
         return product_ids
