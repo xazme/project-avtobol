@@ -1,9 +1,11 @@
 import copy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 from app.shared import ExceptionRaiser
 from app.cart.cart_items import CartItem
-from .order_schema import OrderCreate
+from .order_schema import OrderCreate, OrderFilters
+from .order_enums import OrderStatuses
+from ..order_item.order_item_enums import OrderItemStatus
 
 if TYPE_CHECKING:
 
@@ -33,43 +35,49 @@ class OrderOrchestrator:
     async def create_order_manually(
         self,
         data: OrderCreate,
-        product_articles: list[str],
+        product_ids: list[UUID],
     ) -> "Order":
-        if not product_articles:
+        if not product_ids:
             ExceptionRaiser.raise_exception(
                 status_code=400,
-                detail="Список артикулов пуст — невозможно создать заказ.",
+                detail="Список продуктов пуст — невозможно создать заказ.",
             )
 
         order: "Order" = await self.order_handler.create_obj(data=data)
         order_id = order.id
 
         products: list["Product"] = (
-            await self.product_handler.repository.get_products_by_articles(
-                list_of_articles=product_articles,
+            await self.product_handler.repository.get_products_by_ids(
+                list_of_product_ids=product_ids,
             )
         )
         denied = []
-        items_to_change_status = []
+        product_id_in_order = []
         order_items = []
 
         for product in products:
             if product.is_available != True:
                 denied.append(product.article)
                 continue
-
             order_item_data = {
                 "order_id": order_id,
                 "product_id": product.id,
             }
             order_items.append(order_item_data)
-            items_to_change_status.append(product.id)
+            product_id_in_order.append(product.id)
+
+        if len(order_items) < 1:
+            ExceptionRaiser.raise_exception(
+                status_code=409,
+                detail="Неудалось создать заказ. Количество позиций в ордере меньне единицы. Возможные причины: 1) Дубликаты в артикулах 2) Введенный артикул неверный 3) Товар недоступен",
+            )
 
         await self.order_item_handler.repository.create_order_items(
             list_of_orders_items=order_items,
         )
         await self.product_handler.bulk_change_availability(
-            products_id=items_to_change_status,
+            products_id=product_id_in_order,
+            new_status=False,
         )
         refreshed_order = await self.order_handler.get_obj_by_id(id=order_id)
         return refreshed_order, denied
@@ -79,14 +87,16 @@ class OrderOrchestrator:
         user_id: UUID,
         data: OrderCreate,
     ) -> "Order":
-        user_cart: "Cart" | None = await self.cart_handler.repository.get_user_cart(
-            user_id=user_id,
+        user_cart: "Cart" | None = (
+            await self.cart_handler.repository.get_user_cart_by_user_id(
+                user_id=user_id,
+            )
         )
 
         if not user_cart:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="У пользователя отсутствует корзина. Вероятнее всего пользователя несуществует, либо он был удален.",
+                detail="У пользователя отсутствует корзина. Вероятнее всего он не существует, либо был удалён.",
             )
 
         order_data = data.model_dump(exclude_unset=True)
@@ -95,39 +105,76 @@ class OrderOrchestrator:
         order: "Order" = await self.order_handler.create_obj(data=order_data)
         order_id = order.id
 
-        user_ordered_products_ids: list[UUID] = (
+        user_ordered_products_ids_set = set(
             await self.order_item_handler.repository.get_user_ordered_product_ids(
                 user_id=user_id
             )
         )
-        # TODO CHECK
-        user_ordered_products_ids_set = set(user_ordered_products_ids)
 
-        user_cart_items: list["CartItem"] = await self.get_user_cart(user_id=user_id)
+        user_cart_items: list["CartItem"] = await self.get_user_cart_items(
+            user_id=user_id
+        )
 
+        product_ids_to_add = [
+            item.product_id
+            for item in user_cart_items
+            if item.product_id not in user_ordered_products_ids_set
+        ]
+
+        if not product_ids_to_add:
+            ExceptionRaiser.raise_exception(
+                status_code=409,
+                detail="Ни один товар из корзины не был добавлен в заказ. Все позиции уже были использованы ранее.",
+            )
+
+        products: list["Product"] = (
+            await self.product_handler.repository.get_products_by_ids(
+                list_of_product_ids=product_ids_to_add
+            )
+        )
+
+        denied = []
         order_items = []
-        for item in user_cart_items:
-            if item.product_id in user_ordered_products_ids_set:
+        product_ids_confirmed = []
+
+        for product in products:
+            if product.is_available != True:
+                denied.append(product.article)
                 continue
 
-            order_item_data = {
-                "order_id": order_id,
-                "product_id": item.product_id,
-            }
+            order_items.append(
+                {
+                    "order_id": order_id,
+                    "product_id": product.id,
+                }
+            )
+            product_ids_confirmed.append(product.id)
 
-            order_items.append(order_item_data)
+        if not order_items:
+            ExceptionRaiser.raise_exception(
+                status_code=409,
+                detail="Ни один товар не добавлен. Все товары недоступны или уже заказаны.",
+            )
 
         await self.order_item_handler.repository.create_order_items(
             list_of_orders_items=order_items,
         )
-        refreshed_order = await self.order_handler.get_obj_by_id(id=order_id)
-        return refreshed_order
 
-    async def get_user_cart(
+        await self.product_handler.bulk_change_availability(
+            products_id=product_ids_confirmed,
+            new_status=False,
+        )
+
+        await self.cart_item_handler.repository.clear_user_cart(cart_id=user_cart.id)
+
+        refreshed_order = await self.order_handler.get_obj_by_id(id=order_id)
+        return refreshed_order, denied
+
+    async def get_user_cart_items(
         self,
         user_id: UUID,
-    ):
-        user_cart_id = await self.get_user_cart_id(user_id=user_id)
+    ) -> list["CartItem"]:
+        user_cart_id: UUID = await self.cart_handler.get_user_cart_id(user_id=user_id)
         user_cart: list["CartItem"] = (
             await self.cart_item_handler.repository.get_all_user_positions(
                 cart_id=user_cart_id
@@ -135,25 +182,62 @@ class OrderOrchestrator:
         )
         return user_cart
 
-    async def get_order_items_by_order_id(
+    async def update_order_status(
         self,
         order_id: UUID,
-    ) -> list["OrderItem"]:
-        return await self.order_item_handler.repository.get_order_items_by_id(
-            id=order_id
+        new_status: OrderStatuses,
+    ) -> Optional["Order"]:
+        updated_order: "Order" = await self.order_handler.update_order_status(
+            order_id=order_id, new_status=new_status
+        )
+        return updated_order
+
+    async def update_order_item_status(
+        self,
+        order_item_id: UUID,
+        new_status: OrderStatuses,
+    ) -> Optional["OrderItem"]:
+        updated_order_items: "OrderItem" = (
+            await self.order_item_handler.update_order_item_status(
+                order_item_id=order_item_id,
+                new_status=new_status,
+            )
+        )
+        do_restore: bool = self.__should_respore_product_availability(
+            item_status=new_status,
         )
 
-    async def get_user_cart_id(
-        self,
-        user_id: UUID,
-    ) -> UUID:
-        user_cart: "Cart" | None = await self.cart_handler.repository.get_user_cart(
-            user_id=user_id,
-        )
-        if not user_cart:
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="У пользователя отсутствует корзина. Вероятнее всего пользователя несуществует. ",
+        if do_restore:
+            await self.product_handler.update_product_availability(
+                product_id=updated_order_items.product_id,
             )
-        user_cart_id = user_cart.id
-        return user_cart_id
+
+        return updated_order_items
+
+    async def get_all_orders(
+        self,
+        cursor: int | None,
+        take: int | None,
+        filters: OrderFilters,
+    ) -> tuple[int | None, list["Order"]]:
+        return await self.order_handler.repository.get_orders_by_scroll(
+            cursor=cursor,
+            take=take,
+            filters=filters,
+        )
+
+    def __should_respore_product_availability(
+        self,
+        item_status: OrderItemStatus,
+    ) -> bool:
+        restore_statuses = {
+            OrderItemStatus.RETURNED,
+            OrderItemStatus.CANCELLED,
+            OrderItemStatus.REFUNDED,
+            OrderItemStatus.OUT_OF_STOCK,
+            OrderItemStatus.DENIED,
+        }
+
+        if item_status in restore_statuses:
+            return True
+        return False

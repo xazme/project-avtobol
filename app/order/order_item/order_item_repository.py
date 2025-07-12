@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.shared import BaseCRUD
 from app.car.product import Product
 from .order_item_model import OrderItem
+from .order_item_enums import OrderItemStatus
 from ..order import Order
 
 
@@ -33,13 +34,13 @@ class OrderItemRepository(BaseCRUD):
             await self.session.rollback()
             return None
 
-    async def get_order_items_by_id(
+    async def get_order_items_by_order_id(
         self,
-        id: UUID,
+        order_id: UUID,
     ):
         stmt = (
             Select(self.model)
-            .where(self.model.order_id == id)
+            .where(self.model.order_id == order_id)
             .options(
                 selectinload(self.model.product).options(
                     selectinload(Product.car_brand),
@@ -51,6 +52,37 @@ class OrderItemRepository(BaseCRUD):
         result: Result = await self.session.execute(stmt)
         orders = result.scalars().all()
         return orders
+
+    async def get_order_items_id_by_id_order_id(
+        self,
+        id: UUID,
+    ):
+        stmt = (
+            Select(self.model.product_id)
+            .where(self.model.order_id == id)
+            .options(selectinload(self.model.product))
+        )
+        result: Result = await self.session.execute(stmt)
+        orders = result.scalars().all()
+        return orders
+
+    async def update_order_item_status(
+        self,
+        order_item_id: UUID,
+        new_status: OrderItemStatus,
+    ) -> OrderItem | None:
+        order_item: OrderItem | None = await self.get_by_id(id=order_item_id)
+
+        if not order_item:
+            return None
+        try:
+            order_item.status = new_status
+            await self.session.commit()
+            await self.session.refresh(order_item)
+            return order_item
+        except IntegrityError as e:
+            await self.session.rollback()
+            return None
 
     async def get_user_ordered_product_ids(
         self,

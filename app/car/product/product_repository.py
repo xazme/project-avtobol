@@ -55,7 +55,9 @@ class ProductRepository(BaseCRUD):
             is_private=is_private,
         )
         cursor = cursor if cursor is not None else 0
-        stmt_count: Select = Select(func.count(self.model.id))
+        stmt_count: Select = Select(func.count(self.model.id)).where(
+            *product_filters,
+        )
         stmt_count_using_filters = Select(func.count(self.model.id)).where(
             *product_filters,
         )
@@ -271,6 +273,19 @@ class ProductRepository(BaseCRUD):
             await self.session.rollback()
             return None
 
+    async def get_products_by_ids(
+        self,
+        list_of_product_ids: list[UUID],
+    ) -> list[Product] | None:
+        stmt = Select(self.model).where(self.model.id.in_(list_of_product_ids))
+        try:
+            result: Result = await self.session.execute(statement=stmt)
+            return result.scalars().all()
+
+        except OperationalError:
+            await self.session.rollback()
+            return None
+
     async def bulk_change_availibility(
         self,
         products_id: list[UUID],
@@ -306,6 +321,23 @@ class ProductRepository(BaseCRUD):
         except OperationalError:
             await self.session.rollback()
             return False
+
+    async def update_product_availability(
+        self,
+        product_id: UUID,
+        status: bool,
+    ) -> Product | None:
+        product: Product | None = await self.get_by_id(id=product_id)
+        if not product:
+            return None
+        try:
+            product.is_available = status
+            await self.session.commit()
+            await self.session.refresh(product)
+            return product
+        except IntegrityError as e:
+            await self.session.rollback()
+            return None
 
     async def check_availability(
         self,

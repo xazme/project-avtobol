@@ -1,9 +1,9 @@
-from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Enum as SqlEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
+from .order_item_enums import OrderItemStatus
 
 if TYPE_CHECKING:
     from app.car.product import Product
@@ -28,6 +28,12 @@ class OrderItem(Base):
         ),
         nullable=False,
         unique=False,
+    )
+
+    status: Mapped[SqlEnum] = mapped_column(
+        SqlEnum(OrderItemStatus),
+        nullable=False,
+        default=OrderItemStatus.PENDING,
     )
 
     # связи

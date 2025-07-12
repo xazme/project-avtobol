@@ -12,6 +12,7 @@ class CartDeleteItem(CartAddItem):
 
 class CartItemResponseExtended(BaseModel):
     id: UUID
+    picture: str
     product_id: UUID
     article: str
     car_brand_name: str

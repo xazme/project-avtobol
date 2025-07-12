@@ -14,6 +14,7 @@ def convert_cart_items(cart_items: list[CartItem]):
         car_part_type = item.product.car_part.name
         price = item.product.price
         discount = item.product.discount
+        picture = item.product.pictures[0]
 
         cart_item = CartItemResponseExtended(
             id=item.id,
@@ -24,6 +25,7 @@ def convert_cart_items(cart_items: list[CartItem]):
             car_part_type=car_part_type,
             price=price,
             discount=discount,
+            picture=picture,
         )
 
         items.append(cart_item)

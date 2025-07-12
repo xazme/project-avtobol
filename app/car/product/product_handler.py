@@ -14,11 +14,17 @@ from ..engine import EngineFilters
 
 class ProductHandler(BaseHandler):
 
-    def __init__(self, repository: ProductRepository):
+    def __init__(
+        self,
+        repository: ProductRepository,
+    ):
         super().__init__(repository)
         self.repository: ProductRepository = repository
 
-    async def get_product_by_id(self, product_id: UUID) -> Optional[Product]:
+    async def get_product_by_id(
+        self,
+        product_id: UUID,
+    ) -> Optional[Product]:
         product: Product | None = await self.repository.get_product_by_id(id=product_id)
         if not product:
             ExceptionRaiser.raise_exception(
@@ -97,7 +103,7 @@ class ProductHandler(BaseHandler):
         self,
         products_id: list[UUID],
         new_status: bool,
-    ) -> dict:
+    ) -> bool:
         product: Product | None = await self.repository.bulk_change_availibility(
             products_id=products_id,
             new_availables_status=new_status,
@@ -109,13 +115,28 @@ class ProductHandler(BaseHandler):
             )
         return product
 
-    async def change_availability(
+    async def update_product_availability(
         self,
         product_id: UUID,
-    ) -> None:
-        pass
+        status: bool,
+    ) -> Product:
+        product: Product | None = await self.repository.update_product_availability(
+            product_id=product_id,
+            status=status,
+        )
 
-    async def bulk_change_printed_status(self, products_id: list[UUID], status: bool):
+        if not product:
+            ExceptionRaiser.raise_exception(
+                status_code=409,
+                detail="Неудалось обновить доступность продукта.",
+            )
+        return product
+
+    async def bulk_change_printed_status(
+        self,
+        products_id: list[UUID],
+        status: bool,
+    ):
         result = await self.repository.bulk_change_printed_status(
             products_id=products_id,
             status=status,

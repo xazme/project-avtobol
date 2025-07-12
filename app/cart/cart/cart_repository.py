@@ -14,7 +14,18 @@ class CartRepository(BaseCRUD):
         self.session: AsyncSession = session
         self.model: Cart = model
 
-    async def get_user_cart(self, user_id: UUID) -> Cart | None:
+    async def get_user_cart_by_user_id(
+        self,
+        user_id: UUID,
+    ) -> UUID | None:
         stmt = Select(self.model).where(self.model.user_id == user_id)
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalar_one_or_none()
+
+    async def get_user_cart_id_by_user_id(
+        self,
+        user_id: UUID,
+    ) -> Cart | None:
+        stmt = Select(self.model.id).where(self.model.user_id == user_id)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalar_one_or_none()

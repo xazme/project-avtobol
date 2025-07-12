@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 from uuid import UUID
 from fastapi import (
     APIRouter,
@@ -9,7 +9,6 @@ from fastapi import (
     status,
     File,
     UploadFile,
-    Form,
 )
 from app.core import settings
 from .car_brand_schema import (
