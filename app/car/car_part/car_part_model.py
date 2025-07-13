@@ -14,6 +14,12 @@ class CarPart(Base):
         index=True,
         nullable=False,
     )
+    latin_name: Mapped[str] = mapped_column(
+        String,
+        unique=True,
+        index=True,
+        nullable=False,
+    )
 
     products: Mapped[List["Product"]] = relationship(
         back_populates="car_part",

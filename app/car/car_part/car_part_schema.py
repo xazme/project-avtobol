@@ -16,6 +16,7 @@ class CarPartUpdate(CarPartBase):
 
 class CarPartResponse(CarPartBase):
     id: UUID
+    latin_name: str
 
     class Config:
         from_attributes = True
