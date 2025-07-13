@@ -6,11 +6,11 @@ from .user_enums import UserRoles, UserStatuses
 
 class UserBase(BaseModel):
     name: str
-    phone_number: str
 
 
 class UserCreate(UserBase):
     password: str
+    phone_number: str
 
 
 class UserUpdate(UserBase):

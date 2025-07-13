@@ -214,18 +214,6 @@ class OrderOrchestrator:
 
         return updated_order_items
 
-    async def get_all_orders(
-        self,
-        cursor: int | None,
-        take: int | None,
-        filters: OrderFilters,
-    ) -> tuple[int | None, list["Order"]]:
-        return await self.order_handler.repository.get_orders_by_scroll(
-            cursor=cursor,
-            take=take,
-            filters=filters,
-        )
-
     def __should_respore_product_availability(
         self,
         item_status: OrderItemStatus,

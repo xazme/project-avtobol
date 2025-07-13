@@ -106,21 +106,3 @@ class CartItemOrchestrator:
             )
         )
         return user_cart
-
-    # async def get_user_cart_id(
-    #     self,
-    #     user_id: UUID,
-    # ) -> UUID:
-    #     user_cart: Cart | None = await self.cart_handler.repository.get_user_cart(
-    #         user_id=user_id,
-    #     )
-
-    #     if not user_cart:
-    #         ExceptionRaiser.raise_exception(
-    #             status_code=404,
-    #             detail="У пользователя отсутствует корзина. Вероятнее всего пользователя несуществует. ",
-    #         )
-
-    #     user_cart_id = user_cart.id
-
-    #     return user_cart_id

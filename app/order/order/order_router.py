@@ -8,14 +8,14 @@ from .order_schema import (
     OrderCreate,
     OrderResponse,
     OrderManualResponse,
-    OrderResponseExtend,
+    OrderItemResponse,
     OrderFilters,
-    # OrderUpdate,
-    # OrderStatusUpdate,
+    OrderFiltersCompressed,
+    OrderUpdate,
 )
 from .order_enums import OrderStatuses
-from .order_dependencies import get_order_orchestrator, get_order_handler
-from .order_helper import convert_order_data, convert_order_data_for_items
+from .order_dependencies import get_order_orchestrator
+from .order_helper import convert_order_data_for_items
 
 router = APIRouter(
     prefix=settings.api.order_prefix,
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 @router.post(
-    "/public",
+    "/create-order",
     summary="Create order",
     description="Create a new order from user's cart",
     status_code=status.HTTP_201_CREATED,
@@ -80,10 +80,41 @@ async def get_all_orders(
     filters: OrderFilters = Depends(),
     order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
 ) -> dict[str, int | None | list[OrderResponse]]:
-    next_cursor, total_count, orders = await order_orchestrator.get_all_orders(
-        take=take,
-        cursor=cursor,
-        filters=filters,
+    next_cursor, total_count, orders = (
+        await order_orchestrator.order_handler.get_all_orders(
+            cursor=cursor,
+            take=take,
+            filters=filters,
+        )
+    )
+    return {
+        "next_cursor": next_cursor,
+        "total_count": total_count,
+        "items": [OrderResponse.model_validate(order) for order in orders],
+    }
+
+
+@router.get(
+    "/my-orders",
+    summary="Get user orders",
+    description="Retrieve all user orders.",
+    status_code=status.HTTP_200_OK,
+    response_model=dict[str, int | None | list[OrderResponse]],
+)
+async def get_user_orders(
+    cursor: int | None = Query(None, gt=-1),
+    take: int | None = Query(None, gt=0),
+    filters: OrderFiltersCompressed = Depends(),
+    user: "User" = Depends(required_roles(allowed_roles=[UserRoles.CLIENT])),
+    order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
+) -> dict[str, int | None | list[OrderResponse]]:
+    next_cursor, total_count, orders = (
+        await order_orchestrator.order_handler.get_user_orders(
+            user_id=user.id,
+            cursor=cursor,
+            take=take,
+            filters=filters,
+        )
     )
     return {
         "next_cursor": next_cursor,
@@ -94,16 +125,16 @@ async def get_all_orders(
 
 @router.get(
     "/{order_id}",
-    summary="Get order details",
+    summary="Get order details.",
     description="Retrieve detailed information about a specific order",
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(required_roles([UserRoles.WORKER]))],
-    response_model=OrderResponseExtend,
+    dependencies=[Depends(required_roles([UserRoles.WORKER, UserRoles.CLIENT]))],
+    response_model=OrderItemResponse,
 )
-async def get_order(
+async def get_order_items(
     order_id: UUID = Path(...),
     order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
-):
+) -> OrderItemResponse:
     order_items = (
         await order_orchestrator.order_item_handler.get_order_items_by_order_id(
             order_id=order_id
@@ -112,23 +143,24 @@ async def get_order(
     return convert_order_data_for_items(list_of_order_items=order_items)
 
 
-# @router.patch(
-#     "/{order_id}",
-#     summary="Update order",
-#     description="Update order information (only for client)",
-#     status_code=status.HTTP_200_OK,
-#     response_model=OrderResponse,
-# )
-# async def update_order(
-#     order_id: UUID,
-#     update_data: OrderUpdate = Body(...),
-#     user: "User" = Depends(required_roles(allowed_roles=[UserRoles.CLIENT])),
-#     order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
-# ):
-#     updated_order = await order_orchestrator.update_order(
-#         user_id=user.id, order_id=order_id, data=update_data
-#     )
-#     return OrderResponse.model_validate(updated_order)
+@router.put(
+    "/update/{order_id}",
+    summary="Update order",
+    description="Update order information (only for client)",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(required_roles([UserRoles.WORKER]))],
+    response_model=OrderResponse,
+)
+async def update_order(
+    order_id: UUID = Path(...),
+    update_data: OrderUpdate = Body(...),
+    order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
+):
+    updated_order = await order_orchestrator.order_handler.update_order(
+        order_id=order_id,
+        data=update_data,
+    )
+    return OrderResponse.model_validate(updated_order)
 
 
 @router.patch(

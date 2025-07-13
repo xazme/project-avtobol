@@ -5,10 +5,6 @@ from app.car.product.product_schema import ProductResponseCompressed
 from .order_enums import OrderStatuses
 
 
-class OrderFilters(BaseModel):
-    pass
-
-
 class OrderCreate(BaseModel):
     user_name: str
     user_phone: str
@@ -18,14 +14,22 @@ class OrderCreate(BaseModel):
     postal_code: str
 
 
-class OrderFilters(BaseModel):
+class OrderUpdate(OrderCreate):
+    pass
+
+
+class OrderFiltersCompressed(BaseModel):
+    created_to: datetime | None = None
+    created_from: datetime | None = None
+    status: OrderStatuses | None = None
+
+
+class OrderFilters(OrderFiltersCompressed):
     user_name: str | None = None
     user_phone: str | None = None
     city_to_ship: str | None = None
     adress_to_ship: str | None = None
     postal_code: str | None = None
-    created_to: datetime | None = None
-    created_from: datetime | None = None
 
 
 class OrderResponse(OrderCreate):
@@ -38,7 +42,7 @@ class OrderResponse(OrderCreate):
         validate_by_name = True
 
 
-class OrderResponseExtend(BaseModel):
+class OrderItemResponse(BaseModel):
     products_count: int
     products: list[ProductResponseCompressed]
 
