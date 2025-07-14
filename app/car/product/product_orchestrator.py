@@ -118,7 +118,8 @@ class ProductOrchestrator:
         new_photos: list[UploadFile] | None = None,
         removed_photos: list[str] | None = None,
     ) -> "Product":
-        product: "Product" = await self.product_handler.repository.get_by_id(
+        # Получаем текущий продукт
+        product: Product = await self.product_handler.repository.get_by_id(
             id=product_id
         )
         if not product:
@@ -127,68 +128,95 @@ class ProductOrchestrator:
                 detail="Продукт не найден.",
             )
 
-        current_photos = product.pictures or []
+        # Текущий список фотографий у продукта
+        existing_photos: list[str] = product.pictures or []
 
-        if product_data.pictures is not None:
-            invalid_photos = [
-                p for p in product_data.pictures if p not in current_photos
-            ]
-            if invalid_photos:
+        # Список, который передал фронт (итоговый порядок фотографий)
+        requested_photos: list[str] = product_data.pictures or []
+
+        # Проверка: фронт указал несуществующие фото?
+        invalid_photo_names = [
+            photo_name
+            for photo_name in requested_photos
+            if photo_name not in existing_photos
+        ]
+        if invalid_photo_names:
+            ExceptionRaiser.raise_exception(
+                status_code=400,
+                detail=f"Неверные имена фотографий: {', '.join(invalid_photo_names)}",
+            )
+
+        # Фото, которые были в продукте, но исчезли из списка — фронт хочет их удалить
+        photos_removed_by_diff = set(existing_photos) - set(requested_photos)
+
+        # Проверка согласованности: если переданы removed_photos, они должны содержать всё, что удалено
+        if removed_photos:
+            explicitly_removed_photos = set(removed_photos)
+            if not photos_removed_by_diff.issubset(explicitly_removed_photos):
                 ExceptionRaiser.raise_exception(
                     status_code=400,
-                    detail=f"Неверные имена фотографий: {', '.join(invalid_photos)}",
+                    detail="Несогласованное удаление фотографий.",
                 )
-
-            requested_deletions = set(current_photos) - set(product_data.pictures)
-            if removed_photos and requested_deletions - set(removed_photos):
-                ExceptionRaiser.raise_exception(
-                    status_code=400,
-                    detail="Несогласованное удаление фотографий",
-                )
-
-            effective_removals = list(set(removed_photos or []) | requested_deletions)
         else:
-            effective_removals = removed_photos or []
-            product_data.pictures = current_photos
+            removed_photos = list(photos_removed_by_diff)
 
-        data = product_data.model_dump(
+        # Загрузка новых фотографий, если переданы
+        new_photo_filenames: list[str] = []
+        if new_photos:
+            validated_file_contents = await self.__validate_files(files=new_photos)
+            new_photo_filenames = await self.storage_handler.create_files(
+                validated_file_contents
+            )
+
+            # Проверка на конфликт имён
+            conflicting_names = set(new_photo_filenames) & set(existing_photos)
+            if conflicting_names:
+                ExceptionRaiser.raise_exception(
+                    status_code=400,
+                    detail=f"Конфликт имён: новые фото уже существуют: {', '.join(conflicting_names)}",
+                )
+
+        # Финальный список фото: оставшиеся старые (без удалённых) + новые
+        final_photo_list: list[str] = [
+            photo_name
+            for photo_name in existing_photos
+            if photo_name not in removed_photos
+        ] + new_photo_filenames
+
+        # Формируем данные для обновления
+        update_data: dict = product_data.model_dump(
             exclude_unset=True,
             exclude={"tire", "disc", "engine"},
         )
-        data.update({"post_by": user_id})
-
-        new_filenames = []
-        if new_photos:
-            file_bytes = await self.__validate_files(files=new_photos)
-            new_filenames = await self.storage_handler.create_files(
-                list_of_files=file_bytes,
-            )
-            data.update({"pictures": product_data.pictures + new_filenames})
-
-        if removed_photos:
-            updated_photos = [
-                p
-                for p in data.get("pictures", current_photos)
-                if p not in effective_removals
-            ]
-            data.update({"pictures": updated_photos})
-
-        updated_product = await self.product_handler.repository.update_by_id(
-            id=product_id,
-            data=data,
+        update_data.update(
+            {
+                "pictures": final_photo_list,
+                "post_by": user_id,
+            }
         )
 
+        # Обновляем продукт в БД
+        updated_product = await self.product_handler.repository.update_by_id(
+            id=product_id,
+            data=update_data,
+        )
+
+        # Если обновление не удалось — удаляем загруженные новые файлы
         if not updated_product:
-            if new_filenames:
-                await self.storage_handler.delete_files(list_of_files=new_filenames)
+            if new_photo_filenames:
+                await self.storage_handler.delete_files(
+                    list_of_files=new_photo_filenames
+                )
             ExceptionRaiser.raise_exception(
                 status_code=422,
                 detail="Ошибка обновления продукта.",
             )
 
-        if effective_removals:
-            await self.storage_handler.delete_files(list_of_files=effective_removals)
+        # Удаляем из хранилища файлы, которые явно удалил пользователь
+        if removed_photos:
+            await self.storage_handler.delete_files(list_of_files=removed_photos)
 
+        # Обновление связанных сущностей: шина
         if product_data.tire:
             tire_data = self.__connect_product_with_car_part(
                 car_part_data=product_data.tire,
@@ -199,6 +227,7 @@ class ProductOrchestrator:
                 data=tire_data,
             )
 
+        # Диск
         if product_data.disc:
             disc_data = self.__connect_product_with_car_part(
                 car_part_data=product_data.disc,
@@ -209,6 +238,7 @@ class ProductOrchestrator:
                 data=disc_data,
             )
 
+        # Двигатель
         if product_data.engine:
             engine_data = self.__connect_product_with_car_part(
                 car_part_data=product_data.engine,
