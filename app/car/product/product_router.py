@@ -172,7 +172,9 @@ async def create_product(
         product_data=product_data,
         files=product_pictures,
     )
-    return convert_product_data(product=product)
+    return convert_product_data(
+        product=product,
+    )
 
 
 @router.put(
@@ -184,6 +186,7 @@ async def create_product(
 )
 async def update_product(
     product_id: UUID = Path(...),
+    removed_photos: list[str] = Body(...),
     new_product_data: ProductUpdate = Body(...),
     new_product_pictures: list[UploadFile] | None = File(None),
     user: "User" = Depends(required_roles(allowed_roles=[UserRoles.WORKER])),
@@ -195,6 +198,7 @@ async def update_product(
         product_id=product_id,
         product_data=new_product_data,
         files=new_product_pictures,
+        removed_photos=removed_photos,
     )
 
     return ProductResponse.model_validate(product)
@@ -213,6 +217,25 @@ async def get_product(
 ) -> ProductResponseExtend:
     product = await product_handler.get_product_by_id(product_id=product_id)
     return convert_product_data_extend(product_data=product)
+
+
+@router.get(
+    "/private/{product_id}",
+    summary="Get product by ID. Worker Access",
+    description="Retrieve detailed information about a specific product",
+    response_model=ProductResponseExtend,
+    dependencies=[Depends(required_roles([UserRoles.WORKER]))],
+    status_code=status.HTTP_200_OK,
+)
+async def get_product(
+    product_id: UUID = Path(...),
+    product_handler: "ProductHandler" = Depends(get_product_handler),
+) -> ProductResponseExtend:
+    product = await product_handler.get_product_by_id(product_id=product_id)
+    return convert_product_data_extend(
+        product_data=product,
+        is_private=True,
+    )
 
 
 @router.get(

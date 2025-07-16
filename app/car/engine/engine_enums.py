@@ -2,14 +2,14 @@ from enum import Enum
 
 
 class GearboxType(str, Enum):
-    MANUAL = "механическая"
-    AUTOMATIC = "автоматическая"
-    ROBOTIC = "робот"
-    VARIATOR = "вариатор"
+    MANUAL = "manual"
+    AUTOMATIC = "automatic"
+    ROBOTIC = "robotic"
+    VARIATOR = "variator"
 
 
 class FuelType(str, Enum):
-    GASOLINE = "бензин"
-    DIESEL = "дизель"
-    HYBRID = "гибрид"
-    ELECTRIC = "электрическая"
+    GASOLINE = "gasoline"
+    DIESEL = "diesel"
+    HYBRID = "hybrid"
+    ELECTRIC = "electrick"

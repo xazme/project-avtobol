@@ -2,11 +2,11 @@ from enum import Enum
 
 
 class CarType(str, Enum):
-    PASSENGER_CAR = "легковой авто"
-    TRUCK = "грузовой авто"
-    SUV = "внедорожник"
+    PASSENGER_CAR = "passenger car"
+    TRUCK = "truck"
+    SUV = "suv"
 
 
 class Season(str, Enum):
-    WINTER = "зима"
-    SUMMER = "лето"
+    WINTER = "winter"
+    SUMMER = "summer"

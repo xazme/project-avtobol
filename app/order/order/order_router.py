@@ -51,7 +51,7 @@ async def create_order(
     summary="Create order. Worker Access",
     description="Create a new order from user's cart",
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(required_roles(allowed_roles=[UserRoles.CLIENT]))],
+    dependencies=[Depends(required_roles(allowed_roles=[UserRoles.WORKER]))],
     response_model=OrderManualResponse,
 )
 async def create_order_manually(
