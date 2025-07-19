@@ -1,12 +1,7 @@
 import json
 from openai import OpenAI, Client
 
-client = OpenAI(
-    api_key="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",
-)
-
-api_key = "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"
-
+client = OpenAI(api_key="xyu")
 
 msg = (
     "вот столько. ну ты видишь что 2500 и 250. и чтобы мой сайт хорошо контактировал с аллегро надо взять и как то их загрупировать"
