@@ -6,9 +6,9 @@ from app.shared import ExceptionRaiser, BaseCRUD
 from app.storage import StorageHandler
 from .product_schema import ProductCreate, ProductUpdate
 from .product_handler import ProductHandler
-from ..disc.disc import DiscHandler
-from ..tire.tire import TireHandler
-from ..engine import EngineHandler
+from ..disc.disc import DiscHandler, DiscCreate, DiscUpdate
+from ..tire.tire import TireHandler, TireCreate, TireUpdate
+from ..engine import EngineHandler, EngineCreate, EngineUpdate
 
 if TYPE_CHECKING:
     from .product_model import Product
@@ -38,13 +38,11 @@ class ProductOrchestrator:
         product_data: ProductCreate,
         files: list[UploadFile],
     ) -> "Product":
-        tire_data = product_data.tire
-        disc_data = product_data.disc
-        engine_data = product_data.engine
+        details = product_data.details
 
         main_product_data = product_data.model_dump(
             exclude_unset=True,
-            exclude={"tire", "disc", "engine"},
+            exclude={"details"},
         )
 
         main_product_data.update({"post_by": user_id})
@@ -68,45 +66,33 @@ class ProductOrchestrator:
 
         product_id = product.id
 
-        if tire_data:
+        if details:
             data = self.__connect_product_with_car_part(
-                car_part_data=tire_data,
+                car_part_data=details,
                 product_id=product_id,
             )
-            tire: "Tire" | None = await self.tire_handler.repository.create(data=data)
-            if not tire:
-                ExceptionRaiser.raise_exception(
-                    status_code=400,
-                    detail=f"Неудалось создать продукт. Ошибка создания {tire_data}",
-                )
-        if disc_data:
-            data = self.__connect_product_with_car_part(
-                car_part_data=disc_data,
-                product_id=product_id,
-            )
-            disc: "Disc" | None = await self.disc_handler.repository.create(
-                data=data,
-            )
-            if not disc:
+            if isinstance(details, TireCreate):
+                created = await self.tire_handler.repository.create(data=data)
+                part_type = "Шина"
+            elif isinstance(details, DiscCreate):
+                created = await self.disc_handler.repository.create(data=data)
+                part_type = "Диск"
+            elif isinstance(details, EngineCreate):
+                created = await self.engine_handler.repository.create(data=data)
+                part_type = "Двигатель"
+            else:
+                created = None
+
+            if not created:
                 await self.delete_product(product_id=product_id)
                 ExceptionRaiser.raise_exception(
                     status_code=400,
-                    detail=f"Неудалось создать продукт. Ошибка создания {disc_data}",
+                    detail=f"Не удалось создать продукт. Ошибка создания {part_type}.",
                 )
-        if engine_data:
-            data = self.__connect_product_with_car_part(
-                car_part_data=engine_data,
-                product_id=product_id,
-            )
-            engine: "Engine" | None = await self.engine_handler.repository.create(
-                data=data,
-            )
-            if not engine:
-                await self.delete_product(product_id=product_id)
-                ExceptionRaiser.raise_exception(
-                    status_code=400,
-                    detail=f"Неудалось создать продукт. Ошибка создания {engine_data}",
-                )
+
+        await self.product_handler.repository.upload_product_data(
+            product_id=product_id,
+        )
 
         return product
 
@@ -118,7 +104,6 @@ class ProductOrchestrator:
         new_photos: list[UploadFile] | None = None,
         removed_photos: list[str] | None = None,
     ) -> "Product":
-        # Получаем текущий продукт
         product: Product = await self.product_handler.repository.get_by_id(
             id=product_id
         )
@@ -217,37 +202,36 @@ class ProductOrchestrator:
             await self.storage_handler.delete_files(list_of_files=removed_photos)
 
         # Обновление связанных сущностей: шина
-        if product_data.tire:
-            tire_data = self.__connect_product_with_car_part(
-                car_part_data=product_data.tire,
+        if product_data.details:
+            detail_data = self.__connect_product_with_car_part(
+                car_part_data=product_data.details,
                 product_id=product_id,
             )
+
+        if isinstance(product_data.details, (TireUpdate, TireCreate)):
             await self.tire_handler.repository.update_or_create(
                 product_id=product_id,
-                data=tire_data,
+                data=detail_data,
             )
-
-        # Диск
-        if product_data.disc:
-            disc_data = self.__connect_product_with_car_part(
-                car_part_data=product_data.disc,
-                product_id=product_id,
-            )
+        elif isinstance(product_data.details, (DiscUpdate, DiscCreate)):
             await self.disc_handler.repository.update_or_create(
                 product_id=product_id,
-                data=disc_data,
+                data=detail_data,
             )
-
-        # Двигатель
-        if product_data.engine:
-            engine_data = self.__connect_product_with_car_part(
-                car_part_data=product_data.engine,
-                product_id=product_id,
-            )
+        elif isinstance(product_data.details, (EngineUpdate, EngineCreate)):
             await self.engine_handler.repository.update_or_create(
                 product_id=product_id,
-                data=engine_data,
+                data=detail_data,
             )
+        else:
+            ExceptionRaiser.raise_exception(
+                status_code=400,
+                detail="Неизвестный тип детали в details.",
+            )
+
+        await self.product_handler.repository.upload_product_data(
+            product_id=product_id,
+        )
 
         return updated_product
 
@@ -266,7 +250,9 @@ class ProductOrchestrator:
         tire = product.tire
         disc = product.disc
         engine = product.engine
-
+        print(tire)
+        print(disc)
+        print(engine)
         if tire:
             await self.tire_handler.delete_obj(id=tire.id)
         if disc:

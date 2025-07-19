@@ -23,6 +23,9 @@ from .product_enums import (
 )
 
 if TYPE_CHECKING:
+    from app.cart import CartItem
+    from app.order import OrderItem
+    from app.user import User
     from ..car_brand import CarBrand
     from ..car_series import CarSeries
     from ..car_part import CarPart
@@ -161,7 +164,10 @@ class Product(Base):
     )
 
     post_by: Mapped[UUID | None] = mapped_column(
-        ForeignKey("user.id", ondelete="SET NULL"),
+        ForeignKey(
+            "user.id",
+            ondelete="SET NULL",
+        ),
         nullable=True,
         index=True,
     )

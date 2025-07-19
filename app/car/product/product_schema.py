@@ -2,10 +2,10 @@ import json
 from datetime import datetime
 from uuid import UUID
 from pydantic import BaseModel, model_validator
-from app.car.tire.tire import TireCreate, TireResponse
-from app.car.disc.disc import DiscCreate, DiscResponse
-from app.car.engine import EngineCreate, EngineResponse
 from .product_enums import BodyType, Currency, ProductCondition, Availability
+from ..tire.tire import TireCreate, TireResponse
+from ..disc.disc import DiscCreate, DiscResponse
+from ..engine import EngineCreate, EngineResponse
 
 
 class ProductCreate(BaseModel):
@@ -16,11 +16,7 @@ class ProductCreate(BaseModel):
     car_part_id: UUID
     year: int = 1980
     type_of_body: BodyType | None = None
-
-    tire: TireCreate | None = None
-    disc: DiscCreate | None = None
-    engine: EngineCreate | None = None
-
+    details: TireCreate | DiscCreate | EngineCreate | None = None
     description: str
     price: float
     discount: float | None = None
@@ -52,9 +48,6 @@ class ProductResponse(BaseModel):
     car_part_id: UUID
     year: int
     type_of_body: BodyType | None
-    tire: TireResponse | None = None
-    disc: DiscResponse | None = None
-    engine: EngineResponse | None = None
     description: str
     price: float
     discount: float | None
@@ -90,52 +83,51 @@ class ProductResponseCompressed(BaseModel):
         validate_by_name = True
 
 
-class ProductResponseExtend(BaseModel):
+class ProductResponseBase(BaseModel):
     id: UUID
     article: str
-    OEM: str | None
-    VIN: str | None
+    OEM: str | None = None
+    VIN: str | None = None
     pictures: list[str]
-
-    car_brand_id: UUID | None = None
-    car_brand_name: str
-    car_series_id: UUID | None = None
-    car_series_name: str
-    car_part_id: UUID | None = None
+    car_series_year: str
     car_part_name: str
-
-    year: int | None
-    type_of_body: BodyType | None
-    condition: ProductCondition
-
-    engine: EngineResponse | None = None
-    disc: DiscResponse | None = None
-    tire: TireResponse | None = None
-
+    year: int | None = None
+    details: TireResponse | DiscResponse | EngineResponse | None = None
     description: str
     price: float
-    discount: float | None
+    discount: float | None = None
     currency: Currency
-    note: str | None = None
     count: int
     availability: Availability
-    is_printed: bool | None = None
-    is_available: bool | None = None
-    created_at: datetime | None = None
-    post_by: UUID | None = None
-    idriver_id: str | None
-    allegro_id: str | None
 
     class Config:
         from_attributes = True
         validate_by_name = True
 
 
-class ProductFilters(BaseModel):
-    article: str | None = None
+class ProductResponsePublic(ProductResponseBase):
+    car_brand_name: str
+    car_series_name: str
+    car_part_name_latin: str
+
+
+class ProductResponsePrivate(ProductResponseBase):
     car_brand_id: UUID | None = None
+    car_brand_name: str
     car_series_id: UUID | None = None
+    car_series_name: str
+    note: str | None = None
     car_part_id: UUID | None = None
+    idriver_id: str | None = None
+    allegro_id: str | None = None
+    is_printed: bool | None = None
+    is_available: bool | None = None
+    created_at: datetime | None = None
+    post_by: UUID | None = None
+
+
+class ProductFiltersBase(BaseModel):
+    article: str | None = None
     price_from: float | None = None
     price_to: float | None = None
     year_from: int | None = None
@@ -145,7 +137,16 @@ class ProductFilters(BaseModel):
     availability: Availability | None = None
 
 
-class ProductFiltersExtended(ProductFilters):
+class ProductFiltersPublic(ProductFiltersBase):
+    car_brand_name: str | None = None
+    car_series_name: str | None = None
+    car_part_name: str | None = None
+
+
+class ProductFiltersPrivate(ProductFiltersBase):
+    car_brand_id: UUID | None = None
+    car_series_id: UUID | None = None
+    car_part_id: UUID | None = None
     is_printed: bool | None = None
     is_available: bool | None = None
     created_from: datetime | None = None

@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from fastapi import APIRouter, Body, Depends, status
+from fastapi import APIRouter, Body, Path, Depends, status
 from app.core import settings
 from app.user.user_enums import UserRoles
 from app.auth.auth_guard import required_roles
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 @router.post(
-    "/items",
+    "/",
     summary="Add item to cart",
     description="Add a product to the user's shopping cart",
     status_code=status.HTTP_201_CREATED,
@@ -58,24 +58,7 @@ async def get_user_cart(
 
 
 @router.delete(
-    "/items/{product_id}",
-    summary="Delete item from cart",
-    description="Remove a specific product from the user's shopping cart",
-    status_code=status.HTTP_204_NO_CONTENT,
-    response_model=None,
-)
-async def delete_cart_item(
-    item: CartDeleteItem = Body(...),
-    user: "User" = Depends(required_roles([UserRoles.CLIENT])),
-    cart_item_orchestrator: "CartItemOrchestrator" = Depends(
-        get_cart_item_orchestrator
-    ),
-) -> None:
-    await cart_item_orchestrator.delete_item(user_id=user.id, data=item)
-
-
-@router.delete(
-    "/items",
+    "/",
     summary="Clear cart",
     description="Remove all items from the user's shopping cart",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -88,3 +71,20 @@ async def clear_cart(
     ),
 ) -> None:
     await cart_item_orchestrator.clear_cart(user_id=user.id)
+
+
+@router.delete(
+    "/{product_id}",
+    summary="Delete item from cart",
+    description="Remove a specific product from the user's shopping cart",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+)
+async def delete_cart_item(
+    item: CartDeleteItem = Path(...),
+    user: "User" = Depends(required_roles([UserRoles.CLIENT])),
+    cart_item_orchestrator: "CartItemOrchestrator" = Depends(
+        get_cart_item_orchestrator
+    ),
+) -> None:
+    await cart_item_orchestrator.delete_item(user_id=user.id, data=item)

@@ -4,7 +4,6 @@ from .engine_enums import GearboxType, FuelType
 
 
 class EngineCreate(BaseModel):
-    product_id: UUID
     engine_type: str | None = None
     gearbox: GearboxType | None = None
     fuel: FuelType | None = None

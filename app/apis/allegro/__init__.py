@@ -1,0 +1,1 @@
+from .allegro_schema import ProductCreateAllegro

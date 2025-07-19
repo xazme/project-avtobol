@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 from fastapi import APIRouter, Depends, status, Query, Path, Body
 from app.core import settings
-from .disc_brand_schemas import DiscBrandCreate, DiscBrandUpdate, DiscBrandResponse
+from .disc_brand_schema import DiscBrandCreate, DiscBrandUpdate, DiscBrandResponse
 from .disc_brand_dependencies import get_disc_brand_handler
 
 if TYPE_CHECKING:

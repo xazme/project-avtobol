@@ -1,7 +1,7 @@
 from uuid import UUID
 from pydantic import BaseModel
-from .tire_enums import CarType, Season
 from app.car.shared import Diametr
+from .tire_enums import CarType, Season
 
 
 class TireCreate(BaseModel):
@@ -37,14 +37,21 @@ class TireResponse(BaseModel):
         validate_by_name = True
 
 
-class TireFilters(BaseModel):
+class TireFiltersBase(BaseModel):
+    model: str | None = None
+    season: Season | None = None
+    residue_from: float | None = None
+    residue_to: float | None = None
     diametr: Diametr | None = None
     width: float | None = None
     height: float | None = None
     index: str | None = None
     car_type: CarType | None = None
-    brand_id: UUID | None = None
-    model: str | None = None
-    season: Season | None = None
-    residue_from: float | None = None
-    residue_to: float | None = None
+
+
+class TireFiltersPublic(TireFiltersBase):
+    tire_brand_name: str | None = None
+
+
+class TireFiltersPrivate(TireFiltersBase):
+    tire_brand_id: UUID | None = None

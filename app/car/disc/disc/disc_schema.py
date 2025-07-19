@@ -34,12 +34,19 @@ class DiscResponse(DiscCreate):
         validate_by_name = True
 
 
-class DiscFilters(BaseModel):
+class DiscFiltersBase(BaseModel):
     diametr: Diametr | None = None
     width: float | None = None
     ejection: float | None = None
     dia: float | None = None
     holes: int | None = None
     pcd: float | None = None
-    brand_id: UUID | None = None
     model: str | None = None
+
+
+class DiscFiltersPublic(DiscFiltersBase):
+    disc_brand_name: str | None = None
+
+
+class DiscFiltersPrivate(DiscFiltersBase):
+    disc_brand_id: UUID | None = None

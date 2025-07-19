@@ -1,96 +1,129 @@
 from .product_model import Product
-from .product_schema import ProductResponseExtend, ProductResponse
+from .product_schema import (
+    ProductResponse,
+    ProductResponsePublic,
+    ProductResponsePrivate,
+)
 from ..tire.tire import TireResponse
 from ..disc.disc import DiscResponse
 from ..engine import EngineResponse
 
 
-def convert_product_data_extend(
+def _get_details(
+    product: Product,
+) -> TireResponse | DiscResponse | EngineResponse | None:
+    if product.tire:
+        return TireResponse.model_validate(product.tire)
+    if product.disc:
+        return DiscResponse.model_validate(product.disc)
+    if product.engine:
+        return EngineResponse.model_validate(product.engine)
+    return None
+
+
+def convert_product_data_public(
     product_data: Product | list[Product],
-    is_private: bool = False,
-) -> ProductResponseExtend | list[ProductResponseExtend]:
-    def _convert(product: Product) -> ProductResponseExtend:
+) -> ProductResponsePublic | list[ProductResponsePublic]:
+    def _convert(product: Product) -> ProductResponsePublic:
         data = {
             "id": product.id,
             "article": product.article,
             "OEM": product.OEM,
             "VIN": product.VIN,
             "pictures": product.pictures,
-            "car_brand_id": product.car_brand_id if is_private else None,
-            "car_brand_name": product.car_brand.name,
-            "car_series_id": product.car_series_id if is_private else None,
-            "car_series_name": product.car_series.name,
-            "car_part_id": product.car_part_id if is_private else None,
+            "car_series_year": product.car_series.year,
             "car_part_name": product.car_part.name,
+            "car_part_name_latin": product.car_part.latin_name,
+            "car_brand_name": product.car_brand.name,
+            "car_series_name": product.car_series.name,
             "year": product.year,
-            "type_of_body": product.type_of_body,
-            "condition": product.condition,
+            "details": _get_details(product),
             "description": product.description,
             "price": product.price,
             "discount": product.discount,
             "currency": product.currency,
-            "availability": product.availability,
             "count": product.count,
-            "engine": (
-                EngineResponse.model_validate(product.engine)
-                if product.engine
-                else None
-            ),
-            "disc": DiscResponse.model_validate(product.disc) if product.disc else None,
-            "tire": TireResponse.model_validate(product.tire) if product.tire else None,
-            "idriver_id": product.idriver_id,
-            "allegro_id": product.allegro_id,
+            "availability": product.availability,
         }
-
-        if is_private:
-            data.update(
-                {
-                    "note": product.note,
-                    "is_available": product.is_available,
-                    "is_printed": product.is_printed,
-                    "created_at": product.created_at,
-                    "post_by": product.post_by,
-                }
-            )
-
-        return ProductResponseExtend(**data)
+        return ProductResponsePublic(**data)
 
     if isinstance(product_data, list):
-        return [_convert(prod) for prod in product_data]
+        return [_convert(product) for product in product_data]
     return _convert(product_data)
 
 
-def convert_product_data(product: Product) -> ProductResponse:
+def convert_product_data_private(
+    product_data: Product | list[Product],
+) -> ProductResponsePrivate | list[ProductResponsePrivate]:
+    def _convert(product: Product) -> ProductResponsePrivate:
+        data = {
+            "id": product.id,
+            "article": product.article,
+            "OEM": product.OEM,
+            "VIN": product.VIN,
+            "pictures": product.pictures,
+            "car_series_year": product.car_series.year,
+            "car_part_name": product.car_part.name,
+            "car_brand_id": product.car_brand_id,
+            "car_brand_name": product.car_brand.name,
+            "car_series_id": product.car_series_id,
+            "car_series_name": product.car_series.name,
+            "note": product.note,
+            "car_part_id": product.car_part_id,
+            "idriver_id": product.idriver_id,
+            "allegro_id": product.allegro_id,
+            "is_printed": product.is_printed,
+            "is_available": product.is_available,
+            "created_at": product.created_at,
+            "post_by": product.post_by,
+            "year": product.year,
+            "details": _get_details(product),
+            "description": product.description,
+            "price": product.price,
+            "discount": product.discount,
+            "currency": product.currency,
+            "count": product.count,
+            "availability": product.availability,
+        }
+        return ProductResponsePrivate(**data)
 
-    base_data = {
-        "id": product.id,
-        "article": product.article,
-        "OEM": product.OEM,
-        "VIN": product.VIN,
-        "car_brand_id": product.car_brand_id,
-        "car_series_id": product.car_series_id,
-        "car_part_id": product.car_part_id,
-        "year": product.year,
-        "type_of_body": product.type_of_body,
-        "description": product.description,
-        "price": product.price,
-        "discount": product.discount,
-        "currency": product.currency,
-        "condition": product.condition,
-        "availability": product.availability,
-        "count": product.count,
-        "pictures": product.pictures,
-        "tire": TireResponse.model_validate(product.tire) if product.tire else None,
-        "disc": DiscResponse.model_validate(product.disc) if product.disc else None,
-        "engine": (
-            EngineResponse.model_validate(product.engine) if product.engine else None
-        ),
-        "note": product.note,
-        "is_printed": product.is_printed,
-        "is_available": product.is_available,
-        "created_at": product.created_at,
-        "idriver_id": product.idriver_id,
-        "allegro_id": product.allegro_id,
-    }
+    if isinstance(product_data, list):
+        return [_convert(product) for product in product_data]
+    return _convert(product_data)
 
-    return ProductResponse.model_validate(base_data)
+
+def convert_product_data_basic(
+    product_data: Product | list[Product],
+) -> ProductResponse:
+
+    def _convert(product: Product) -> ProductResponse:
+        data = {
+            "id": product.id,
+            "article": product.article,
+            "OEM": product.OEM,
+            "VIN": product.VIN,
+            "car_brand_id": product.car_brand_id,
+            "car_series_id": product.car_series_id,
+            "car_part_id": product.car_part_id,
+            "year": product.year,
+            "type_of_body": product.type_of_body,
+            "description": product.description,
+            "price": product.price,
+            "discount": product.discount,
+            "currency": product.currency,
+            "condition": product.condition,
+            "availability": product.availability,
+            "note": product.note,
+            "count": product.count,
+            "pictures": product.pictures,
+            "is_printed": product.is_printed,
+            "is_available": product.is_available,
+            "created_at": product.created_at,
+            "idriver_id": product.idriver_id,
+            "allegro_id": product.allegro_id,
+        }
+        return ProductResponse(**data)
+
+    if isinstance(product_data, list):
+        return [_convert(product) for product in product_data]
+    return _convert(product_data)

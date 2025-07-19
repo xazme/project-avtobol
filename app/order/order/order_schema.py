@@ -8,7 +8,7 @@ from .order_enums import OrderStatuses
 class OrderCreate(BaseModel):
     user_name: str
     user_phone: str
-    description: str
+    description: str | None = None
     city_to_ship: str
     adress_to_ship: str
     postal_code: str

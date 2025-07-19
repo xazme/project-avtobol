@@ -4,14 +4,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import OperationalError, IntegrityError
 from app.shared import BaseCRUD
-from app.car.car_brand import CarBrand
 from .product_model import Product
-from .product_schema import ProductFiltersExtended, ProductFilters
-from ..tire import Tire
-from ..disc import Disc
+from .product_schema import ProductFiltersPublic, ProductFiltersPrivate
 from ..engine import Engine
-from ..tire.tire import TireFilters
-from ..disc.disc import DiscFilters
+from ..car_brand import CarBrand
+from ..car_series import CarSeries
+from ..tire import Tire, TireBrand
+from ..disc import Disc, DiscBrand
+from ..tire.tire import TireFiltersPublic, TireFiltersPrivate
+from ..disc.disc import DiscFiltersPublic, DiscFiltersPrivate
 from ..engine import EngineFilters
 
 
@@ -31,215 +32,145 @@ class ProductRepository(BaseCRUD):
             self.session.add(product)
             await self.session.commit()
             await self.session.refresh(product)
-            await self.upload_data(id=product.id)
+
             return product
         except IntegrityError as e:
             await self.session.rollback()
             return None
 
-    async def get_all_products_by_scroll(
+    async def get_all_products_by_cursor(
         self,
         cursor: int | None,
         take: int | None,
-        main_filters: ProductFilters | ProductFiltersExtended | None,
-        tire_filters: TireFilters | None,
-        disc_filters: DiscFilters | None,
+        product_filters: ProductFiltersPublic | ProductFiltersPrivate | None,
+        tire_filters: TireFiltersPublic | TireFiltersPrivate | None,
+        disc_filters: DiscFiltersPublic | DiscFiltersPrivate | None,
         engine_filters: EngineFilters | None,
-        is_private: bool = False,
-    ) -> tuple[list[Product], int]:
-        product_filters: list = await self.prepare_filters(
-            filters_main=main_filters,
-            filters_tire=tire_filters,
-            filters_disc=disc_filters,
-            filters_engine=engine_filters,
-            is_private=is_private,
+    ) -> tuple[int, int, list[Product]]:
+        prepared_filters: list = self.prepare_filters(
+            product_filters=product_filters,
+            tire_filters=tire_filters,
+            disc_filters=disc_filters,
+            engine_filters=engine_filters,
         )
+
         cursor = cursor if cursor is not None else 0
         stmt_count: Select = Select(func.count(self.model.id)).where(
-            *product_filters,
+            *prepared_filters,
         )
-        stmt_count_using_filters = Select(func.count(self.model.id)).where(
-            *product_filters,
-        )
+
         stmt: Select = (
             Select(self.model)
             .options(
                 selectinload(self.model.car_brand),
                 selectinload(self.model.car_series),
                 selectinload(self.model.car_part),
-                selectinload(self.model.tire),
-                selectinload(self.model.disc),
+                selectinload(self.model.tire).joinedload(Tire.brand),
                 selectinload(self.model.engine),
+                selectinload(self.model.disc).joinedload(Disc.brand),
             )
             .order_by(self.model.created_at)
             .offset(cursor)
-            .where(and_(*product_filters))
+            .where(and_(*prepared_filters))
         )
         if take is not None:
             stmt = stmt.limit(take)
 
         result: Result = await self.session.execute(statement=stmt)
-        result_count: Result = await self.session.execute(statement=stmt_count)
-        result_count_with_filters: Result = await self.session.execute(
-            statement=stmt_count_using_filters
-        )
-        count = result_count.scalar()
-        count_with_filters = result_count_with_filters.scalar()
-        next_cursor = (
-            cursor + take if take is not None and (cursor + take) <= count else None
-        )
-        return next_cursor, count_with_filters, result.scalars().all()
+        count_result: Result = await self.session.execute(statement=stmt_count)
 
-    async def get_all_products(
+        total_count = count_result.scalar()
+
+        next_cursor = (
+            cursor + take
+            if take is not None and (cursor + take) <= total_count
+            else None
+        )
+        return next_cursor, total_count, result.scalars().all()
+
+    async def get_all_products_by_page(
         self,
         page: int,
         page_size: int,
-        main_filters: ProductFilters | ProductFiltersExtended | None,
-        tire_filters: TireFilters | None,
-        disc_filters: DiscFilters | None,
+        product_filters: ProductFiltersPublic | ProductFiltersPrivate | None,
+        tire_filters: TireFiltersPublic | TireFiltersPrivate | None,
+        disc_filters: DiscFiltersPublic | DiscFiltersPrivate | None,
         engine_filters: EngineFilters | None,
-        is_private: bool = False,
     ) -> tuple[list[Product], int]:
-        product_filters: list = await self.prepare_filters(
-            filters_main=main_filters,
-            filters_tire=tire_filters,
-            filters_disc=disc_filters,
-            filters_engine=engine_filters,
-            is_private=is_private,
+        prepared_filters: list = self.prepare_filters(
+            product_filters=product_filters,
+            tire_filters=tire_filters,
+            disc_filters=disc_filters,
+            engine_filters=engine_filters,
         )
 
-        stmt: Select = (
+        stmt_count: Select = (
+            Select(func.count()).select_from(self.model).where(and_(*prepared_filters))
+        )
+        stmt = (
             Select(self.model)
             .options(
                 selectinload(self.model.car_brand),
                 selectinload(self.model.car_series),
                 selectinload(self.model.car_part),
-                selectinload(self.model.tire),
-                selectinload(self.model.disc),
                 selectinload(self.model.engine),
+                selectinload(self.model.tire).joinedload(Tire.brand),
+                selectinload(self.model.disc).joinedload(Disc.brand),
             )
             .order_by(self.model.created_at)
             .limit(limit=page_size)
             .offset((page - 1) * page_size)
-            .where(and_(*product_filters))
+            .where(and_(*prepared_filters))
         )
-        count_stmt: Select = (
-            Select(func.count()).select_from(self.model).where(and_(*product_filters))
-        )
+
         product_result: Result = await self.session.execute(stmt)
-        count_result: Result = await self.session.execute(count_stmt)
+        count_result: Result = await self.session.execute(stmt_count)
 
-        return count_result.scalar(), product_result.scalars().all()
+        total_count = count_result.scalar()
+        return total_count, product_result.scalars().all()
 
-    async def prepare_filters(
+    def prepare_filters(
         self,
-        filters_main: ProductFilters | ProductFiltersExtended | None,
-        filters_tire: TireFilters | None,
-        filters_disc: DiscFilters | None,
-        filters_engine: EngineFilters | None,
-        is_private: bool,
+        product_filters: ProductFiltersPublic | ProductFiltersPrivate | None,
+        tire_filters: TireFiltersPublic | TireFiltersPrivate | None,
+        disc_filters: DiscFiltersPublic | DiscFiltersPublic | None,
+        engine_filters: EngineFilters | None,
     ) -> list:
-        filters_list: list = []
 
-        if filters_main.article:
-            filters_list.append(self.model.article.ilike(f"{filters_main.article}%"))
-        if filters_main.car_brand_id:
-            filters_list.append(self.model.car_brand_id == filters_main.car_brand_id)
-        if filters_main.car_series_id:
-            filters_list.append(self.model.car_series_id == filters_main.car_series_id)
-        if filters_main.car_part_id:
-            filters_list.append(self.model.car_part_id == filters_main.car_part_id)
-        if filters_main.price_from:
-            filters_list.append(self.model.price >= filters_main.price_from)
-        if filters_main.price_to:
-            filters_list.append(self.model.price <= filters_main.price_to)
-        if filters_main.year_from:
-            filters_list.append(self.model.year >= filters_main.year_from)
-        if filters_main.year_to:
-            filters_list.append(self.model.year <= filters_main.year_to)
-        if filters_main.type_of_body:
-            filters_list.append(self.model.type_of_body == filters_main.type_of_body)
-        if filters_main.condition:
-            filters_list.append(self.model.condition == filters_main.condition)
-        if filters_main.availability:
-            filters_list.append(self.model.availability == filters_main.availability)
+        prepared_product_filters: list = self._prepare_product_filters(
+            product_filters=product_filters,
+        )
+        prepared_tire_filters: list = self._prepare_tire_filters(
+            tire_filters=tire_filters,
+        )
+        prepared_disc_filters: list = self._prepare_disc_filters(
+            disc_filters=disc_filters,
+        )
+        prepared_engine_filters: list = self._prepare_engine_filters(
+            engine_filters=engine_filters,
+        )
 
-        if filters_tire.diametr:
-            filters_list.append(Tire.diametr == filters_tire.diametr)
-        if filters_tire.width:
-            filters_list.append(Tire.width == filters_tire.width)
-        if filters_tire.height:
-            filters_list.append(Tire.height == filters_tire.height)
-        if filters_tire.index:
-            filters_list.append(Tire.index == filters_tire.index)
-        if filters_tire.car_type:
-            filters_list.append(Tire.car_type == filters_tire.car_type)
-        if filters_tire.brand_id:
-            filters_list.append(Tire.tire_brand_id == filters_tire.brand_id)
-        if filters_tire.model:
-            filters_list.append(Tire.model.ilike(f"{filters_tire.model}%"))
-        if filters_tire.season:
-            filters_list.append(Tire.season == filters_tire.season)
-        if filters_tire.residue_from:
-            filters_list.append(Tire.residue >= filters_tire.residue_from)
-        if filters_tire.residue_to:
-            filters_list.append(Tire.residue <= filters_tire.residue_to)
-
-        if filters_disc.diametr:
-            filters_list.append(Disc.diametr == filters_disc.diametr)
-        if filters_disc.width:
-            filters_list.append(Disc.width == filters_disc.width)
-        if filters_disc.ejection:
-            filters_list.append(Disc.ejection == filters_disc.ejection)
-        if filters_disc.dia:
-            filters_list.append(Disc.dia == filters_disc.dia)
-        if filters_disc.holes:
-            filters_list.append(Disc.holes == filters_disc.holes)
-        if filters_disc.pcd:
-            filters_list.append(Disc.pcd == filters_disc.pcd)
-        if filters_disc.brand_id:
-            filters_list.append(Disc.disc_brand_id == filters_disc.brand_id)
-        if filters_disc.model:
-            filters_list.append(Disc.model.ilike(f"{filters_disc.model}%"))
-
-        if filters_engine.gearbox:
-            filters_list.append(Engine.gearbox == filters_engine.gearbox)
-        if filters_engine.fuel:
-            filters_list.append(Engine.fuel == filters_engine.fuel)
-        if filters_engine.volume:
-            filters_list.append(Engine.volume == filters_engine.volume)
-        if filters_engine.engine_type:
-            filters_list.append(Engine.engine_type == filters_engine.engine_type)
-
-        if is_private:
-            if filters_main.created_from:
-                filters_list.append(Product.created_at >= filters_main.created_from)
-            if filters_main.created_to:
-                filters_list.append(Product.created_at <= filters_main.created_to)
-            if filters_main.post_by:
-                filters_list.append(Product.post_by == filters_main.post_by)
-            if filters_main.is_printed is not None:
-                filters_list.append(Product.is_printed == filters_main.is_printed)
-            if filters_main.is_available is not None:
-                filters_list.append(Product.is_available == filters_main.is_available)
-        else:
-            filters_list.append(Product.is_available.is_(True))
-
-        return filters_list
+        return (
+            prepared_product_filters
+            + prepared_tire_filters
+            + prepared_disc_filters
+            + prepared_engine_filters
+        )
 
     async def get_product_by_id(
         self,
         id: UUID,
     ) -> Product | None:
-        stmt: Select = (
+        stmt = (
             Select(self.model)
             .where(self.model.id == id)
             .options(
-                selectinload(self.model.car_brand).joinedload(CarBrand.car_series),
+                selectinload(self.model.car_brand),
+                selectinload(self.model.car_series),
                 selectinload(self.model.car_part),
-                selectinload(self.model.tire),
-                selectinload(self.model.disc),
                 selectinload(self.model.engine),
+                selectinload(self.model.tire).joinedload(TireBrand),
+                selectinload(self.model.disc).joinedload(DiscBrand),
             )
         )
         result: Result = await self.session.execute(statement=stmt)
@@ -249,12 +180,15 @@ class ProductRepository(BaseCRUD):
         self,
         article: str,
     ) -> Product | None:
-        stmt: Select = (
+        stmt = (
             Select(self.model)
             .where(self.model.article == article)
             .options(
                 selectinload(self.model.car_brand).joinedload(CarBrand.car_series),
                 selectinload(self.model.car_part),
+                selectinload(self.model.engine),
+                selectinload(self.model.tire).joinedload(TireBrand),
+                selectinload(self.model.disc).joinedload(DiscBrand),
             )
         )
         result: Result = await self.session.execute(statement=stmt)
@@ -286,7 +220,7 @@ class ProductRepository(BaseCRUD):
             await self.session.rollback()
             return None
 
-    async def bulk_change_availibility(
+    async def bulk_update_availibility(
         self,
         products_id: list[UUID],
         new_availables_status: bool,
@@ -295,32 +229,34 @@ class ProductRepository(BaseCRUD):
             Update(self.model)
             .where(self.model.id.in_(products_id))
             .values(is_available=new_availables_status)
+            .returning(self.model)
         )
         try:
-            await self.session.execute(statement=stmt)
+            result: Result = await self.session.execute(statement=stmt)
             await self.session.commit()
-            return True
+            return result.scalars().all()
         except OperationalError:
             await self.session.rollback()
-            return False
+            return None
 
-    async def bulk_change_printed_status(
+    async def bulk_update_printed_status(
         self,
         products_id: list[UUID],
         status: bool,
-    ) -> bool:
+    ) -> list[Product] | None:
         stmt = (
             Update(self.model)
             .where(self.model.id.in_(products_id))
             .values(is_printed=status)
+            .returning(self.model)
         )
         try:
-            await self.session.execute(statement=stmt)
+            result: Result = await self.session.execute(statement=stmt)
             await self.session.commit()
-            return True
+            return result.scalars().all()
         except OperationalError:
             await self.session.rollback()
-            return False
+            return None
 
     async def update_product_availability(
         self,
@@ -346,17 +282,235 @@ class ProductRepository(BaseCRUD):
         product: Product | None = await self.get_by_id(id=product_id)
         return product.is_available if product else False
 
-    async def upload_data(
+    async def upload_product_data(
         self,
-        id: UUID,
-    ) -> None:
+        product_id: UUID,
+    ) -> Product | None:
         stmt = (
             Select(self.model)
-            .where(self.model.id == id)
+            .where(self.model.id == product_id)
             .options(
-                selectinload(self.model.tire),
-                selectinload(self.model.disc),
                 selectinload(self.model.engine),
+                selectinload(self.model.tire).joinedload(Tire.brand),
+                selectinload(self.model.disc).joinedload(Disc.brand),
             )
         )
-        await self.session.execute(statement=stmt)
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalar_one_or_none()
+
+    def _prepare_product_filters(
+        self,
+        product_filters: ProductFiltersPublic | ProductFiltersPrivate | None,
+    ) -> list:
+        products_filters_list = []
+        if product_filters:
+
+            if product_filters.article:
+                products_filters_list.append(
+                    self.model.article.ilike(f"{product_filters.article}%")
+                )
+            if product_filters.price_from:
+                products_filters_list.append(
+                    self.model.price >= product_filters.price_from,
+                )
+            if product_filters.price_to:
+                products_filters_list.append(
+                    self.model.price <= product_filters.price_to,
+                )
+            if product_filters.year_from:
+                products_filters_list.append(
+                    self.model.year >= product_filters.year_from,
+                )
+            if product_filters.year_to:
+                products_filters_list.append(
+                    self.model.year <= product_filters.year_to,
+                )
+            if product_filters.type_of_body:
+                products_filters_list.append(
+                    self.model.type_of_body == product_filters.type_of_body,
+                )
+            if product_filters.condition:
+                products_filters_list.append(
+                    self.model.condition == product_filters.condition,
+                )
+            if product_filters.availability:
+                products_filters_list.append(
+                    self.model.availability == product_filters.availability,
+                )
+
+            if isinstance(product_filters, ProductFiltersPublic):
+                if product_filters.car_brand_name:
+                    products_filters_list.append(
+                        CarBrand.name == product_filters.car_brand_name
+                    )
+                if product_filters.car_series_name:
+                    products_filters_list.append(
+                        self.model.car_series.name == product_filters.car_series_name
+                    )
+                if product_filters.car_part_name:
+                    products_filters_list.append(
+                        CarSeries.name == product_filters.car_part_name
+                    )
+                else:
+                    print("BAAAAAAAAAAAAAAAAAAAASEEEEEEEEEEEE")
+                    products_filters_list.append(self.model.is_available == True)
+
+            elif isinstance(product_filters, ProductFiltersPrivate):
+                if product_filters.car_brand_id:
+                    products_filters_list.append(
+                        self.model.car_brand_id == product_filters.car_brand_id,
+                    )
+                if product_filters.car_series_id:
+                    products_filters_list.append(
+                        self.model.car_series_id == product_filters.car_series_id,
+                    )
+                if product_filters.car_part_id:
+                    products_filters_list.append(
+                        self.model.car_part_id == product_filters.car_part_id,
+                    )
+                if product_filters.is_printed is not None:
+                    products_filters_list.append(
+                        self.model.is_printed == product_filters.is_printed,
+                    )
+                if product_filters.is_available is not None:
+                    products_filters_list.append(
+                        self.model.is_available == product_filters.is_available,
+                    )
+                if product_filters.created_from:
+                    products_filters_list.append(
+                        self.model.created_at >= product_filters.created_from,
+                    )
+                if product_filters.created_to:
+                    products_filters_list.append(
+                        self.model.created_at <= product_filters.created_to,
+                    )
+                if product_filters.post_by:
+                    products_filters_list.append(
+                        self.model.post_by == product_filters.post_by,
+                    )
+        return products_filters_list
+
+    def _prepare_tire_filters(
+        self,
+        tire_filters: TireFiltersPublic | TireFiltersPrivate | None,
+    ) -> list:
+        tire_filters_list = []
+        if tire_filters:
+            if tire_filters.diametr:
+                tire_filters_list.append(
+                    Tire.diametr == tire_filters.diametr,
+                )
+            if tire_filters.width:
+                tire_filters_list.append(
+                    Tire.width == tire_filters.width,
+                )
+            if tire_filters.height:
+                tire_filters_list.append(
+                    Tire.height == tire_filters.height,
+                )
+            if tire_filters.index:
+                tire_filters_list.append(
+                    Tire.index == tire_filters.index,
+                )
+            if tire_filters.car_type:
+                tire_filters_list.append(
+                    Tire.car_type == tire_filters.car_type,
+                )
+            if tire_filters.model:
+                tire_filters_list.append(
+                    Tire.model == tire_filters.model,
+                )
+            if tire_filters.season:
+                tire_filters_list.append(
+                    Tire.season == tire_filters.season,
+                )
+            if tire_filters.residue_from:
+                tire_filters_list.append(
+                    Tire.residue >= tire_filters.residue_from,
+                )
+            if tire_filters.residue_to:
+                tire_filters_list.append(
+                    Tire.residue <= tire_filters.residue_to,
+                )
+
+            if isinstance(tire_filters, TireFiltersPublic):
+                if tire_filters.tire_brand_name:
+                    tire_filters_list.append(
+                        TireBrand.name == tire_filters.tire_brand_name,
+                    )
+
+            elif isinstance(tire_filters, TireFiltersPrivate):
+                if tire_filters.tire_brand_id:
+                    tire_filters_list.append(
+                        Tire.tire_brand_id == tire_filters.tire_brand_id,
+                    )
+        return tire_filters_list
+
+    def _prepare_disc_filters(
+        self,
+        disc_filters: DiscFiltersPublic | DiscFiltersPublic | None,
+    ) -> list:
+        disc_filters_list = []
+        if disc_filters:
+            if disc_filters.diametr:
+                disc_filters_list.append(
+                    Disc.diametr == disc_filters.diametr,
+                )
+            if disc_filters.width:
+                disc_filters_list.append(
+                    Disc.width == disc_filters.width,
+                )
+            if disc_filters.ejection:
+                disc_filters_list.append(
+                    Disc.ejection == disc_filters.ejection,
+                )
+            if disc_filters.dia:
+                disc_filters_list.append(
+                    Disc.dia == disc_filters.dia,
+                )
+            if disc_filters.holes:
+                disc_filters_list.append(
+                    Disc.holes == disc_filters.holes,
+                )
+            if disc_filters.pcd:
+                disc_filters_list.append(
+                    Disc.pcd == disc_filters.pcd,
+                )
+            if disc_filters.model:
+                disc_filters_list.append(
+                    Disc.model == disc_filters.model,
+                )
+
+            if isinstance(disc_filters, DiscFiltersPublic):
+                if disc_filters.disc_brand_name:
+                    disc_filters_list.append(
+                        DiscBrand.name == disc_filters.disc_brand_name,
+                    )
+            elif isinstance(disc_filters, DiscFiltersPrivate):
+                if disc_filters.disc_brand_id:
+                    disc_filters_list.append(
+                        Disc.disc_brand_id == disc_filters.disc_brand_id,
+                    )
+        return disc_filters_list
+
+    def _prepare_engine_filters(
+        self,
+        engine_filters: EngineFilters | None,
+    ) -> list:
+        engine_filters_list = []
+        if engine_filters:
+            if engine_filters.gearbox:
+                engine_filters_list.append(Engine.gearbox == engine_filters.gearbox)
+            if engine_filters.fuel:
+                engine_filters_list.append(
+                    Engine.fuel == engine_filters.fuel,
+                )
+            if engine_filters.volume:
+                engine_filters_list.append(
+                    Engine.volume == engine_filters.volume,
+                )
+            if engine_filters.engine_type:
+                engine_filters_list.append(
+                    Engine.engine_type == engine_filters.engine_type,
+                )
+        return engine_filters_list

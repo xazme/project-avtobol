@@ -19,7 +19,7 @@ class CartItemResponseExtended(BaseModel):
     car_series_name: str
     car_part_type: str
     price: float
-    discount: float
+    discount: float | None
 
     class Config:
         from_attributes = True

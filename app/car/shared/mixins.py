@@ -1,8 +1,6 @@
 from uuid import UUID
 from sqlalchemy import Select, Result
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ProductMixin:

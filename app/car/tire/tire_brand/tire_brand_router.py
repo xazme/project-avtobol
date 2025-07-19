@@ -11,7 +11,7 @@ from fastapi import (
 )
 
 from app.core import settings
-from .tire_brand_schemas import TireBrandCreate, TireBrandUpdate, TireBrandResponse
+from .tire_brand_schema import TireBrandCreate, TireBrandUpdate, TireBrandResponse
 from .tire_brand_dependencies import get_tire_brand_handler
 
 if TYPE_CHECKING:

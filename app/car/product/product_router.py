@@ -4,21 +4,26 @@ from fastapi import APIRouter, Body, Depends, status, Query, Path, UploadFile, F
 from app.auth.auth_guard import required_roles
 from app.user.user_enums import UserRoles
 from app.core import settings
-from ..tire.tire import TireFilters
-from ..disc.disc import DiscFilters
+from ..tire.tire import TireFiltersPublic, TireFiltersPrivate
+from ..disc.disc import DiscFiltersPublic, DiscFiltersPrivate
 from ..engine import EngineFilters
 from .product_schema import (
     ProductCreate,
     ProductUpdate,
-    ProductFilters,
-    ProductFiltersExtended,
     ProductResponse,
-    ProductResponseExtend,
+    ProductResponsePublic,
+    ProductResponsePrivate,
+    ProductFiltersPublic,
+    ProductFiltersPrivate,
 )
 from .product_handler import ProductHandler
 from .product_orchestrator import ProductOrchestrator
 from .product_dependencies import get_product_handler, get_product_orchestrator
-from .product_helper import convert_product_data_extend, convert_product_data
+from .product_helper import (
+    convert_product_data_public,
+    convert_product_data_private,
+    convert_product_data_basic,
+)
 
 if TYPE_CHECKING:
     from app.user import User
@@ -34,25 +39,24 @@ router = APIRouter(
     "/private",
     summary="Get filtered products (private)",
     description="Retrieve paginated list of products with filtering options in private mode",
-    response_model=dict[str, int | None | list[ProductResponseExtend]],
+    response_model=dict[str, int | None | list[ProductResponsePrivate]],
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(required_roles([UserRoles.WORKER]))],
 )
 async def get_all_products_private(
     cursor: int | None = Query(None, gt=-1),
     take: int | None = Query(None, gt=0),
-    main_filters: ProductFiltersExtended = Depends(),
-    tire_filters: TireFilters = Depends(),
-    disc_filters: DiscFilters = Depends(),
+    product_filters: ProductFiltersPrivate = Depends(),
+    tire_filters: TireFiltersPrivate = Depends(),
+    disc_filters: DiscFiltersPrivate = Depends(),
     engine_filters: EngineFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> dict[str, int | None | list[ProductResponseExtend]]:
+) -> dict[str, int | None | list[ProductResponsePrivate]]:
     next_cursor, total_count, products = (
-        await product_handler.get_all_products_by_scroll(
-            is_private=True,
+        await product_handler.get_all_products_by_cursor(
             cursor=cursor,
             take=take,
-            main_filters=main_filters,
+            product_filters=product_filters,
             tire_filters=tire_filters,
             disc_filters=disc_filters,
             engine_filters=engine_filters,
@@ -62,7 +66,7 @@ async def get_all_products_private(
     return {
         "next_cursor": next_cursor,
         "total_count": total_count,
-        "items": convert_product_data_extend(product_data=products, is_private=True),
+        "items": convert_product_data_private(product_data=products),
     }
 
 
@@ -70,31 +74,30 @@ async def get_all_products_private(
     "/public",
     summary="Get filtered products. Public mode",
     description="Retrieve paginated list of products with filtering options",
-    response_model=dict[str, Any],
+    response_model=dict[str, int | None | list[ProductResponsePrivate]],
     status_code=status.HTTP_200_OK,
 )
 async def get_all_products_public(
     page: int = Query(1, gt=0),
     page_size: int = Query(10, gt=0, le=10000),
-    main_filters: ProductFilters = Depends(),
-    tire_filters: TireFilters = Depends(),
-    disc_filters: DiscFilters = Depends(),
+    product_filters: ProductFiltersPublic = Depends(),
+    tire_filters: TireFiltersPublic = Depends(),
+    disc_filters: DiscFiltersPublic = Depends(),
     engine_filters: EngineFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> dict[str, Any]:
-    total_count, products = await product_handler.get_all_products(
+) -> dict[int | None | list[ProductResponsePrivate]]:
+    total_count, products = await product_handler.get_all_products_by_page(
         page=page,
         page_size=page_size,
-        main_filters=main_filters,
+        product_filters=product_filters,
         tire_filters=tire_filters,
         disc_filters=disc_filters,
         engine_filters=engine_filters,
-        is_private=False,
     )
 
     return {
         "total_count": total_count,
-        "items": convert_product_data_extend(product_data=products),
+        "items": convert_product_data_public(product_data=products),
     }
 
 
@@ -110,7 +113,7 @@ async def update_products_availability(
     is_available: bool = Body(False),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> dict[str, str]:
-    await product_handler.bulk_change_availability(
+    await product_handler.bulk_update_availability(
         products_id=products_id,
         new_status=is_available,
     )
@@ -131,7 +134,7 @@ async def update_product_printed_status(
     is_printed: bool = Body(True),
     product_handler: "ProductHandler" = Depends(get_product_handler),
 ) -> dict[str, str]:
-    await product_handler.bulk_change_printed_status(
+    await product_handler.bulk_update_printed_status(
         products_id=products_id,
         status=is_printed,
     )
@@ -172,8 +175,8 @@ async def create_product(
         product_data=product_data,
         files=product_pictures,
     )
-    return convert_product_data(
-        product=product,
+    return convert_product_data_basic(
+        product_data=product,
     )
 
 
@@ -208,46 +211,43 @@ async def update_product(
     "/{product_id}",
     summary="Get product by ID",
     description="Retrieve detailed information about a specific product",
-    response_model=ProductResponseExtend,
+    response_model=ProductFiltersPublic,
     status_code=status.HTTP_200_OK,
 )
 async def get_product(
     product_id: UUID = Path(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponseExtend:
+) -> ProductFiltersPublic:
     product = await product_handler.get_product_by_id(product_id=product_id)
-    return convert_product_data_extend(product_data=product)
+    return convert_product_data_public(product_data=product)
 
 
 @router.get(
     "/private/{product_id}",
     summary="Get product by ID. Worker Access",
     description="Retrieve detailed information about a specific product",
-    response_model=ProductResponseExtend,
+    response_model=ProductResponsePrivate,
     dependencies=[Depends(required_roles([UserRoles.WORKER]))],
     status_code=status.HTTP_200_OK,
 )
 async def get_product(
     product_id: UUID = Path(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponseExtend:
+) -> ProductResponsePrivate:
     product = await product_handler.get_product_by_id(product_id=product_id)
-    return convert_product_data_extend(
-        product_data=product,
-        is_private=True,
-    )
+    return convert_product_data_private(product_data=product)
 
 
 @router.get(
     "/article/{article}",
     summary="Get product by article",
     description="Retrieve detailed information about a specific product",
-    response_model=ProductResponseExtend,
+    response_model=ProductFiltersPublic,
     status_code=status.HTTP_200_OK,
 )
 async def get_product_by_article(
     article: str = Path(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductResponseExtend:
+) -> ProductFiltersPublic:
     product = await product_handler.get_product_by_article(article=article)
-    return convert_product_data_extend(product_data=product)
+    return convert_product_data_public(product_data=product)

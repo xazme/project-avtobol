@@ -1,38 +1,62 @@
-from typing import cast
-from contextlib import asynccontextmanager
-from deepl import DeepLClient
+from httpx import AsyncClient, Response, HTTPStatusError, RequestError
+from app.shared import ExceptionRaiser
 
 auth_key = "0383824e-9239-468a-b96e-73aa2a6fe273:fx"
-# translator = deepl.DeepLClient(auth_key=auth_key)
-
-# result = translator.translate_text(
-#     text="Это сообщение было написано с помощью Deepl API. ", target_lang="PL"
-# )
-
-# print(result)
 
 
 class Translator:
     def __init__(
         self,
         auth_key: str,
+        base_url: str,
     ):
         self.auth_key = auth_key
+        self.base_url = base_url
 
-    @asynccontextmanager
-    async def get_client(self):
-        async with DeepLClient(auth_key=self.auth_key) as client:
-            yield cast(DeepLClient, client)
-
-    # TODO
     async def translate_text(
         self,
-        text: dict,
-        target_language: str,
+        text: str,
+        target_lang: str = "ENG",
     ):
-        async with self.get_client() as client:
-            result = client.translate_text(
-                text=text,
-                target_language=target_language,
-            )
-            return result
+        async with AsyncClient(
+            timeout=10,
+            headers=self._get_headers(),
+        ) as client:
+            try:
+                data = {
+                    "text": [text],
+                    "target_lang": target_lang,
+                }
+                response: Response = await client.post(
+                    url=self.base_url,
+                    json=data,
+                )
+
+                translated_text: dict = response.json()
+                data = translated_text.get("translations")
+                return data[0].get("text")
+
+            except HTTPStatusError as exc:
+                ExceptionRaiser.raise_exception(
+                    status_code=exc.response.status_code,
+                    detail="Сервер DeepL вернул ошибку. Попробуйте позже.",
+                )
+
+            except RequestError:
+                ExceptionRaiser.raise_exception(
+                    status_code=503,
+                    detail="Сетевая ошибка. DeepL временно недоступен.",
+                )
+
+            except Exception:
+                ExceptionRaiser.raise_exception(
+                    status_code=500,
+                    detail="Не удалось выполнить перевод. Попробуйте позже.",
+                )
+
+    def _get_headers(self):
+        headers = {
+            "Authorization": f"DeepL-Auth-Key {self.auth_key}",
+            "Content-Type": "application/json",
+        }
+        return headers

@@ -87,20 +87,20 @@ class OrderOrchestrator:
         user_id: UUID,
         data: OrderCreate,
     ) -> "Order":
-        user_cart: "Cart" | None = (
-            await self.cart_handler.repository.get_user_cart_by_user_id(
+        user_cart_id: UUID | None = (
+            await self.cart_handler.repository.get_user_cart_id_by_user_id(
                 user_id=user_id,
             )
         )
 
-        if not user_cart:
+        if not user_cart_id:
             ExceptionRaiser.raise_exception(
                 status_code=404,
                 detail="У пользователя отсутствует корзина. Вероятнее всего он не существует, либо был удалён.",
             )
 
         order_data = data.model_dump(exclude_unset=True)
-        order_data.update({"user_id": user_cart.user_id})
+        order_data.update({"user_id": user_id})
 
         order: "Order" = await self.order_handler.create_obj(data=order_data)
         order_id = order.id
@@ -165,7 +165,7 @@ class OrderOrchestrator:
             new_status=False,
         )
 
-        await self.cart_item_handler.repository.clear_user_cart(cart_id=user_cart.id)
+        await self.cart_item_handler.repository.clear_user_cart(cart_id=user_cart_id)
 
         refreshed_order = await self.order_handler.get_obj_by_id(id=order_id)
         return refreshed_order, denied

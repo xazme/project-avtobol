@@ -43,7 +43,7 @@ class OrderRepository(BaseCRUD):
         take: int | None,
         filters: OrderFilters,
     ) -> tuple[int | None, list]:
-        order_filters = await self.prepare_filters(filters=filters)
+        order_filters = self.prepare_filters(filters=filters)
         cursor = cursor if cursor is not None else 0
         stmt_count: Select = Select(func.count(self.model.id))
         stmt_count_using_filters = Select(func.count(self.model.id)).where(
@@ -73,7 +73,7 @@ class OrderRepository(BaseCRUD):
         take: int | None,
         filters: OrderFiltersCompressed,
     ) -> tuple[int | None, list]:
-        order_filters = await self.prepare_filters(filters=filters)
+        order_filters = self.prepare_filters(filters=filters)
         cursor = cursor if cursor is not None else 0
         stmt_count: Select = Select(func.count(self.model.id))
         stmt_count_using_filters = Select(func.count(self.model.id)).where(
@@ -108,7 +108,7 @@ class OrderRepository(BaseCRUD):
 
         return next_cursor, count_filtered, result.scalars().all()
 
-    async def prepare_filters(
+    def prepare_filters(
         self,
         filters: OrderFilters | OrderFiltersCompressed,
     ) -> list:
