@@ -92,6 +92,24 @@ async def get_car_series_by_brand(
     }
 
 
+@router.get(
+    "/{car_brand_id}/series",
+    summary="Get car series by brand",
+    description="Retrieve all car series associated with a specific car brand",
+    response_model=list[CarSeriesResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_car_series_by_brand(
+    car_brand_id: UUID = Path(...),
+    car_series_handler: "CarSeriesHandler" = Depends(get_car_series_handler),
+) -> list[CarSeriesResponse]:
+
+    car_series = await car_series_handler.get_car_series_with_available_parts(
+        car_brand_id=car_brand_id,
+    )
+    return [CarSeriesResponse.model_validate(car_serie) for car_serie in car_series]
+
+
 @router.put(
     "/{car_series_id}",
     summary="Update car series",

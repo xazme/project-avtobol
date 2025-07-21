@@ -2,6 +2,7 @@ from uuid import UUID
 from sqlalchemy import Select, exists, Result, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.shared import BaseCRUD
+from ..product import Product
 from .car_series_model import CarSeries
 
 
@@ -63,3 +64,18 @@ class CarSeriesRepository(BaseCRUD):
         )
 
         return next_cursor, result.scalars().all()
+
+    async def get_car_series_with_available_parts(
+        self,
+        car_brand_id: UUID,
+    ) -> list["CarSeries"]:
+        stmt = Select(self.model).where(
+            self.model.car_brand_id == car_brand_id,
+            exists().where(
+                Product.car_series_id == self.model.id,
+                Product.is_available == True,
+            ),
+        )
+
+        result: Result = await self.session.execute(stmt)
+        return result.scalars().all()

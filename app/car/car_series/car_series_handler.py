@@ -88,6 +88,14 @@ class CarSeriesHandler(BaseHandler):
             car_brand_id=car_brand_id,
         )
 
+    async def get_car_series_with_available_parts(
+        self,
+        car_brand_id: UUID,
+    ) -> list[CarSeries]:
+        return await self.repository.get_car_series_with_available_parts(
+            car_brand_id=car_brand_id
+        )
+
     async def check_relation(
         self,
         car_brand_id: UUID,
