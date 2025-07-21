@@ -74,7 +74,7 @@ async def get_all_products_private(
     "/public",
     summary="Get filtered products. Public mode",
     description="Retrieve paginated list of products with filtering options",
-    response_model=dict[str, int | None | list[ProductResponsePrivate]],
+    response_model=dict[str, int | None | list[ProductResponsePublic]],
     status_code=status.HTTP_200_OK,
 )
 async def get_all_products_public(
@@ -85,7 +85,7 @@ async def get_all_products_public(
     disc_filters: DiscFiltersPublic = Depends(),
     engine_filters: EngineFilters = Depends(),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> dict[int | None | list[ProductResponsePrivate]]:
+) -> dict[int | None | list[ProductResponsePublic]]:
     total_count, products = await product_handler.get_all_products_by_page(
         page=page,
         page_size=page_size,
@@ -204,20 +204,22 @@ async def update_product(
         removed_photos=removed_photos,
     )
 
-    return ProductResponse.model_validate(product)
+    return convert_product_data_basic(
+        product_data=product,
+    )
 
 
 @router.get(
     "/{product_id}",
     summary="Get product by ID",
     description="Retrieve detailed information about a specific product",
-    response_model=ProductFiltersPublic,
+    response_model=ProductResponsePublic,
     status_code=status.HTTP_200_OK,
 )
 async def get_product(
     product_id: UUID = Path(...),
     product_handler: "ProductHandler" = Depends(get_product_handler),
-) -> ProductFiltersPublic:
+) -> ProductResponsePublic:
     product = await product_handler.get_product_by_id(product_id=product_id)
     return convert_product_data_public(product_data=product)
 

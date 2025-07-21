@@ -103,7 +103,9 @@ async def update_car_brand(
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> CarBrandResponse:
     car_brand = await car_brand_handler.update_car_brand(
-        car_brand_id=car_brand_id, car_brand_data=updated_data, file=file
+        car_brand_id=car_brand_id,
+        car_brand_data=updated_data,
+        file=file,
     )
     return CarBrandResponse.model_validate(car_brand)
 

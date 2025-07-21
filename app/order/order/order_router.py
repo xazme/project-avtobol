@@ -56,12 +56,12 @@ async def create_order(
 )
 async def create_order_manually(
     order_data: OrderCreate = Body(...),
-    product_articles: list[str] = Body(...),
+    product_ids: list[str] = Body(...),
     order_orchestrator: "OrderOrchestrator" = Depends(get_order_orchestrator),
 ) -> OrderManualResponse:
     order, denied_articles = await order_orchestrator.create_order_manually(
         data=order_data,
-        product_articles=product_articles,
+        product_ids=product_ids,
     )
     return OrderManualResponse(denied=denied_articles, order_data=order)
 

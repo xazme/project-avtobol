@@ -75,7 +75,7 @@ class OrderOrchestrator:
         await self.order_item_handler.repository.create_order_items(
             list_of_orders_items=order_items,
         )
-        await self.product_handler.bulk_change_availability(
+        await self.product_handler.bulk_update_availability(
             products_id=product_id_in_order,
             new_status=False,
         )
@@ -160,7 +160,7 @@ class OrderOrchestrator:
             list_of_orders_items=order_items,
         )
 
-        await self.product_handler.bulk_change_availability(
+        await self.product_handler.bulk_update_availability(
             products_id=product_ids_confirmed,
             new_status=False,
         )

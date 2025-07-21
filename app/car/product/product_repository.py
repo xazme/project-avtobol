@@ -65,8 +65,8 @@ class ProductRepository(BaseCRUD):
                 selectinload(self.model.car_brand),
                 selectinload(self.model.car_series),
                 selectinload(self.model.car_part),
-                selectinload(self.model.tire).joinedload(Tire.brand),
                 selectinload(self.model.engine),
+                selectinload(self.model.tire).joinedload(Tire.brand),
                 selectinload(self.model.disc).joinedload(Disc.brand),
             )
             .order_by(self.model.created_at)
@@ -169,8 +169,8 @@ class ProductRepository(BaseCRUD):
                 selectinload(self.model.car_series),
                 selectinload(self.model.car_part),
                 selectinload(self.model.engine),
-                selectinload(self.model.tire).joinedload(TireBrand),
-                selectinload(self.model.disc).joinedload(DiscBrand),
+                selectinload(self.model.tire).joinedload(Tire.brand),
+                selectinload(self.model.disc).joinedload(Disc.brand),
             )
         )
         result: Result = await self.session.execute(statement=stmt)
