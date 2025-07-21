@@ -35,6 +35,7 @@ class ProductRepository(BaseCRUD):
 
             return product
         except IntegrityError as e:
+            print(e)
             await self.session.rollback()
             return None
 

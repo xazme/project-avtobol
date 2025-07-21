@@ -189,7 +189,7 @@ async def create_product(
 )
 async def update_product(
     product_id: UUID = Path(...),
-    removed_photos: list[str] = Body(...),
+    removed_photos: list[str] | None = Body(None),
     new_product_data: ProductUpdate = Body(...),
     new_product_pictures: list[UploadFile] | None = File(None),
     user: "User" = Depends(required_roles(allowed_roles=[UserRoles.WORKER])),
@@ -200,7 +200,7 @@ async def update_product(
         user_id=user.id,
         product_id=product_id,
         product_data=new_product_data,
-        files=new_product_pictures,
+        new_photos=new_product_pictures,
         removed_photos=removed_photos,
     )
 
