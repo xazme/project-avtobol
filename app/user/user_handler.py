@@ -3,7 +3,7 @@ from uuid import UUID
 from pydantic import EmailStr
 from app.shared import BaseHandler, ExceptionRaiser, HashHelper
 from .user_repository import UserRepository
-from .user_schema import UserCreate, UserUpdate
+from .user_schema import UserCreate, UserUpdate, UserFilters
 from .user_model import User
 from .user_enums import UserRoles, UserStatuses
 
@@ -22,13 +22,17 @@ class UserHandler(BaseHandler):
                 "password": HashHelper.hash_password(password=data.password),
                 "role": UserRoles.CLIENT,
                 "status": UserStatuses.ACTIVE,
+                "is_verified": False,
             }
         )
         data = new_data.model_dump(exclude_unset=True)
 
         user = await self.repository.create(data=data)
         if not user:
-            ExceptionRaiser.raise_exception(400, "Failed to create user.")
+            ExceptionRaiser.raise_exception(
+                status_code=400,
+                detail="Неудалось создать пользователя.",
+            )
 
         return user
 
@@ -38,7 +42,10 @@ class UserHandler(BaseHandler):
     ) -> bool:
         result = await self.repository.delete_by_id(id=user_id)
         if not result:
-            ExceptionRaiser.raise_exception(404, f"User {user_id} not found.")
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail=f"Пользователь {user_id} не найден.",
+            )
 
         return result
 
@@ -55,7 +62,8 @@ class UserHandler(BaseHandler):
         updated_user = await self.repository.update_by_id(id=user_id, data=data)
         if not updated_user:
             ExceptionRaiser.raise_exception(
-                409, f"Conflict: Unable to update user {user_id}."
+                status_code=409,
+                detail=f"Неудалось обновить пользователя {user_id}.",
             )
 
         return updated_user
@@ -67,9 +75,24 @@ class UserHandler(BaseHandler):
     ) -> User:
         user = await self.repository.change_user_role(id=user_id, new_role=new_role)
         if not user:
-            ExceptionRaiser.raise_exception(403, "Permission denied for role change.")
+            ExceptionRaiser.raise_exception(
+                status_code=409,
+                detail="Недостаточно прав для смены роли.",
+            )
 
         return user
+
+    async def get_all_users_scroll(
+        self,
+        user_filters: UserFilters,
+        cursor: int | None,
+        take: int | None,
+    ) -> tuple[int | None, list]:
+        return await self.repository.get_all_users_by_scroll(
+            user_filters=user_filters,
+            cursor=cursor,
+            take=take,
+        )
 
     async def get_all_users(
         self,
@@ -82,7 +105,10 @@ class UserHandler(BaseHandler):
     ) -> User:
         user = await self.repository.get_user_by_id(id=user_id)
         if not user:
-            ExceptionRaiser.raise_exception(404, f"User {user_id} not found.")
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail=f"Пользователь с id {user_id} не найден.",
+            )
 
         return user
 
@@ -92,16 +118,19 @@ class UserHandler(BaseHandler):
     ) -> User:
         user = await self.repository.get_user_by_name(name=name)
         if not user:
-            ExceptionRaiser.raise_exception(404, f"User with name {name} not found.")
+            ExceptionRaiser.raise_exception(
+                404, f"Пользователь с именем {name} не найден."
+            )
 
         return user
 
-    async def get_user_by_email(
+    async def get_user_by_phone_number(
         self,
-        email: EmailStr,
+        phone_number: str,
     ) -> User:
-        user = await self.repository.get_user_by_email(email=email)
+        user = await self.repository.get_user_by_phone_number(phone_number=phone_number)
         if not user:
-            ExceptionRaiser.raise_exception(404, f"User with email {email} not found.")
-
+            ExceptionRaiser.raise_exception(
+                404, f"Пользователь с номером телефона {phone_number} не найден."
+            )
         return user

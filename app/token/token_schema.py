@@ -4,12 +4,10 @@ from pydantic import BaseModel
 
 class TokenBase(BaseModel):
     user_id: UUID
-    access_token: str | None = None
-    refresh_token: str | None = None
 
 
 class TokenCreate(TokenBase):
-    pass
+    refresh_token: str | None = None
 
 
 class TokenUpdate(TokenBase):
@@ -17,7 +15,7 @@ class TokenUpdate(TokenBase):
 
 
 class TokenResponse(TokenBase):
-    pass
+    access_token: str | None = None
 
     class Config:
         from_attributes = True

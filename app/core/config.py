@@ -34,11 +34,11 @@ class DataFromEnv:
 class DataBaseConnection:
     """DataBase data"""
 
-    # host: str = DataFromEnv.DB_HOST
-    # port: int = DataFromEnv.DB_PORT
-    # user: str = DataFromEnv.DB_USER
-    # password: str = DataFromEnv.DB_PASS
-    # name: str = DataFromEnv.DB_NAME
+    host: str = DataFromEnv.DB_HOST
+    port: int = DataFromEnv.DB_PORT
+    user: str = DataFromEnv.DB_USER
+    password: str = DataFromEnv.DB_PASS
+    name: str = DataFromEnv.DB_NAME
 
     db_url = DataFromEnv.DB_URL
 
@@ -52,9 +52,8 @@ class DataBaseConnection:
 
     @classmethod
     def get_db_url(cls):
-        # return f"postgresql+asyncpg://{cls.user}:{cls.password}@{cls.host}:{cls.port}/{cls.name}"
-        print(cls.db_url)
-        return cls.db_url
+        return f"postgresql+asyncpg://{cls.user}:{cls.password}@{cls.host}:{cls.port}/{cls.name}"
+        # return cls.db_url
 
 
 class MinIO(BaseModel):
@@ -87,8 +86,9 @@ class Auth(BaseModel):
 
     access_token_url: str = "/auth/sign-in"
     algorithm: str = DataFromEnv.ALGORITHM
-    expire_minutes: int = 60
+    expire_minutes: int = 720
     expire_days: int = 7
+    refresh_token_key: str = "refresh_token"
 
     @property
     def access_private_key(self):
@@ -122,9 +122,15 @@ class ApiPrefix(BaseModel):
     user_prefix: str = "/user"
     car_brand_prefix: str = "/carbrand"
     car_series_prefix: str = "/carseries"
-    product: str = "/carpart"
-    car_part_catalog_prefix: str = "/carpartcatalog"
+    product: str = "/product"
+    car_part_prefix: str = "/carpart"
     token_prefix: str = "/token"
+    disc_brand_prefix: str = "/discbrand"
+    tire_brand_prefix: str = "/tirebrand"
+    storage_prefix: str = "/storage"
+    cart_prefix: str = "/cart"
+    order_prefix: str = "/order"
+    auth_prefix: str = "/auth"
     # etc
 
 

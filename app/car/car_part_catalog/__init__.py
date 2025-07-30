@@ -1,4 +1,0 @@
-from .car_part_catalog_dependencies import get_car_part_catalog_handler
-from .car_part_catalog_model import CarPartCatalog
-from .car_part_catalog_handler import CarPartCatalogHandler
-from .car_part_catalog_router import router as car_part_catalog_router

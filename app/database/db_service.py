@@ -17,6 +17,7 @@ class DBService:
         echo=True,
         pool_size=10,
         max_overflow=20,
+        pool_recycle=300,
     )
 
     session = async_sessionmaker(
@@ -43,6 +44,9 @@ class DBService:
         """Create Tables"""
 
         async with cls.engine.begin() as con:
+
+            print(Base.metadata.tables.keys())
+
             await con.run_sync(Base.metadata.create_all)
 
     @classmethod

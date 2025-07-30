@@ -27,58 +27,21 @@ class TokenHandler(BaseHandler):
         if not token:
             ExceptionRaiser.raise_exception(
                 status_code=400,
-                detail="Cannot create token.",
+                detail="Мы не можем создать токен.",
             )
-
         return token
 
-    async def delete_tokens_by_user_id(
+    async def delete_refresh_token_by_user_id(
         self,
         user_id: UUID,
     ) -> bool:
-        result = await self.repository.delete_tokens_by_user_id(user_id=user_id)
-        if not result:
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="Token not found.",
-            )
-
+        result = await self.repository.delete_refresh_token_by_user_id(user_id=user_id)
         return result
-
-    async def update_access_token(
-        self,
-        user_id: UUID,
-        data: TokenUpdate,
-    ) -> Optional[Token]:
-        token = await self.repository.update_user_access_token(
-            user_id=user_id,
-            data=data.model_dump(exclude_unset=True),
-        )
-        if not token:
-            ExceptionRaiser.raise_exception(
-                status_code=409,
-                detail="Error while updating token.",
-            )
-
-        return token
 
     async def get_all_tokens(
         self,
     ) -> list[Token]:
         return await self.get_all_obj()
-
-    async def get_access_token(
-        self,
-        token: str,
-    ) -> Optional[Token]:
-        token_obj = await self.repository.get_access_token_by_token(token=token)
-        if not token_obj:
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="Access token not found.",
-            )
-
-        return token_obj
 
     async def get_refresh_token(
         self,
@@ -88,7 +51,6 @@ class TokenHandler(BaseHandler):
         if not token_obj:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="Refresh token not found.",
+                detail="Рефреш токен на найден.",
             )
-
         return token_obj

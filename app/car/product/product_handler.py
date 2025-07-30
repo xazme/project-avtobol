@@ -1,146 +1,148 @@
 from typing import Optional
 from uuid import UUID
-from fastapi import UploadFile
 from app.shared import BaseHandler, ExceptionRaiser
-from app.storage import StorageService
 from .product_repository import ProductRepository
-from .product_schema import ProductCreate, ProductUpdate, ProductFilters
+from .product_schema import (
+    ProductFiltersPublic,
+    ProductFiltersPrivate,
+)
 from .product_model import Product
+from ..tire.tire import TireFiltersPublic, TireFiltersPrivate
+from ..disc.disc import DiscFiltersPublic, DiscFiltersPrivate
+from ..engine import EngineFilters
 
 
 class ProductHandler(BaseHandler):
 
-    def __init__(self, repository: ProductRepository, storage: StorageService):
+    def __init__(
+        self,
+        repository: ProductRepository,
+    ):
         super().__init__(repository)
-        self.storage: StorageService = storage
         self.repository: ProductRepository = repository
 
-    async def create_product(
+    async def get_product_by_id(
         self,
-        data: ProductCreate,
-        files: list[UploadFile],
+        product_id: UUID,
     ) -> Optional[Product]:
-        allowed_formats = [
-            "image/jpeg",
-            "application/octet-stream",
-            "image/png",
-            "image/webp",
-        ]
-        for file in files:
-            if file.content_type not in allowed_formats:
-                ExceptionRaiser.raise_exception(
-                    status_code=400,
-                    detail=f"Wrong file extension. Allowed formats - {allowed_formats}. Get {file.content_type}",
-                )
-        file_contents: list[bytes] = [await file.read() for file in files]
-        filenames: list[str] = await self.storage.create_files(
-            list_of_files=file_contents
-        )
-        product: dict = data.model_dump(exclude_unset=True)
-        product.update({"pictures": filenames})
-        new_product: Product | None = await self.repository.create(data=product)
-
-        if not new_product:
-            await self.storage.delete_files(list_of_files=filenames)
-            ExceptionRaiser.raise_exception(
-                status_code=404,
-                detail="We can't create this product.",
-            )
-        return new_product
-
-    async def update_product(
-        self,
-        product_id: UUID,
-        new_data: ProductUpdate,
-        files: Optional[list[UploadFile]],
-    ) -> Optional[Product]:
-        old_product: dict = await self.get_product_by_id(product_id)
-        file_contents: list[bytes] = []
-        filenames: list[str] = old_product["pictures"]
-
-        if files:
-            allowed_formats = [
-                "image/jpeg",
-                "application/octet-stream",
-                "image/png",
-                "image/webp",
-            ]
-            for file in files:
-                if file.content_type not in allowed_formats:
-                    ExceptionRaiser.raise_exception(
-                        status_code=400,
-                        detail=f"Wrong file extension. Allowed formats - {allowed_formats}. Get {file.content_type}",
-                    )
-            for file in files:
-                file_contents.append(await file.read())
-            filenames = await self.storage.create_files(list_of_files=file_contents)
-
-        product: dict = new_data.model_dump(exclude_unset=True)
-
-        if filenames:
-            product.update({"pictures": filenames})
-
-        upd_product: Product | None = await self.repository.update_by_id(
-            id=product_id, data=product
-        )
-        if not upd_product:
-            ExceptionRaiser.raise_exception(
-                status_code=500,
-                detail="We can't update this product.",
-            )
-        if files:
-            await self.storage.delete_files(list_of_files=old_product["pictures"])
-        return upd_product
-
-    async def change_availability(
-        self,
-        product_id: UUID,
-        new_status: bool,
-    ) -> dict:
-        product: Product | None = await self.repository.change_availibility(
-            product_id=product_id,
-            new_available_status=new_status,
-        )
-        if not product:
-            ExceptionRaiser.raise_exception(
-                status_code=500, detail="Product update failed."
-            )
-        return product
-
-    async def delete_product(
-        self,
-        product_id: UUID,
-    ) -> bool:
-        return await self.delete_obj(id=product_id)
-
-    async def get_product_by_id(self, product_id: UUID) -> Optional[Product]:
         product: Product | None = await self.repository.get_product_by_id(id=product_id)
         if not product:
             ExceptionRaiser.raise_exception(
                 status_code=404,
-                detail="Product not found.",
+                detail=f"Продукт {product_id} не найден.",
             )
         return product
 
-    async def get_all_products(
+    async def get_product_by_article(
+        self,
+        article: str,
+    ) -> Optional[Product]:
+        product: Product | None = await self.repository.get_product_by_article(
+            article=article,
+        )
+        if not product:
+            ExceptionRaiser.raise_exception(
+                status_code=404,
+                detail=f"Продукт {article} не найден.",
+            )
+        return product
+
+    async def get_all_products_by_page(
         self,
         page: int,
         page_size: int,
-        filters: ProductFilters,
-    ) -> list[Product]:
-        return await self.repository.get_all_products(
+        product_filters: ProductFiltersPublic | ProductFiltersPrivate | None,
+        tire_filters: TireFiltersPublic | TireFiltersPrivate | None,
+        disc_filters: DiscFiltersPublic | DiscFiltersPrivate | None,
+        engine_filters: EngineFilters | None,
+    ) -> tuple[int, list[Product]]:
+        return await self.repository.get_all_products_by_page(
             page=page,
             page_size=page_size,
-            filters=filters,
+            product_filters=product_filters,
+            tire_filters=tire_filters,
+            disc_filters=disc_filters,
+            engine_filters=engine_filters,
+        )
+
+    async def get_all_products_by_cursor(
+        self,
+        cursor: int | None,
+        take: int | None,
+        product_filters: ProductFiltersPublic | ProductFiltersPrivate | None,
+        tire_filters: TireFiltersPublic | TireFiltersPrivate | None,
+        disc_filters: DiscFiltersPublic | DiscFiltersPrivate | None,
+        engine_filters: EngineFilters | None,
+    ) -> tuple[int, int, list[Product]]:
+        return await self.repository.get_all_products_by_cursor(
+            cursor=cursor,
+            take=take,
+            product_filters=product_filters,
+            tire_filters=tire_filters,
+            disc_filters=disc_filters,
+            engine_filters=engine_filters,
         )
 
     async def check_availability(
         self,
         product_id: UUID,
     ) -> bool:
-        result: bool = await self.repository.check_availability(product_id=product_id)
-        if not result:
+        is_available: bool = await self.repository.check_availability(
+            product_id=product_id
+        )
+        if not is_available:
             ExceptionRaiser.raise_exception(
-                status_code=400, detail="Product is not available for sale."
+                status_code=400,
+                detail="Продукт недоступен для продажи.",
             )
-        return result
+        return is_available
+
+    async def bulk_update_availability(
+        self,
+        products_id: list[UUID],
+        new_status: bool,
+    ) -> list[Product]:
+        products: list[Product] | None = await self.repository.bulk_update_availibility(
+            products_id=products_id,
+            new_availables_status=new_status,
+        )
+        if not products:
+            ExceptionRaiser.raise_exception(
+                status_code=422,
+                detail="Не удалось обновить доступность продуктов.",
+            )
+        return products
+
+    async def bulk_update_printed_status(
+        self,
+        products_id: list[UUID],
+        status: bool,
+    ) -> list[Product]:
+        products: list[Product] | None = (
+            await self.repository.bulk_update_printed_status(
+                products_id=products_id,
+                status=status,
+            )
+        )
+        if not products:
+            ExceptionRaiser.raise_exception(
+                status_code=422,
+                detail="Не удалось обновить доступность продуктов.",
+            )
+        return products
+
+    async def update_product_availability(
+        self,
+        product_id: UUID,
+        status: bool,
+    ) -> Product:
+        product: Product | None = await self.repository.update_product_availability(
+            product_id=product_id,
+            status=status,
+        )
+        if not product:
+            ExceptionRaiser.raise_exception(
+                status_code=409,
+                detail="Не удалось обновить доступность продукта.",
+            )
+        return product

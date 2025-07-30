@@ -1,6 +1,6 @@
 from uuid import UUID
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Select, Result
+from sqlalchemy import Select, Result, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class BaseCRUD:
     """CRUD GENERATOR"""
 
-    def __init__(self, session: AsyncSession, model: type[DeclarativeBase]):
+    def __init__(self, session: AsyncSession, model: DeclarativeBase):
         self.session: AsyncSession = session
-        self.model: type[DeclarativeBase] = model
+        self.model: DeclarativeBase = model
 
     async def create(
         self,
@@ -22,7 +22,7 @@ class BaseCRUD:
             await self.session.commit()
             await self.session.refresh(obj)
             return obj
-        except IntegrityError:
+        except IntegrityError as e:
             await self.session.rollback()
             return None
 
@@ -32,7 +32,6 @@ class BaseCRUD:
         data: dict,
     ) -> DeclarativeBase | None:
         obj: DeclarativeBase | None = await self.get_by_id(id=id)
-
         if obj is None:
             return None
         try:
@@ -42,7 +41,7 @@ class BaseCRUD:
             await self.session.commit()
             await self.session.refresh(obj)
             return obj
-        except IntegrityError:
+        except IntegrityError as e:
             await self.session.rollback()
             return None
 
@@ -81,3 +80,42 @@ class BaseCRUD:
         stmt: Select = Select(self.model).order_by(self.model.id)
         result: Result = await self.session.execute(statement=stmt)
         return result.scalars().all()
+
+    async def get_all_pagination(
+        self,
+        query: str,
+        page: int,
+        page_size: int,
+    ) -> list[DeclarativeBase]:
+        stmt: Select = (
+            Select(self.model)
+            .where(self.model.name.like(f"{query}%"))
+            .limit(limit=page_size)
+            .offset((page - 1) * page_size)
+        )
+        result: Result = await self.session.execute(statement=stmt)
+        return result.scalars().all()
+
+    async def get_all_by_scroll(
+        self,
+        query: str,
+        cursor: int | None,
+        take: int | None,
+    ) -> tuple[int | None, list]:
+        cursor = cursor if cursor is not None else 0
+        stmt_count: Select = Select(func.count(self.model.id))
+        stmt: Select = (
+            Select(self.model).offset(cursor).where(self.model.name.like(f"{query}%"))
+        )
+        if take is not None:
+            stmt = stmt.limit(take)
+
+        result: Result = await self.session.execute(statement=stmt)
+        result_count: Result = await self.session.execute(statement=stmt_count)
+        count = result_count.scalar()
+
+        next_cursor = (
+            cursor + take if take is not None and (cursor + take) <= count else None
+        )
+
+        return next_cursor, result.scalars().all()

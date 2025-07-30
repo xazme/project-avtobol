@@ -19,7 +19,8 @@ class CarSeriesHandler(BaseHandler):
         series: CarSeries | None = await self.create_obj(data=data)
         if not series:
             ExceptionRaiser.raise_exception(
-                status_code=400, detail="Failed to create car series."
+                status_code=400,
+                detail="Неудалось создать серию.",
             )
         return series
 
@@ -31,7 +32,8 @@ class CarSeriesHandler(BaseHandler):
         series: CarSeries | None = await self.update_obj(id=car_series_id, data=data)
         if not series:
             ExceptionRaiser.raise_exception(
-                status_code=404, detail="Car series not found."
+                status_code=404,
+                detail="Серия не найдена.",
             )
         return series
 
@@ -42,7 +44,8 @@ class CarSeriesHandler(BaseHandler):
         result: bool = await self.delete_obj(id=car_series_id)
         if not result:
             ExceptionRaiser.raise_exception(
-                status_code=404, detail="Failed to delete car series."
+                status_code=404,
+                detail="Неудалось удалить серию.",
             )
         return result
 
@@ -53,7 +56,8 @@ class CarSeriesHandler(BaseHandler):
         series: CarSeries | None = await self.get_obj_by_id(id=series_id)
         if not series:
             ExceptionRaiser.raise_exception(
-                status_code=404, detail="Car series not found."
+                status_code=404,
+                detail="Серия не найдена.",
             )
         return series
 
@@ -70,6 +74,28 @@ class CarSeriesHandler(BaseHandler):
             car_brand_id=car_brand_id
         )
 
+    async def get_all_series_by_scroll(
+        self,
+        query: str,
+        cursor: int | None,
+        take: int | None,
+        car_brand_id: UUID,
+    ):
+        return await self.repository.get_all_series_by_scroll_and_brand_id(
+            query=query,
+            cursor=cursor,
+            take=take,
+            car_brand_id=car_brand_id,
+        )
+
+    async def get_car_series_with_available_parts(
+        self,
+        car_brand_id: UUID,
+    ) -> list[CarSeries]:
+        return await self.repository.get_car_series_with_available_parts(
+            car_brand_id=car_brand_id
+        )
+
     async def check_relation(
         self,
         car_brand_id: UUID,
@@ -81,6 +107,7 @@ class CarSeriesHandler(BaseHandler):
         )
         if not result:
             ExceptionRaiser.raise_exception(
-                status_code=404, detail="Series does not belong to brand."
+                status_code=404,
+                detail="Серия не принадлежит бренду.",
             )
         return result

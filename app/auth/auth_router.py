@@ -1,20 +1,23 @@
 from typing import TYPE_CHECKING
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Body, Depends, Response, status
 from app.user import UserCreate
 from app.token import TokenResponse, create_token_response, TokenMode
+from app.core import settings
+from app.user.user_enums import UserRoles
 from .auth_schema import AuthCredentials
 from .auth_dependencies import (
     AuthHandler,
     get_auth_handler,
     get_user_from_refresh_token,
 )
+from .auth_guard import required_roles
 
 if TYPE_CHECKING:
     from app.user import User
 
 router = APIRouter(
+    prefix=settings.api.auth_prefix,
     tags=["Authentication"],
-    prefix="/auth",
 )
 
 
@@ -27,20 +30,20 @@ router = APIRouter(
 )
 async def sign_in(
     response: Response,
-    credentials: AuthCredentials,
+    credentials: AuthCredentials = Body(...),
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
-    user = await auth_handler.sign_in(
-        email=credentials.email,
+    user_id = await auth_handler.sign_in(
+        phone_number=credentials.phone_number,
         password=credentials.password,
     )
     token = await create_token_response(
         mode=TokenMode.SIGNIN,
-        user=user,
+        user_id=user_id,
         token_handler=auth_handler.token_handler,
         response=response,
     )
-    return TokenResponse.model_validate(token)
+    return token
 
 
 @router.post(
@@ -52,17 +55,18 @@ async def sign_in(
 )
 async def register(
     response: Response,
-    user_data: UserCreate,
+    user_data: UserCreate = Body(...),
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
-    user = await auth_handler.register(user_data=user_data)
+    registered_user_id = await auth_handler.register(user_data=user_data)
+
     token = await create_token_response(
         mode=TokenMode.REGISTER,
-        user=user,
+        user_id=registered_user_id,
         token_handler=auth_handler.token_handler,
         response=response,
     )
-    return TokenResponse.model_validate(token)
+    return token
 
 
 @router.post(
@@ -71,18 +75,36 @@ async def register(
     description="Generate new access token using refresh token",
     response_model=TokenResponse,
     status_code=status.HTTP_200_OK,
-    response_model_exclude_none=True,
 )
 async def refresh_access_token(
     response: Response,
     user: "User" = Depends(get_user_from_refresh_token),
     auth_handler: AuthHandler = Depends(get_auth_handler),
 ) -> TokenResponse:
+    user_id = user.id
     token = await create_token_response(
         mode=TokenMode.REFRESH,
-        user=user,
+        user_id=user_id,
         token_handler=auth_handler.token_handler,
         response=response,
     )
-    token.refresh_token = None
-    return TokenResponse.model_validate(token)
+    return token
+
+
+@router.delete(
+    "/sign-out",
+    summary="Sigh out",
+    description="Delete user tokens from database,cookies",
+    response_model=None,
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def sign_out(
+    response: Response,
+    user: "User" = Depends(
+        required_roles(
+            allowed_roles=[UserRoles.ADMIN, UserRoles.CLIENT, UserRoles.WORKER]
+        )
+    ),
+    auth_handler: AuthHandler = Depends(get_auth_handler),
+):
+    await auth_handler.sign_out(user_id=user.id, response=response)

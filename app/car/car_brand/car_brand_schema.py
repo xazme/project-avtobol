@@ -1,14 +1,21 @@
+import json
 from uuid import UUID
-from fastapi import Form
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class CarBrandBase(BaseModel):
-    name: str = Form(...)
+    name: str
 
 
 class CarBrandCreate(CarBrandBase):
     pass
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value
 
 
 class CarBrandUpdate(CarBrandBase):

@@ -36,7 +36,6 @@ class CarSeries(Base):
         single_parent=True,
     )
 
-    product: Mapped[List["Product"]] = relationship(
+    products: Mapped[List["Product"]] = relationship(
         back_populates="car_series",
-        cascade="all,delete-orphan",
     )

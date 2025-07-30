@@ -1,42 +1,88 @@
-from contextlib import asynccontextmanager
 import uvicorn
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.user import user_router
-from app.auth import auth_router
-from app.token import token_router
-from app.car import car_router
-from app.cart import cart_router
-from app.order import order_router
+from fastapi.middleware.cors import CORSMiddleware
+
+# client
+from app.auth.auth_router import router as auth_router
+from app.token.token_router import router as token_router
+from app.user.user_router import router as user_router
+from app.cart.cart_items.cart_item_router import router as cart_router
+from app.order.order.order_router import router as order_router
+
+# product
+from app.car.car_brand.car_brand_router import router as car_brand_router
+from app.car.car_series.car_series_router import router as car_series_router
+from app.car.car_part.car_part_router import router as car_part_router
+from app.car.tire.tire_brand.tire_brand_router import router as tire_brand_router
+from app.car.disc.disc_brand.disc_brand_router import router as disc_brand_router
+from app.car.product.product_router import router as product_router
+
+# storage
+from app.storage.storage_router import router as s3_router
+
 from app.core.config import settings
 from app.database.db_service import DBService
-from app.storage.storage_service_dependencies import storage_service
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(fastapi_app: FastAPI):
     await DBService.create_tables()
-    # await storage_service.create_bucket()
+    # await broker.connect()
+
     yield
-    # await DBService.drop_tables()  # TODO turn off
-    # await DBService.dispose()
+
+    await DBService.dispose()
+    # await broker.close()
+    # await DBService.drop_tables()
 
 
-app = FastAPI(
-    lifespan=lifespan,
+fastapi_app = FastAPI(lifespan=lifespan)
+
+
+# faststream_app = FastStream(broker=broker)
+
+# client routers
+fastapi_app.include_router(auth_router)
+fastapi_app.include_router(token_router)
+fastapi_app.include_router(user_router)
+fastapi_app.include_router(cart_router)
+fastapi_app.include_router(order_router)
+
+# product routers
+fastapi_app.include_router(car_brand_router)
+fastapi_app.include_router(car_series_router)
+fastapi_app.include_router(car_part_router)
+fastapi_app.include_router(tire_brand_router)
+fastapi_app.include_router(disc_brand_router)
+fastapi_app.include_router(product_router)
+
+# storage router
+fastapi_app.include_router(s3_router)
+
+fastapi_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200", "http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["Authorization", "Content-Type"],
+    allow_credentials=True,
 )
-app.include_router(auth_router)
-app.include_router(car_router)
-app.include_router(user_router)
-app.include_router(cart_router)
-app.include_router(order_router)
-app.include_router(token_router)
 
-if __name__ == "__main__":
+
+def run_fastapi():
     uvicorn.run(
-        "main:app",
+        "main:fastapi_app",
         host=settings.run.host,
         port=settings.run.port,
         reload=True,
     )
+
+
+def main():
+    run_fastapi()
+
+
+if __name__ == "__main__":
+    main()
 
 # Get-ChildItem -Path . -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force

@@ -1,6 +1,15 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
-from fastapi import APIRouter, Depends, status, UploadFile, File, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    Query,
+    Path,
+    Body,
+    status,
+    File,
+    UploadFile,
+)
 from app.core import settings
 from .car_brand_schema import (
     CarBrandCreate,
@@ -8,6 +17,7 @@ from .car_brand_schema import (
     CarBrandResponse,
 )
 from .car_brand_dependencies import get_car_brand_handler
+from .car_brand_model import CarBrand
 
 if TYPE_CHECKING:
     from .car_brand_handler import CarBrandHandler
@@ -26,20 +36,16 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_car_brand(
-    brand_data: CarBrandCreate = Depends(),
-    brand_logo: UploadFile = File(
-        ...,
-        description="Brand logo image file",
-        media_type="image/jpeg,image/png",
-    ),
+    file: UploadFile = File(...),
+    car_brand_data: CarBrandCreate = Body(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> CarBrandResponse:
 
-    brand = await car_brand_handler.create_car_brand(
-        file=brand_logo,
-        data=brand_data,
+    car_brand: "CarBrand" = await car_brand_handler.create_car_brand(
+        file=file,
+        car_brand_data=car_brand_data,
     )
-    return CarBrandResponse.model_validate(brand)
+    return CarBrandResponse.model_validate(car_brand)
 
 
 @router.get(
@@ -50,7 +56,7 @@ async def create_car_brand(
     status_code=status.HTTP_200_OK,
 )
 async def get_car_brand(
-    car_brand_id: UUID,
+    car_brand_id: UUID = Path(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> CarBrandResponse:
     brand = await car_brand_handler.get_car_brand_by_id(car_brand_id=car_brand_id)
@@ -61,14 +67,26 @@ async def get_car_brand(
     "/",
     summary="Get all car brands",
     description="Retrieve a complete list of all car brands",
-    response_model=List[CarBrandResponse],
+    response_model=dict[str, int | None | list[CarBrandResponse]],
     status_code=status.HTTP_200_OK,
 )
 async def get_all_car_brands(
+    search: str = Query(""),
+    cursor: int | None = Query(None, gt=-1),
+    take: int | None = Query(None, gt=0),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-) -> List[CarBrandResponse]:
-    car_brands = await car_brand_handler.get_all_brands()
-    return [CarBrandResponse.model_validate(brand) for brand in car_brands]
+) -> dict[str, int | None | list[CarBrandResponse]]:
+    next_cursor, car_brands = await car_brand_handler.get_all_obj_by_scroll(
+        query=search,
+        cursor=cursor,
+        take=take,
+    )
+    return {
+        "next_cursor": next_cursor,
+        "items": (
+            [CarBrandResponse.model_validate(car_brand) for car_brand in car_brands]
+        ),
+    }
 
 
 @router.put(
@@ -79,20 +97,17 @@ async def get_all_car_brands(
     status_code=status.HTTP_200_OK,
 )
 async def update_car_brand(
-    car_brand_id: UUID,
-    updated_data: CarBrandUpdate = Depends(),
-    brand_logo: UploadFile | None = File(
-        description="New brand logo (optional)",
-        media_type="image/jpeg,image/png",
-    ),
+    car_brand_id: UUID = Path(...),
+    file: UploadFile | None = File(None),
+    updated_data: CarBrandUpdate = Body(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
 ) -> CarBrandResponse:
-    updated_brand = await car_brand_handler.update_car_brand(
+    car_brand = await car_brand_handler.update_car_brand(
         car_brand_id=car_brand_id,
-        file=brand_logo,
-        data=updated_data,
+        car_brand_data=updated_data,
+        file=file,
     )
-    return CarBrandResponse.model_validate(updated_brand)
+    return CarBrandResponse.model_validate(car_brand)
 
 
 @router.delete(
@@ -100,10 +115,10 @@ async def update_car_brand(
     summary="Delete car brand",
     description="Remove a car brand from the system",
     response_model=None,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_car_brand(
-    car_brand_id: UUID,
+    car_brand_id: UUID = Path(...),
     car_brand_handler: "CarBrandHandler" = Depends(get_car_brand_handler),
-) -> dict[str, str]:
+) -> None:
     await car_brand_handler.delete_car_brand(car_brand_id=car_brand_id)

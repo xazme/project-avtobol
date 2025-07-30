@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING
-from fastapi import Depends, Response
+from uuid import UUID
+from fastapi import Depends, Response, Request
 from fastapi.security import (
     OAuth2PasswordBearer,
     HTTPBearer,
@@ -14,10 +14,8 @@ from .token_manager import TokenManager
 from .token_handler import TokenHandler
 from .token_model import Token
 from .token_enums import TokenMode
-from .token_schema import TokenCreate
+from .token_schema import TokenCreate, TokenResponse
 
-if TYPE_CHECKING:
-    from app.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.auth.access_token_url)
 http_bearer = HTTPBearer(auto_error=False)
@@ -51,70 +49,64 @@ def get_access_token(
     return token
 
 
-def get_refresh_token(
-    token: HTTPAuthorizationCredentials = Depends(http_bearer),
-) -> HTTPAuthorizationCredentials:
-    return token
+def get_refresh_token(request: Request) -> str:
+    return request.cookies.get(str(settings.auth.refresh_token_key))
 
 
 async def create_token_response(
     mode: TokenMode,
-    user: "User",
+    user_id: UUID,
     token_handler: "TokenHandler",
     response: Response,
 ):
     user_data = {
-        "id": str(user.id),
-        "username": user.name,
+        "id": str(user_id),
     }
     access_token = token_handler.manager.generate_access_token(data=user_data)
     refresh_token = token_handler.manager.generate_refresh_token(data=user_data)
+    refresh_token_key = settings.auth.refresh_token_key
 
     token_data = TokenCreate(
-        user_id=user.id,
-        access_token=access_token,
+        user_id=user_id,
         refresh_token=refresh_token,
     )
-
     if mode == TokenMode.REFRESH:
-        token_data_for_refresh = TokenCreate(
-            user_id=user.id,
+        return TokenResponse(
+            user_id=user_id,
             access_token=access_token,
-        )
-        token = await token_handler.update_access_token(
-            user_id=user.id,
-            data=token_data_for_refresh,
         )
 
     elif mode == TokenMode.SIGNIN:
+        await token_handler.delete_refresh_token_by_user_id(user_id=user_id)
+        await token_handler.create_token(token_data)
 
         response.set_cookie(
-            key=refresh_token,
+            key=refresh_token_key,
             value=refresh_token,
             httponly=True,
             secure=True,
             samesite="lax",
+            max_age=604800,
         )
-        await token_handler.delete_tokens_by_user_id(user_id=user.id)
-        token = await token_handler.create_token(token_data)
+
+        return TokenResponse(
+            user_id=user_id,
+            access_token=access_token,
+        )
 
     elif mode == TokenMode.REGISTER:
+        await token_handler.delete_refresh_token_by_user_id(user_id=user_id)
+        await token_handler.create_token(data=token_data)
+
         response.set_cookie(
-            key=refresh_token,
+            key=refresh_token_key,
             value=refresh_token,
             httponly=True,
             secure=True,
             samesite="lax",
+            max_age=604800,
         )
-        token: "Token" = await token_handler.create_token(data=token_data)
-
-    if not token:
-        ExceptionRaiser.raise_exception(
-            status_code=500,
-            detail="Token error",
+        return TokenResponse(
+            user_id=user_id,
+            access_token=access_token,
         )
-    return token
-
-
-# def get_refresh_token(request: Request) -> str:
-#     return request.cookies.get(str(Tokens.REFRESH))

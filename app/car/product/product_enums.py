@@ -1,27 +1,13 @@
 from enum import Enum
 
 
-class GearboxType(str, Enum):
-    MANUAL = "manual"
-    AUTOMATIC = "automatic"
-    ROBOTIC = "robotic"
-    VARIATOR = "variator"
-
-
-class FuelType(str, Enum):
-    GASOLINE = "gasoline"
-    DIESEL = "diesel"
-    HYBRID = "hybrid"
-    ELECTRIC = "electric"
-
-
 class BodyType(str, Enum):
     SEDAN = "sedan"
     HATCHBACK = "hatchback"
     COUPE = "coupe"
-    UNIVERSAL = "universal"
+    UNIVERSAL = "wagon"
     MINIVAN = "minivan"
-    JEEP = "jeep"
+    JEEP = "SUV"
     MINIBUS = "minibus"
     CONVERTIBLE = "convertible"
     VAN = "van"
@@ -33,3 +19,13 @@ class BodyType(str, Enum):
 class ProductCondition(str, Enum):
     NEW = "new"
     USED = "used"
+
+
+class Availability(str, Enum):
+    IN_STOCK = "in stock"
+    CUSTOM = "custom order"
+
+
+class Currency(str, Enum):
+    PL = "ZLOTY"
+    USD = "USD"
