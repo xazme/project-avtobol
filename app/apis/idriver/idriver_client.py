@@ -1,6 +1,5 @@
 import re
 import base64
-import asyncio
 from uuid import uuid4
 from asyncio import Queue
 from httpx import AsyncClient, Response
@@ -104,8 +103,6 @@ class IDriverClient:
                 )
             await self.__async_worker(queue=queue)
 
-    # https://idriver.by/ajax/killer.php?params=1072376310|aphotos|no|&div=Element1072376310&url=https:/idriver.by/mylist/addpart?postID=94496924
-
     async def get_my_list(self):
         async with AsyncClient(
             headers=headers,
@@ -181,18 +178,3 @@ class IDriverClient:
             }
             ready_pictures.append(data_pic)
         return ready_pictures
-
-
-async def main():
-    what = IDriverClient(
-        user_phone="375293703729",
-        user_password="freetouse",
-        club_id="4346",
-    )
-
-    with open("image.png", "rb") as file:
-        file_bytes = file.read()
-        await what.upload_file(post_id="94507030", files=[file_bytes])
-
-
-asyncio.run(main=main())

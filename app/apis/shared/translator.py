@@ -1,8 +1,6 @@
 from httpx import AsyncClient, Response, HTTPStatusError, RequestError
 from app.shared import ExceptionRaiser
 
-auth_key = "0383824e-9239-468a-b96e-73aa2a6fe273:fx"
-
 
 class Translator:
     def __init__(
